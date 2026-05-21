@@ -1,0 +1,19 @@
+include:
+  - ../tamagotchi/tamagotchi_server/docker-compose.yaml
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: vscode
+    command: sleep infinity
+    volumes:
+      - ..:/workspaces/nabrudno:cached
+      - claude-code-config:/home/vscode/.claude
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  claude-code-config:

@@ -1,0 +1,38 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "tamagotchi_flutter",
+            "cwd": "${workspaceFolder}/tamagotchi_flutter",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart"
+        },
+        {
+            "name": "tamagotchi_server",
+            "cwd": "${workspaceFolder}/tamagotchi_server",
+            "request": "launch",
+            "type": "dart",
+            "preLaunchTask": "docker_compose_up",
+            "program": "bin/main.dart",
+            "env": {
+                "SERVERPOD_PASSWORD_database": "SBg7mBkR7S-15PMYmqUpFe_c32NmMCdL"
+            },
+            "args": [
+                "--apply-migrations"
+            ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "tamagotchi (full stack)",
+            "configurations": [
+                "tamagotchi_server",
+                "tamagotchi_flutter"
+            ],
+            "presentation": {
+                "order": 1
+            }
+        }
+    ]
+}
