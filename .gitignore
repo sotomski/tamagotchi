@@ -1,0 +1,19 @@
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor scratch
+*.swp
+*.swo
+.idea/
+.vscode/*.local.json
+
+# Logs
+*.log
+
+# Node (for any tooling layered later)
+node_modules/
+
+# Local env
+.env
+.env.local
