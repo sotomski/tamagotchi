@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:pub.dev)"
+      "WebFetch(domain:pub.dev)",
+      "Bash(scloud deployment *)",
+      "Read(//home/vscode/.pub-cache/**)",
+      "Bash(dart pub *)",
+      "Bash(scloud db *)",
+      "Bash(scloud variable *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.serverpod.cloud)",
+      "WebFetch(domain:docs.serverpod.dev)",
+      "Bash(scloud log *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

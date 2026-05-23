@@ -17,15 +17,16 @@ notes:
   - Serverpod's training-data depth is shallow relative to mainstream backend frameworks; compensation strategies below are required, not optional.
   - Flutter side currently has no CI workflow (analyze/format/test scoped to tamagotchi_server only).
   - Flutter toolchain versions are inconsistent across files (devcontainer 3.44.0 vs tests.yml 3.32.8 vs pubspec ^3.32.0).
+  - Updated 2026-05-23 — project decided not to use Redis (single Serverpod instance; no cross-instance pubsub/session/rate-limit needs). All references to Redis in this assessment have been amended to reflect the current single-instance topology. See `infrastructure.md` for the deployment decision that drove this.
 ---
 
 ## Stack Components
 
-The project is a **pub workspace** rooted at `tamagotchi/pubspec.yaml` with three member packages: `tamagotchi_client` (generated typed RPC client), `tamagotchi_server` (Serverpod 3.4.8 backend, Dockerised, Postgres + Redis), and `tamagotchi_flutter` (Flutter 3.32+ web client). All packages share `sdk: '^3.8.0'`.
+The project is a **pub workspace** rooted at `tamagotchi/pubspec.yaml` with three member packages: `tamagotchi_client` (generated typed RPC client), `tamagotchi_server` (Serverpod 3.4.8 backend, Dockerised, Postgres only — Redis intentionally not used), and `tamagotchi_flutter` (Flutter 3.32+ web client). All packages share `sdk: '^3.8.0'`.
 
 **Language — Dart 3.8+.** Soundly typed; pubspecs pin `environment: sdk: '^3.8.0'` consistently across the three workspace members. The language carries types end-to-end; the Serverpod client/server protocol is generated as typed Dart from `.spy.yaml` definitions, eliminating drift between RPC contract and call sites.
 
-**Server framework — Serverpod 3.4.8.** Convention-heavy backend toolkit: `lib/src/endpoints/*.dart` for RPC, `lib/src/protocol/` for shared models, `lib/src/generated/` for codegen output, `migrations/` for DB migrations, `config/{development,test,staging,production}.yaml` for runmode-scoped config, `config/passwords.yaml` for runmode-scoped secrets, `Dockerfile` for prod build (Dart 3.8.0 → alpine), `docker-compose.yaml` for local dev/test infra (Postgres `pgvector/pgvector:pg16`, Redis 6.2.6, both with dev + test instances). `bin/main.dart` is the entry point with `dart bin/main.dart --apply-migrations` as the canonical start script.
+**Server framework — Serverpod 3.4.8.** Convention-heavy backend toolkit: `lib/src/endpoints/*.dart` for RPC, `lib/src/protocol/` for shared models, `lib/src/generated/` for codegen output, `migrations/` for DB migrations, `config/{development,test,staging,production}.yaml` for runmode-scoped config, `config/passwords.yaml` for runmode-scoped secrets, `Dockerfile` for prod build (Dart 3.8.0 → alpine), `docker-compose.yaml` for local dev/test infra (Postgres `pgvector/pgvector:pg16` only, with separate dev + test instances; Redis was removed 2026-05-23 — `redis.enabled: false` in every runmode config). `bin/main.dart` is the entry point with `dart bin/main.dart --apply-migrations` as the canonical start script.
 
 **Client framework — Flutter 3.32+.** Standard Flutter app structure under `tamagotchi_flutter/lib/`. Talks to the server via `tamagotchi_client` (path dependency) and uses `serverpod_flutter` + `serverpod_auth_idp_flutter` for the IDP authentication flow. Targets Flutter web for the MVP (per PRD non-goal #3 "no native mobile apps"). Build is wired via Serverpod's `flutter_build` script which compiles Flutter web with `--wasm` into `tamagotchi_server/web/app/`.
 
@@ -39,13 +40,13 @@ The project is a **pub workspace** rooted at `tamagotchi/pubspec.yaml` with thre
 
 - `analyze.yml` — `dart analyze --fatal-infos` on the server (Dart 3.8.0)
 - `format.yml` — `dart format --set-exit-if-changed .` on the server
-- `tests.yml` — boots `docker compose up` (Postgres + Redis test sidecars), `dart pub global activate serverpod_cli 3.4.8`, `serverpod generate`, `dart test` (Flutter 3.32.8)
+- `tests.yml` — boots `docker compose up` (Postgres test sidecar), `dart pub global activate serverpod_cli 3.4.8`, `serverpod generate`, `dart test` (Flutter 3.32.8)
 
 The Flutter package has **no CI coverage** — no `flutter analyze`, no `flutter test`, no web build verification.
 
 **Deployment — Serverpod Cloud (scloud).** Confirmed in conversation. The devcontainer pre-installs `serverpod_cloud_cli` v0.29.0 alongside `serverpod_cli` v3.4.8, which lines up. No `scloud` project config (e.g. a `scloud.yaml`) is on disk yet — that surface will need to be authored before first deploy. The existing `Dockerfile` is the dev/local-prod artifact, not the scloud deploy artifact.
 
-**Devcontainer.** Ubuntu 24.04 base; pins `FLUTTER_VERSION=3.44.0` (newer than the `^3.32.0` requirement and the `3.32.8` used in CI — see toolchain drift note); also installs `node` (via feature) and the `claude-code` devcontainer feature. Forwards ports 8080–8082 (server) and 8090/8091 (Postgres/Redis). The dev compose `includes ../tamagotchi/tamagotchi_server/docker-compose.yaml`, so the dev shell shares the server's Postgres/Redis stack.
+**Devcontainer.** Ubuntu 24.04 base; pins `FLUTTER_VERSION=3.44.0` (newer than the `^3.32.0` requirement and the `3.32.8` used in CI — see toolchain drift note); also installs `node` (via feature) and the `claude-code` devcontainer feature. Forwards ports 8080–8082 (server) and 8090 (Postgres). The dev compose `includes ../tamagotchi/tamagotchi_server/docker-compose.yaml`, so the dev shell shares the server's Postgres stack.
 
 **Instruction files.** Only `CLAUDE.md` at the repo root. Its current content documents the **bootstrap-chain skill flow** (`/10x-init → /10x-shape → /10x-prd → /10x-tech-stack-selector → /10x-bootstrapper`) — it is meta-documentation for running the scaffolding skills, not runtime conventions an agent can use to write code in this codebase. No `AGENTS.md`, no `.cursor/rules`, no `.github/copilot-instructions.md`.
 
@@ -146,13 +147,13 @@ Never edit applied migration files in place. Always create a new migration.
 From `tamagotchi/tamagotchi_server/`:
 
 ```
-docker compose up -d           # postgres (pgvector/pgvector:pg16) + redis 6.2.6, both dev + test instances
+docker compose up -d           # postgres (pgvector/pgvector:pg16), dev + test instances (no redis — single-instance topology)
 dart pub get
 serverpod generate              # if protocol changed
 dart bin/main.dart --apply-migrations
 ```
 
-Server ports: 8080 (API), 8081 (insights), 8082 (web). Postgres dev: 8090; Redis dev: 8091.
+Server ports: 8080 (API), 8081 (insights), 8082 (web). Postgres dev: 8090.
 
 ### Building the Flutter web client
 
@@ -188,7 +189,7 @@ Production deploys go to **Serverpod Cloud** via the `scloud` CLI (`serverpod_cl
 
 ### Testing locally
 
-From `tamagotchi_server/`: `docker compose up -d` (test sidecars exposed on 9090 / 9091), then `dart test`. Integration tests live under `test/integration/`; the `test_tools/serverpod_test_tools.dart` helper is generated and excluded from analyzer.
+From `tamagotchi_server/`: `docker compose up -d` (test Postgres sidecar exposed on 9090), then `dart test`. Integration tests live under `test/integration/`; the `test_tools/serverpod_test_tools.dart` helper is generated and excluded from analyzer.
 ````
 
 ## Summary
