@@ -12,6 +12,10 @@ jobs:
     env:
       VERSION: '3.4.8'
       SERVERPOD_PASSWORD_database: 'CDm3BOYJ8Z4lhCj_Wvzum3UPoMHF2NVU'
+      # CI runs tests on the runner host, not inside the compose network,
+      # so override test.yaml's docker-DNS host with the published port.
+      SERVERPOD_DATABASE_HOST: localhost
+      SERVERPOD_DATABASE_PORT: '9090'
 
     steps:
       - uses: actions/checkout@v4
