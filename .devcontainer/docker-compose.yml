@@ -13,7 +13,6 @@ services:
       - claude-code-config:/home/vscode/.claude
     depends_on:
       - postgres
-      - redis
 
 volumes:
   claude-code-config:

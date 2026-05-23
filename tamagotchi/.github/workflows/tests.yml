@@ -12,7 +12,6 @@ jobs:
     env:
       VERSION: '3.4.8'
       SERVERPOD_PASSWORD_database: 'CDm3BOYJ8Z4lhCj_Wvzum3UPoMHF2NVU'
-      SERVERPOD_PASSWORD_redis: '9U_IkVlC_6M9-AvhxISKd_F_GZjbNoZi'
 
     steps:
       - uses: actions/checkout@v4
