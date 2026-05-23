@@ -1,4 +1,4 @@
-name: Analyze
+name: Format
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  analyze:
+  format:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,9 +18,9 @@ jobs:
           sdk: 3.8.0
 
       - name: Install dependencies
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart pub get
 
-      - name: Analyze
-        working-directory: tamagotchi_server
-        run: dart analyze --fatal-infos
+      - name: Check formatting
+        working-directory: tamagotchi/tamagotchi_server
+        run: dart format --set-exit-if-changed .

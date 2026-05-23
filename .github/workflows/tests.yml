@@ -21,26 +21,26 @@ jobs:
           flutter-version: '3.44.0'
 
       - name: Start containers
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: docker compose up --quiet-pull --quiet-build --build -d
 
       - name: Install dependencies
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart pub get
 
       - name: Install Serverpod CLI
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart pub global activate serverpod_cli $VERSION
 
       - name: Run Serverpod generator
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: serverpod generate
 
       - name: Run tests
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart test
 
       - name: Stop containers
         if: always()
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: docker compose down -v

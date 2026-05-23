@@ -1,16 +1,17 @@
 {
-  "name": "AI-Tamagotchi (Flutter Web + Serverpod)",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "dev",
-  "workspaceFolder": "/workspaces/nabrudno",
-  "remoteUser": "vscode",
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {},
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
-  },
-  "remoteEnv": {
-    "PATH": "/home/vscode/flutter/bin:/home/vscode/flutter/bin/cache/dart-sdk/bin:/home/vscode/.pub-cache/bin:${containerEnv:PATH}"
-  },
-  "forwardPorts": [8080, 8081, 8082, 8090],
-  "postCreateCommand": "flutter doctor || true"
+    "name": "AI-Tamagotchi (Flutter Web + Serverpod)",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "dev",
+    "workspaceFolder": "/workspaces/nabrudno",
+    "remoteUser": "vscode",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {},
+        "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "remoteEnv": {
+        "PATH": "/home/vscode/flutter/bin:/home/vscode/flutter/bin/cache/dart-sdk/bin:/home/vscode/.pub-cache/bin:${containerEnv:PATH}"
+    },
+    "forwardPorts": [8080, 8081, 8082, 8090],
+    "postCreateCommand": "flutter doctor || true"
 }

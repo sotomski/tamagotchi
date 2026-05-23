@@ -1,0 +1,32 @@
+name: Deploy to Serverpod Cloud
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          cache: true
+
+      - name: Install Serverpod CLI
+        run: dart pub global activate serverpod_cli 3.4.8
+
+      - uses: serverpod/serverpod-cloud-deploy@v1
+        with:
+          token: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
+          project_dir: tamagotchi/tamagotchi_server
