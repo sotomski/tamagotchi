@@ -12,7 +12,10 @@ jobs:
     env:
       VERSION: '3.4.8'
       SERVERPOD_PASSWORD_database: 'CDm3BOYJ8Z4lhCj_Wvzum3UPoMHF2NVU'
-      SERVERPOD_PASSWORD_redis: '9U_IkVlC_6M9-AvhxISKd_F_GZjbNoZi'
+      # CI runs tests on the runner host, not inside the compose network,
+      # so override test.yaml's docker-DNS host with the published port.
+      SERVERPOD_DATABASE_HOST: localhost
+      SERVERPOD_DATABASE_PORT: '9090'
 
     steps:
       - uses: actions/checkout@v4
@@ -22,26 +25,26 @@ jobs:
           flutter-version: '3.44.0'
 
       - name: Start containers
-        working-directory: tamagotchi_server
-        run: docker compose up --quiet-pull --quiet-build --build -d
+        working-directory: tamagotchi/tamagotchi_server
+        run: docker compose up --quiet-pull --build -d
 
       - name: Install dependencies
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart pub get
 
       - name: Install Serverpod CLI
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart pub global activate serverpod_cli $VERSION
 
       - name: Run Serverpod generator
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: serverpod generate
 
       - name: Run tests
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart test
 
       - name: Stop containers
         if: always()
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: docker compose down -v

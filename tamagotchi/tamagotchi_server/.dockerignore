@@ -1,0 +1,9 @@
+.dart_tool/
+.scloud/
+test/
+docker-compose.yaml
+docker-compose.*.yaml
+config/passwords.yaml
+.env
+.env.*
+*.log

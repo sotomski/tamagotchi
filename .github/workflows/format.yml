@@ -13,14 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with:
-          sdk: 3.8.0
+          flutter-version: '3.44.0'
+          cache: true
 
       - name: Install dependencies
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart pub get
 
       - name: Check formatting
-        working-directory: tamagotchi_server
+        working-directory: tamagotchi/tamagotchi_server
         run: dart format --set-exit-if-changed .
