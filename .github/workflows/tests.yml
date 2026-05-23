@@ -22,7 +22,7 @@ jobs:
 
       - name: Start containers
         working-directory: tamagotchi/tamagotchi_server
-        run: docker compose up --quiet-pull --quiet-build --build -d
+        run: docker compose up --quiet-pull --build -d
 
       - name: Install dependencies
         working-directory: tamagotchi/tamagotchi_server
