@@ -271,28 +271,28 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 
 #### Automated
 
-- [x] 1.1 `flutter pub get` from `tamagotchi/tamagotchi_flutter/` resolves cleanly with no version conflicts
-- [x] 1.2 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0
-- [x] 1.3 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0
-- [x] 1.4 `flutter test` from `tamagotchi/tamagotchi_flutter/` still passes
+- [x] 1.1 `flutter pub get` from `tamagotchi/tamagotchi_flutter/` resolves cleanly with no version conflicts — f68e959
+- [x] 1.2 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 — f68e959
+- [x] 1.3 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0 — f68e959
+- [x] 1.4 `flutter test` from `tamagotchi/tamagotchi_flutter/` still passes — f68e959
 
 #### Manual
 
-- [x] 1.5 `pubspec.lock` diff shows the four new packages with sane resolved versions; no surprise transitive bumps
+- [x] 1.5 `pubspec.lock` diff shows the four new packages with sane resolved versions; no surprise transitive bumps — f68e959
 
 ### Phase 2: App shell — providers, router, screens, main, tests, cleanup
 
 #### Automated
 
-- [ ] 2.1 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings
-- [ ] 2.2 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0
-- [ ] 2.3 `flutter test` from `tamagotchi/tamagotchi_flutter/` passes — specifically `'App boots into the home placeholder'`
-- [ ] 2.4 `git ls-files tamagotchi/tamagotchi_flutter/lib/screens/` returns nothing
-- [ ] 2.5 `grep -r "late final Client client" tamagotchi/tamagotchi_flutter/lib/` returns no matches
-- [ ] 2.6 `grep -r "import '../main.dart'" tamagotchi/tamagotchi_flutter/lib/` returns no matches
+- [x] 2.1 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings
+- [x] 2.2 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0
+- [x] 2.3 `flutter test` from `tamagotchi/tamagotchi_flutter/` passes — specifically `'App boots into the home placeholder'`
+- [x] 2.4 `git ls-files tamagotchi/tamagotchi_flutter/lib/screens/` returns nothing
+- [x] 2.5 `grep -r "late final Client client" tamagotchi/tamagotchi_flutter/lib/` returns no matches
+- [x] 2.6 `grep -r "import '../main.dart'" tamagotchi/tamagotchi_flutter/lib/` returns no matches
 
 #### Manual
 
-- [ ] 2.7 Home placeholder ("No creature yet" + "Sign in" button) renders at `/` in a browser
-- [ ] 2.8 Clicking "Sign in" navigates to `/sign-in` and the Serverpod `SignInWidget` renders
-- [ ] 2.9 Deep-link to `/sign-in` from a fresh tab renders the sign-in screen; navigating back to `/` re-renders the home placeholder
+- [x] 2.7 Home placeholder ("No creature yet" + "Sign in" button) renders at `/` in a browser
+- [x] 2.8 Clicking "Sign in" navigates to `/sign-in` and the Serverpod `SignInWidget` renders
+- [x] 2.9 Deep-link to `/sign-in` from a fresh tab renders the sign-in screen; navigating back to `/` re-renders the home placeholder
