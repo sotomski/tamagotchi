@@ -284,15 +284,15 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 
 #### Automated
 
-- [x] 2.1 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings
-- [x] 2.2 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0
-- [x] 2.3 `flutter test` from `tamagotchi/tamagotchi_flutter/` passes — specifically `'App boots into the home placeholder'`
-- [x] 2.4 `git ls-files tamagotchi/tamagotchi_flutter/lib/screens/` returns nothing
-- [x] 2.5 `grep -r "late final Client client" tamagotchi/tamagotchi_flutter/lib/` returns no matches
-- [x] 2.6 `grep -r "import '../main.dart'" tamagotchi/tamagotchi_flutter/lib/` returns no matches
+- [x] 2.1 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings — 1e3b492
+- [x] 2.2 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0 — 1e3b492
+- [x] 2.3 `flutter test` from `tamagotchi/tamagotchi_flutter/` passes — specifically `'App boots into the home placeholder'` — 1e3b492
+- [x] 2.4 `git ls-files tamagotchi/tamagotchi_flutter/lib/screens/` returns nothing — 1e3b492
+- [x] 2.5 `grep -r "late final Client client" tamagotchi/tamagotchi_flutter/lib/` returns no matches — 1e3b492
+- [x] 2.6 `grep -r "import '../main.dart'" tamagotchi/tamagotchi_flutter/lib/` returns no matches — 1e3b492
 
 #### Manual
 
-- [x] 2.7 Home placeholder ("No creature yet" + "Sign in" button) renders at `/` in a browser
-- [x] 2.8 Clicking "Sign in" navigates to `/sign-in` and the Serverpod `SignInWidget` renders
-- [x] 2.9 Deep-link to `/sign-in` from a fresh tab renders the sign-in screen; navigating back to `/` re-renders the home placeholder
+- [x] 2.7 Home placeholder ("No creature yet" + "Sign in" button) renders at `/` in a browser — 1e3b492
+- [x] 2.8 Clicking "Sign in" navigates to `/sign-in` and the Serverpod `SignInWidget` renders — 1e3b492
+- [x] 2.9 Deep-link to `/sign-in` from a fresh tab renders the sign-in screen; navigating back to `/` re-renders the home placeholder — 1e3b492
