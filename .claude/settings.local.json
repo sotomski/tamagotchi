@@ -19,7 +19,9 @@
       "Bash(gh pr *)",
       "Bash(gh run *)",
       "Bash(gh search *)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "WebFetch(domain:docs.github.com)",
+      "Bash(gh issue *)"
     ]
   }
 }
