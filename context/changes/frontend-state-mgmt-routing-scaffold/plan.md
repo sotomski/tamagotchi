@@ -296,3 +296,35 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 - [x] 2.7 Home placeholder ("No creature yet" + "Sign in" button) renders at `/` in a browser — 1e3b492
 - [x] 2.8 Clicking "Sign in" navigates to `/sign-in` and the Serverpod `SignInWidget` renders — 1e3b492
 - [x] 2.9 Deep-link to `/sign-in` from a fresh tab renders the sign-in screen; navigating back to `/` re-renders the home placeholder — 1e3b492
+
+## Post-implementation Deviations
+
+> Recorded during `/10x-impl-review` (see `reviews/impl-review.md`). These extend the original
+> contract; logged here so the plan remains the source of truth.
+
+- **Server `flutter_build` command changed (out of the original "no server changes" scope).**
+  `tamagotchi/tamagotchi_server/pubspec.yaml`'s `serverpod.flutter_build` command dropped `--wasm`
+  from both the windows and posix branches and added `rm -rf web/app` to the posix branch (commit
+  1e3b492). Reason: the experimental dart2wasm renderer compiles and dry-runs cleanly but fails at
+  runtime instantiation with `LinkError: Import "dart2wasm" ... requires a callable` on the
+  Flutter 3.44 / Dart 3.12 toolchain; the stable dart2js renderer works. This was necessary for the
+  web app to load, i.e. for manual criteria 2.7–2.9 to pass. Accepted (review finding F2, Fix A).
+  Revisit `--wasm` after a toolchain bump.
+- **`riverpod_lint` CLI enforcement is non-functional in this pub workspace** (review finding F1).
+  The Phase 1 plan specified riverpod_lint 2.x + custom_lint; the implementation used the riverpod_lint
+  3.x native analyzer-plugin mechanism (sanctioned version drift, F3). On this toolchain the workspace-root
+  `plugins:` block does not propagate to member packages under `flutter analyze`/`dart analyze`, so the
+  lint gate does not run in CLI/CI. Accepted as a documented limitation (Fix A); see the comment in
+  `tamagotchi/analysis_options.yaml`.
+- **Resolved dependency baseline** (the plan suggested ~2.6.0; the implementer was free to choose, and
+  did — review finding F3). Actual versions: `flutter_riverpod ^3.3.0`, `riverpod_annotation ^4.0.0`,
+  `go_router ^17.0.0`; dev: `riverpod_generator ^4.0.0`, `riverpod_lint ^3.1.0`, `build_runner ^2.4.0`.
+  `custom_lint` was correctly dropped (riverpod_lint 3.x uses the native analyzer-plugin mechanism, not
+  custom_lint). `flutter_web_plugins` (sdk) was added to support `usePathUrlStrategy()` (see F4). Future
+  slices that pin against Riverpod should target this 3.x/4.x baseline, and should re-validate lint/codegen
+  tooling after any further bump.
+- **`usePathUrlStrategy()` added in `main()`** (`lib/main.dart:17`, import `:3`; review finding F4). Not in
+  the original contract ("no other top-level declarations" — this is a statement inside `main()`, not a
+  top-level declaration). Intentional: gives go_router clean path-based URLs (e.g. `/sign-in` instead of
+  `/#/sign-in`) for deep links, in-spirit for a routing scaffold. Pulls in the `flutter_web_plugins` (sdk)
+  dependency. Accepted as an intentional routing addition.

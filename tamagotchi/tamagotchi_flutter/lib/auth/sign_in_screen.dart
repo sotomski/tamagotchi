@@ -59,8 +59,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       body: Center(
         child: SignInWidget(
           client: client,
-          onAuthenticated: () => context.go('/'),
+          onAuthenticated: () {
+            if (context.mounted) context.go('/');
+          },
           onError: (error) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Authentication failed: $error'),
