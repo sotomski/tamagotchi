@@ -33,11 +33,17 @@ dependencies:
     path: ../tamagotchi_client
   serverpod_flutter: 3.4.8
   serverpod_auth_idp_flutter: 3.4.8
+  flutter_riverpod: ^3.3.0
+  riverpod_annotation: ^4.0.0
+  go_router: ^17.0.0
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
   flutter_test:
     sdk: flutter
+  build_runner: ^2.4.0
+  riverpod_generator: ^4.0.0
+  riverpod_lint: ^3.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

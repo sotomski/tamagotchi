@@ -271,14 +271,14 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 
 #### Automated
 
-- [ ] 1.1 `flutter pub get` from `tamagotchi/tamagotchi_flutter/` resolves cleanly with no version conflicts
-- [ ] 1.2 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0
-- [ ] 1.3 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0
-- [ ] 1.4 `flutter test` from `tamagotchi/tamagotchi_flutter/` still passes
+- [x] 1.1 `flutter pub get` from `tamagotchi/tamagotchi_flutter/` resolves cleanly with no version conflicts
+- [x] 1.2 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0
+- [x] 1.3 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0
+- [x] 1.4 `flutter test` from `tamagotchi/tamagotchi_flutter/` still passes
 
 #### Manual
 
-- [ ] 1.5 `pubspec.lock` diff shows the four new packages with sane resolved versions; no surprise transitive bumps
+- [x] 1.5 `pubspec.lock` diff shows the four new packages with sane resolved versions; no surprise transitive bumps
 
 ### Phase 2: App shell — providers, router, screens, main, tests, cleanup
 
