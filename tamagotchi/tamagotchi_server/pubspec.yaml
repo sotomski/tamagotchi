@@ -25,12 +25,20 @@ serverpod:
     # Build the Flutter web app and copy it to the server's web directory.
     # Windows uses xcopy since flutter's --output flag doesn't work there.
     # See: https://github.com/flutter/flutter/issues/157886
+    #
+    # No --wasm: the experimental dart2wasm renderer compiles cleanly (the wasm
+    # dry run even passes) but fails at runtime instantiation with
+    # `LinkError: Import "dart2wasm" "_..." function import requires a callable`
+    # on this Flutter 3.44 / Dart 3.12 toolchain. The stable dart2js renderer
+    # (main.dart.js) works with all current deps; revisit --wasm if a later
+    # toolchain resolves the instantiation skew.
     flutter_build:
       windows: >-
         (if exist web\app rmdir /S /Q web\app)
         & cd /D ..\tamagotchi_flutter
-        && flutter build web --base-href /app/ --wasm
+        && flutter build web --base-href /app/
         && xcopy /E /I /Y build\web ..\tamagotchi_server\web\app
       posix: |
+        rm -rf web/app
         cd ../tamagotchi_flutter
-        flutter build web --base-href /app/ --wasm --output ../tamagotchi_server/web/app
+        flutter build web --base-href /app/ --output ../tamagotchi_server/web/app
