@@ -10,5 +10,6 @@ part 'client_provider.g.dart';
 /// Consumers read it with `ref.read(serverpodClientProvider)` (or `ref.watch`
 /// inside a `build`) instead of the old global at `main.dart`.
 @Riverpod(keepAlive: true)
-Client serverpodClient(Ref ref) =>
-    throw UnimplementedError('serverpodClientProvider must be overridden at the app root');
+Client serverpodClient(Ref ref) => throw UnimplementedError(
+  'serverpodClientProvider must be overridden at the app root',
+);
