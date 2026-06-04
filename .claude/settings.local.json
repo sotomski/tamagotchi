@@ -22,7 +22,8 @@
       "Bash(gh api *)",
       "WebFetch(domain:docs.github.com)",
       "Bash(gh issue *)",
-      "Bash(~/.pub-cache/bin/skills help *)"
+      "Bash(~/.pub-cache/bin/skills help *)",
+      "mcp__context7__query-docs"
     ]
   }
 }
