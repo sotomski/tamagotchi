@@ -1,5 +1,5 @@
 include:
-  - ../tamagotchi/tamagotchi_server/docker-compose.yaml
+  - ../tamagotchi_server/docker-compose.yaml
 
 services:
   dev:
