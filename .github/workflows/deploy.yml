@@ -31,9 +31,9 @@ jobs:
           dart pub global activate serverpod_cloud_cli 0.29.0
 
       - name: Build Flutter web bundle into server's web/app/
-        working-directory: tamagotchi/tamagotchi_server
+        working-directory: tamagotchi_server
         run: serverpod run flutter_build
 
       - name: Deploy
-        working-directory: tamagotchi/tamagotchi_server
+        working-directory: tamagotchi_server
         run: scloud deploy

@@ -27,7 +27,7 @@ recommended_fixes: 6
 ### Lockfile
 
 ```
-Status: present (tamagotchi/pubspec.lock, 39 KB)
+Status: present (pubspec.lock, 39 KB)
 Package manager: pub (workspace resolution)
 ```
 
@@ -45,7 +45,7 @@ The Dart ecosystem does not ship a first-party vulnerability scanner equivalent 
 
 Recommended external tools:
 
-- **OSV-Scanner** (Google) — `osv-scanner --lockfile tamagotchi/pubspec.lock`. Cross-ecosystem CVE coverage; fastest path to a real audit on Dart projects.
+- **OSV-Scanner** (Google) — `osv-scanner --lockfile pubspec.lock`. Cross-ecosystem CVE coverage; fastest path to a real audit on Dart projects.
 - **Snyk** — supports Dart/Flutter via `snyk test` if integrated; surfaces direct + transitive findings with severity scoring.
 - **Periodic `dart pub outdated --mode=security`** — Pub's own advisory feed; lightweight, no install needed; rerun monthly.
 
@@ -97,7 +97,7 @@ The Flutter package has only the default counter-app widget test. As soon as rea
 
 ```
 Provider: GitHub Actions
-Configuration: tamagotchi/.github/workflows/{analyze,format,tests}.yml
+Configuration: .github/workflows/{analyze,format,tests}.yml
 ```
 
 | Stage      | Status | Notes                                                          |
@@ -124,18 +124,18 @@ These are ephemeral test-container credentials — the impact today is bounded �
 
 ### High severity
 
-- **Toolchain version drift across devcontainer / CI / pubspec.** `.devcontainer/Dockerfile` pins Flutter `3.44.0`; `tamagotchi/.github/workflows/tests.yml` uses Flutter `3.32.8`; `tamagotchi/tamagotchi_*/pubspec.yaml` declare `flutter: ^3.32.0`. The devcontainer is ahead of CI by a full minor version, which means analyzer warnings and lint findings can differ between a learner's local run and a PR build. The Dart SDK is consistently `3.8.0` everywhere, so this is Flutter-specific. **Fix**: pick one of the two — either bump CI to `3.44.0` to match the devcontainer, or pin the devcontainer to `3.32.8`. Coordinate with the user before bumping CI; version bumps can surface new lint rules.
+- **Toolchain version drift across devcontainer / CI / pubspec.** `.devcontainer/Dockerfile` pins Flutter `3.44.0`; `.github/workflows/tests.yml` uses Flutter `3.32.8`; `tamagotchi_*/pubspec.yaml` declare `flutter: ^3.32.0`. The devcontainer is ahead of CI by a full minor version, which means analyzer warnings and lint findings can differ between a learner's local run and a PR build. The Dart SDK is consistently `3.8.0` everywhere, so this is Flutter-specific. **Fix**: pick one of the two — either bump CI to `3.44.0` to match the devcontainer, or pin the devcontainer to `3.32.8`. Coordinate with the user before bumping CI; version bumps can surface new lint rules.
 
 ### Medium severity
 
-- **No root `.gitignore`.** Only `tamagotchi/.gitignore` and `tamagotchi/tamagotchi_server/.gitignore` exist. The repo root has no ignore file, so OS noise (`.DS_Store`, already showing as untracked in `git status`), editor scratch files, and `node_modules/` from any future tooling all need to be ignored individually inside subdirectories. **Fix**: create `/workspaces/nabrudno/.gitignore` with at minimum `.DS_Store`, `*.log`, `node_modules/`, and `.env*` patterns.
-- **Plaintext test-credential literals in `tests.yml`.** See CI/CD section above. Bounded impact, poor precedent. **Fix**: move both `SERVERPOD_PASSWORD_*` env values into GitHub Actions repository secrets and reference them as `${{ secrets.SERVERPOD_TEST_PASSWORD_DATABASE }}` / `${{ secrets.SERVERPOD_TEST_PASSWORD_REDIS }}`. Keep the literals in `tamagotchi/tamagotchi_server/config/passwords.yaml` (correctly gitignored) for local runs.
+- **No root `.gitignore`.** *Resolved* — the 2026-06 workspace flatten created a root `.gitignore` covering OS noise (`.DS_Store`), editor scratch, logs, `node_modules/`, `.env*`, and Dart/pub + scloud artifacts. Previously only package-level ignore files (e.g. `tamagotchi_server/.gitignore`) existed and the repo root had none.
+- **Plaintext test-credential literals in `tests.yml`.** See CI/CD section above. Bounded impact, poor precedent. **Fix**: move both `SERVERPOD_PASSWORD_*` env values into GitHub Actions repository secrets and reference them as `${{ secrets.SERVERPOD_TEST_PASSWORD_DATABASE }}` / `${{ secrets.SERVERPOD_TEST_PASSWORD_REDIS }}`. Keep the literals in `tamagotchi_server/config/passwords.yaml` (correctly gitignored) for local runs.
 - **No Flutter CI coverage.** Already noted under CI/CD; restated here because it is a config gap that compounds with the toolchain drift — without Flutter CI, the version skew is unobservable until a learner notices a local-vs-CI difference manually. **Fix**: add `flutter_analyze.yml` and `flutter_tests.yml` modelled on the existing `analyze.yml` / `tests.yml`, using `subosito/flutter-action@v2` and `working-directory: tamagotchi_flutter`.
 
 ### Low severity
 
 - **No `.editorconfig`.** Format consistency relies on `dart format` alone; mixed-editor contributors may see whitespace conventions diverge. **Fix**: drop a minimal `.editorconfig` at the repo root.
-- **No `.env.example` / `.env.template`.** Serverpod uses `config/passwords.yaml` instead of `.env`, so this is partially mitigated by `tamagotchi/tamagotchi_server/config/passwords.yaml` already documenting the password keys. No action required unless future tooling introduces `.env` files.
+- **No `.env.example` / `.env.template`.** Serverpod uses `config/passwords.yaml` instead of `.env`, so this is partially mitigated by `tamagotchi_server/config/passwords.yaml` already documenting the password keys. No action required unless future tooling introduces `.env` files.
 
 ## Stack Assessment Cross-Reference
 
@@ -172,9 +172,9 @@ The two reports agree: the stack itself is in good shape, and the gaps are opera
 Pick one of the two and align everything else to it. Two paths:
 
 - **Pin devcontainer down to CI** (lowest risk): edit `.devcontainer/Dockerfile` and change `FLUTTER_VERSION=3.44.0` to `FLUTTER_VERSION=3.32.8`. Rebuild the devcontainer (`Dev Containers: Rebuild Container`).
-- **Bump CI up to devcontainer** (modernise): edit `tamagotchi/.github/workflows/tests.yml` and change `flutter-version: '3.32.8'` to `'3.44.0'`. Run `dart pub get && dart analyze` locally first to surface any new lint warnings.
+- **Bump CI up to devcontainer** (modernise): edit `.github/workflows/tests.yml` and change `flutter-version: '3.32.8'` to `'3.44.0'`. Run `dart pub get && dart analyze` locally first to surface any new lint warnings.
 
-After either path, also bump the `flutter: '^3.32.0'` constraints in `tamagotchi/tamagotchi_flutter/pubspec.yaml` and `tamagotchi/tamagotchi_client/pubspec.yaml` if you chose the upgrade path.
+After either path, also bump the `flutter: '^3.32.0'` constraints in `tamagotchi_flutter/pubspec.yaml` and `tamagotchi_client/pubspec.yaml` if you chose the upgrade path.
 
 ### 2. Add a root `.gitignore`
 
@@ -215,7 +215,7 @@ node_modules/
 **Fix**:
 
 1. In the GitHub repo settings → Secrets and variables → Actions, create two repository secrets: `SERVERPOD_TEST_PASSWORD_DATABASE` and `SERVERPOD_TEST_PASSWORD_REDIS`. Reuse the existing literal values so the test compose stack still authenticates.
-2. Edit `tamagotchi/.github/workflows/tests.yml`:
+2. Edit `.github/workflows/tests.yml`:
 
 ```yaml
 env:
@@ -233,7 +233,7 @@ env:
 **Effort**: moderate (15–30 min — modelled directly on the existing server workflows)
 **Fix**:
 
-Add `tamagotchi/.github/workflows/flutter.yml`:
+Add `.github/workflows/flutter.yml`:
 
 ```yaml
 name: Flutter
@@ -275,7 +275,7 @@ One-shot local run (no install — uses the official container):
 
 ```
 docker run --rm -v $PWD:/repo ghcr.io/google/osv-scanner:latest \
-  --lockfile=/repo/tamagotchi/pubspec.lock
+  --lockfile=/repo/pubspec.lock
 ```
 
 If clean, optionally add as a CI step using `google/osv-scanner-action@v1`. Treat the result as a periodic check, not a blocker.
@@ -288,7 +288,7 @@ If clean, optionally add as a CI step using `google/osv-scanner-action@v1`. Trea
 **Fix**:
 
 ```
-cd tamagotchi/tamagotchi_server
+cd tamagotchi_server
 dart pub upgrade test
 ```
 
@@ -323,9 +323,9 @@ Next step: address fixes 1–4 above (the medium-and-up Category A items — too
 
 **Changes**:
 
-- `tamagotchi/.github/workflows/tests.yml` — `flutter-version: '3.32.8'` → `'3.44.0'`
-- `tamagotchi/tamagotchi_flutter/pubspec.yaml` — `flutter: '^3.32.0'` → `'^3.44.0'`
-- `tamagotchi/pubspec.lock` — solver bumped the Flutter floor from `>=3.38.4` to `>=3.44.0` automatically; no resolved versions changed
+- `.github/workflows/tests.yml` — `flutter-version: '3.32.8'` → `'3.44.0'`
+- `tamagotchi_flutter/pubspec.yaml` — `flutter: '^3.32.0'` → `'^3.44.0'`
+- `pubspec.lock` — solver bumped the Flutter floor from `>=3.38.4` to `>=3.44.0` automatically; no resolved versions changed
 
 **Verification**: `flutter pub get`, `flutter analyze`, `dart format --set-exit-if-changed .`, and `flutter test` all green at Flutter 3.44.0 locally.
 
@@ -355,8 +355,8 @@ Next step: address fixes 1–4 above (the medium-and-up Category A items — too
 
 **Changes**:
 
-- `tamagotchi/.github/workflows/flutter.yml` — created. Single `analyze-test` job using `subosito/flutter-action@v2` with `cache: true`. Steps: `flutter pub get` → `flutter analyze` → `dart format --set-exit-if-changed .` → `flutter test`. Pinned to Flutter `3.44.0` to match Fix #1.
-- `tamagotchi/tamagotchi_flutter/test/widget_test.dart` — empty stub replaced with a real smoke test that pumps `MyApp` and asserts the `Serverpod Example` home-page title renders.
+- `.github/workflows/flutter.yml` — created. Single `analyze-test` job using `subosito/flutter-action@v2` with `cache: true`. Steps: `flutter pub get` → `flutter analyze` → `dart format --set-exit-if-changed .` → `flutter test`. Pinned to Flutter `3.44.0` to match Fix #1.
+- `tamagotchi_flutter/test/widget_test.dart` — empty stub replaced with a real smoke test that pumps `MyApp` and asserts the `Serverpod Example` home-page title renders.
 
 **Why the smoke test was needed**: the workflow's `flutter test` step exited 79 ("No tests were found") against the original empty stub, which would have failed CI on first push. The smoke test passes locally; CI is now expected to go green. The test deliberately avoids tapping the `Send to Server` button so the global `late final client` (initialised only inside `main()` of `main.dart`) is never read.
 

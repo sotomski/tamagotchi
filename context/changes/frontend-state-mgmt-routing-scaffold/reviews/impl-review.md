@@ -39,7 +39,7 @@ add/remove uses the same method reference (no leak); post-frame `context.go` is 
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Safety & Quality
-- **Location**: tamagotchi/analysis_options.yaml:1-2 (workspace-root plugins block)
+- **Location**: analysis_options.yaml:1-2 (workspace-root plugins block)
 - **Detail**: riverpod_lint never actually lints the flutter package under `flutter analyze` /
   `dart analyze`, so the quality gate Phase 1 step 2 set out to establish does not function for CLI/CI.
   The "flutter analyze exits 0" success criterion passes but provides zero riverpod-specific coverage.
@@ -77,7 +77,7 @@ add/remove uses the same method reference (no leak); post-frame `context.go` is 
   - Confidence: MEDIUM — custom_lint workspace support is established, but not re-verified in THIS repo.
   - Blind spot: Whether 2.x resolves cleanly against the rest of the upgraded Riverpod 3.x runtime here.
 - **Decision**: FIXED via Fix A — accepted as a documented toolchain limitation; added an explanatory
-  comment to tamagotchi/analysis_options.yaml (block kept in its only valid location). Captured in
+  comment to analysis_options.yaml (block kept in its only valid location). Captured in
   project memory (project_riverpod_lint_inert_in_pub_workspace).
 
 ### F2 — Unplanned server build change: dropped --wasm renderer
@@ -85,7 +85,7 @@ add/remove uses the same method reference (no leak); post-frame `context.go` is 
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Scope Discipline
-- **Location**: tamagotchi/tamagotchi_server/pubspec.yaml (flutter_build command)
+- **Location**: tamagotchi_server/pubspec.yaml (flutter_build command)
 - **Detail**: The plan said no server changes and its "What We're NOT Doing" did not mention this. Commit
   1e3b492 edits the serverpod flutter_build command: removes `--wasm` from both windows/posix branches,
   adds `rm -rf web/app` to posix, and adds a 6-line comment documenting a dart2wasm runtime LinkError on
@@ -111,7 +111,7 @@ add/remove uses the same method reference (no leak); post-frame `context.go` is 
 - **Severity**: 🟢 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Plan Adherence
-- **Location**: tamagotchi/tamagotchi_flutter/pubspec.yaml
+- **Location**: tamagotchi_flutter/pubspec.yaml
 - **Detail**: Plan was written against Riverpod ~2.6.0 + custom_lint. Actual: flutter_riverpod ^3.3.0,
   riverpod_annotation ^4.0.0, riverpod_generator ^4.0.0, riverpod_lint ^3.1.0, go_router ^17.0.0;
   custom_lint correctly DROPPED (3.x uses the native analyzer plugin mechanism — confirmed absent from
@@ -127,7 +127,7 @@ add/remove uses the same method reference (no leak); post-frame `context.go` is 
 - **Severity**: 🟢 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Scope Discipline
-- **Location**: tamagotchi/tamagotchi_flutter/lib/main.dart:17 (+ import :3)
+- **Location**: tamagotchi_flutter/lib/main.dart:17 (+ import :3)
 - **Detail**: main() calls usePathUrlStrategy() (with flutter_web_plugins added to deps) — not in the
   plan's contract ("no other top-level declarations"; this is a statement inside main(), so not a strict
   violation). Justified: clean path-based URLs for go_router deep links, in-spirit for a routing scaffold.
@@ -141,7 +141,7 @@ add/remove uses the same method reference (no leak); post-frame `context.go` is 
 - **Severity**: 🟢 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Safety & Quality
-- **Location**: tamagotchi/tamagotchi_flutter/lib/auth/sign_in_screen.dart:62-71
+- **Location**: tamagotchi_flutter/lib/auth/sign_in_screen.dart:62-71
 - **Detail**: onAuthenticated: () => context.go('/') and the onError ScaffoldMessenger.of(context) fire
   from async auth callbacks with no context.mounted check. The post-frame path (line ~52) IS correctly
   guarded with `if (mounted)`. The window here is tiny (SignInWidget owns these callbacks while mounted),
@@ -155,7 +155,7 @@ add/remove uses the same method reference (no leak); post-frame `context.go` is 
 - **Severity**: 🟢 OBSERVATION
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Safety & Quality
-- **Location**: tamagotchi/tamagotchi_flutter/lib/main.dart:29
+- **Location**: tamagotchi_flutter/lib/main.dart:29
 - **Detail**: client.auth.initialize() returns Future<bool> (restore + validate) and is not awaited before
   runApp(). At first paint authInfo == null, so a returning signed-in user briefly appears unauthenticated
   until restore() fires authInfoListenable. Harmless in F-01 — there is no route guard (documented scope),

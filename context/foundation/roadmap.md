@@ -54,7 +54,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 What's already in place in the codebase as of 2026-05-26 (auto-researched + user-confirmed).
 Foundations below assume these are present and do NOT re-scaffold them.
 
-- **Frontend:** partial — Flutter Web client lives at `tamagotchi/tamagotchi_flutter/lib/main.dart`; vanilla `setState`, no router; `SignInScreen` exists but is commented out in `main.dart:70–76`; only `GreetingsScreen` (echo demo) is wired by default.
+- **Frontend:** partial — Flutter Web client lives at `tamagotchi_flutter/lib/main.dart`; vanilla `setState`, no router; `SignInScreen` exists but is commented out in `main.dart:70–76`; only `GreetingsScreen` (echo demo) is wired by default.
 - **Backend / API:** partial — Serverpod 3.4.8 wired; endpoints present: `greeting.hello`, `emailIdp.*`, `jwtRefresh.refreshAccessToken`. No creature / journal / stat endpoints. No future-call scaffolding. No AI / LLM client.
 - **Data:** partial — Postgres 16 with pgvector image declared in `docker-compose.yaml`; pgvector NOT yet referenced in any SQL. Only Serverpod model on disk: `greeting.spy.yaml`. One initial migration (`20260521163433251`). No seed data.
 - **Auth:** partial — `serverpod_auth_idp_server/flutter 3.4.8` wired both sides; email+password configured via `EmailIdpConfigFromPasswords`; Flutter `authSessionManager` + `client.auth.initialize()` set up; `SignInScreen` exists but commented out. **No OAuth provider configured** (deferred per 2026-05-26 framing interview; see `## Parked`).
