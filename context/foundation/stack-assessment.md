@@ -22,7 +22,7 @@ notes:
 
 ## Stack Components
 
-The project is a **pub workspace** rooted at `tamagotchi/pubspec.yaml` with three member packages: `tamagotchi_client` (generated typed RPC client), `tamagotchi_server` (Serverpod 3.4.8 backend, Dockerised, Postgres only — Redis intentionally not used), and `tamagotchi_flutter` (Flutter 3.32+ web client). All packages share `sdk: '^3.8.0'`.
+The project is a **pub workspace** rooted at the repository root (`pubspec.yaml`) with three member packages: `tamagotchi_client` (generated typed RPC client), `tamagotchi_server` (Serverpod 3.4.8 backend, Dockerised, Postgres only — Redis intentionally not used), and `tamagotchi_flutter` (Flutter 3.32+ web client). All packages share `sdk: '^3.8.0'`.
 
 **Language — Dart 3.8+.** Soundly typed; pubspecs pin `environment: sdk: '^3.8.0'` consistently across the three workspace members. The language carries types end-to-end; the Serverpod client/server protocol is generated as typed Dart from `.spy.yaml` definitions, eliminating drift between RPC contract and call sites.
 
@@ -34,9 +34,9 @@ The project is a **pub workspace** rooted at `tamagotchi/pubspec.yaml` with thre
 
 **Lint / format.** `package:lints/recommended.yaml` on server with two custom rules (`unawaited_futures: true`, `avoid_print: true`) and `formatter.trailing_commas: preserve`. `flutter_lints` on Flutter package (>=3.0.0 <7.0.0). Analyzer excludes the Serverpod-generated tree (`lib/src/generated/**`).
 
-**Package manager.** `pub` with workspace resolution; lockfile lives at the workspace root (`tamagotchi/pubspec.lock`, 39 KB) and member packages declare `resolution: workspace`.
+**Package manager.** `pub` with workspace resolution; lockfile lives at the workspace root (`pubspec.lock`, 39 KB) and member packages declare `resolution: workspace`.
 
-**CI / GitHub Actions.** Three workflows in `tamagotchi/.github/workflows/`, all push+PR to `main`, all scoped via `working-directory: tamagotchi_server`:
+**CI / GitHub Actions.** Three workflows in `.github/workflows/`, all push+PR to `main`, all scoped via `working-directory: tamagotchi_server`:
 
 - `analyze.yml` — `dart analyze --fatal-infos` on the server (Dart 3.8.0)
 - `format.yml` — `dart format --set-exit-if-changed .` on the server
@@ -46,7 +46,7 @@ The Flutter package has **no CI coverage** — no `flutter analyze`, no `flutter
 
 **Deployment — Serverpod Cloud (scloud).** Confirmed in conversation. The devcontainer pre-installs `serverpod_cloud_cli` v0.29.0 alongside `serverpod_cli` v3.4.8, which lines up. No `scloud` project config (e.g. a `scloud.yaml`) is on disk yet — that surface will need to be authored before first deploy. The existing `Dockerfile` is the dev/local-prod artifact, not the scloud deploy artifact.
 
-**Devcontainer.** Ubuntu 24.04 base; pins `FLUTTER_VERSION=3.44.0` (newer than the `^3.32.0` requirement and the `3.32.8` used in CI — see toolchain drift note); also installs `node` (via feature) and the `claude-code` devcontainer feature. Forwards ports 8080–8082 (server) and 8090 (Postgres). The dev compose `includes ../tamagotchi/tamagotchi_server/docker-compose.yaml`, so the dev shell shares the server's Postgres stack.
+**Devcontainer.** Ubuntu 24.04 base; pins `FLUTTER_VERSION=3.44.0` (newer than the `^3.32.0` requirement and the `3.32.8` used in CI — see toolchain drift note); also installs `node` (via feature) and the `claude-code` devcontainer feature. Forwards ports 8080–8082 (server) and 8090 (Postgres). The dev compose `includes ../tamagotchi_server/docker-compose.yaml`, so the dev shell shares the server's Postgres stack.
 
 **Instruction files.** Only `CLAUDE.md` at the repo root. Its current content documents the **bootstrap-chain skill flow** (`/10x-init → /10x-shape → /10x-prd → /10x-tech-stack-selector → /10x-bootstrapper`) — it is meta-documentation for running the scaffolding skills, not runtime conventions an agent can use to write code in this codebase. No `AGENTS.md`, no `.cursor/rules`, no `.github/copilot-instructions.md`.
 
@@ -64,9 +64,9 @@ Legend: ✓ = pass, ✗ = fail, ~ = partial, — = not applicable.
 
 ### Gate Details
 
-**Type safety — pass.** Dart is statically typed with sound null safety by default. The Serverpod codegen pipeline (`serverpod generate`) writes typed protocol classes into `lib/src/generated/`, so RPC boundary contracts (server endpoints ↔ Flutter client) are compiled. Type-checking is enforced in CI via `dart analyze --fatal-infos` (`tamagotchi/.github/workflows/analyze.yml`). The `analysis_options.yaml` adds `unawaited_futures: true`, which catches a real Dart correctness footgun. Evidence: `tamagotchi/tamagotchi_server/pubspec.yaml:7`, `tamagotchi/tamagotchi_server/analysis_options.yaml:16-20`, `tamagotchi/.github/workflows/analyze.yml:22`.
+**Type safety — pass.** Dart is statically typed with sound null safety by default. The Serverpod codegen pipeline (`serverpod generate`) writes typed protocol classes into `lib/src/generated/`, so RPC boundary contracts (server endpoints ↔ Flutter client) are compiled. Type-checking is enforced in CI via `dart analyze --fatal-infos` (`.github/workflows/analyze.yml`). The `analysis_options.yaml` adds `unawaited_futures: true`, which catches a real Dart correctness footgun. Evidence: `tamagotchi_server/pubspec.yaml:7`, `tamagotchi_server/analysis_options.yaml:16-20`, `.github/workflows/analyze.yml:22`.
 
-**Convention-based — pass.** Serverpod is highly opinionated: a code-generation cycle defines protocol from `.spy.yaml`, endpoints live in `lib/src/endpoints/`, the generated client is consumed via a path dependency, migrations are managed through `serverpod create-migration` + `dart bin/main.dart --apply-migrations`, and runmode-scoped configs live under `config/`. A new contributor (or agent) can predict file locations from the framework's docs. Flutter on the client side similarly imposes well-known structure (`lib/main.dart`, widget tree, `pubspec.yaml`-driven asset declarations). Evidence: `tamagotchi/tamagotchi_server/` directory layout, `tamagotchi/tamagotchi_server/config/{development,production,staging,test}.yaml`, `tamagotchi/tamagotchi_server/migrations/`.
+**Convention-based — pass.** Serverpod is highly opinionated: a code-generation cycle defines protocol from `.spy.yaml`, endpoints live in `lib/src/endpoints/`, the generated client is consumed via a path dependency, migrations are managed through `serverpod create-migration` + `dart bin/main.dart --apply-migrations`, and runmode-scoped configs live under `config/`. A new contributor (or agent) can predict file locations from the framework's docs. Flutter on the client side similarly imposes well-known structure (`lib/main.dart`, widget tree, `pubspec.yaml`-driven asset declarations). Evidence: `tamagotchi_server/` directory layout, `tamagotchi_server/config/{development,production,staging,test}.yaml`, `tamagotchi_server/migrations/`.
 
 **Training-data popularity (per-Dart-family) — pass for Flutter, partial for Serverpod.** Flutter dominates the Dart ecosystem in training data; the agent has internalised widget patterns, state management idioms, and pubspec conventions. Serverpod, by contrast, is the leading **Dart server** framework but the Dart server ecosystem itself is small compared to Python/Node/Ruby backends — so per-language-family the agent has shallow priors on Serverpod-specific idioms (`Endpoint` subclasses, `Session` typing, `serverpod generate` workflow, scoped table classes). It does NOT fail the gate (it is mainstream within its niche) but it falls below "the agent will write idiomatic code without hand-holding" — hence the partial mark and the compensation entries below. Evidence: pubspec.yaml dependency `serverpod: 3.4.8`; recent-but-stable framework on serverpod.dev.
 
@@ -105,13 +105,13 @@ This section describes how the agent should write code, run commands, and ship c
 
 ### Project layout
 
-The project is a **pub workspace** rooted at `tamagotchi/`. Three packages:
+The project is a **pub workspace** rooted at the repository root. Three packages:
 
-- `tamagotchi/tamagotchi_server/` — Serverpod 3.4.8 backend. Endpoints, protocol definitions, migrations, runmode configs.
-- `tamagotchi/tamagotchi_client/` — Generated typed RPC client. **Do not hand-edit.** Regenerate via `serverpod generate` from the server package.
-- `tamagotchi/tamagotchi_flutter/` — Flutter web client. Depends on `tamagotchi_client` via a path dependency.
+- `tamagotchi_server/` — Serverpod 3.4.8 backend. Endpoints, protocol definitions, migrations, runmode configs.
+- `tamagotchi_client/` — Generated typed RPC client. **Do not hand-edit.** Regenerate via `serverpod generate` from the server package.
+- `tamagotchi_flutter/` — Flutter web client. Depends on `tamagotchi_client` via a path dependency.
 
-Always run pub / dart commands from the package directory, not from `tamagotchi/` root, unless the task is workspace-wide.
+Always run pub / dart commands from the package directory, not from the workspace root, unless the task is workspace-wide.
 
 ### Serverpod codegen workflow (non-obvious — read before editing protocol)
 
@@ -144,7 +144,7 @@ Never edit applied migration files in place. Always create a new migration.
 
 ### Local development
 
-From `tamagotchi/tamagotchi_server/`:
+From `tamagotchi_server/`:
 
 ```
 docker compose up -d           # postgres (pgvector/pgvector:pg16), dev + test instances (no redis — single-instance topology)
@@ -173,12 +173,12 @@ This compiles `tamagotchi_flutter` with `--wasm` and copies the build into `tama
 
 ### CI coverage gap (known)
 
-The three GitHub Actions workflows in `tamagotchi/.github/workflows/` (`analyze.yml`, `format.yml`, `tests.yml`) all scope to `working-directory: tamagotchi_server`. **The Flutter package has no CI** — no `flutter analyze`, no `flutter test`, no web build verification. When adding Flutter-side coverage, model the workflow on `tests.yml` but with `subosito/flutter-action@v2` and `flutter test` / `flutter analyze`.
+The three GitHub Actions workflows in `.github/workflows/` (`analyze.yml`, `format.yml`, `tests.yml`) all scope to `working-directory: tamagotchi_server`. **The Flutter package has no CI** — no `flutter analyze`, no `flutter test`, no web build verification. When adding Flutter-side coverage, model the workflow on `tests.yml` but with `subosito/flutter-action@v2` and `flutter test` / `flutter analyze`.
 
 ### Toolchain version pins (drift to reconcile)
 
 - `tamagotchi_*/pubspec.yaml` → Dart `^3.8.0`, Flutter `^3.32.0`
-- `tamagotchi/.github/workflows/*.yml` → Dart `3.8.0`, Flutter `3.32.8`
+- `.github/workflows/*.yml` → Dart `3.8.0`, Flutter `3.32.8`
 - `.devcontainer/Dockerfile` → Flutter `3.44.0`
 
 The devcontainer is ahead of CI. Either bump CI to match the devcontainer, or pin the devcontainer to `3.32.8` so local and CI runs share an analyzer version. Coordinate this with the user before changing — version bumps can surface new lint warnings.
