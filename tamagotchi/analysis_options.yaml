@@ -1,2 +1,12 @@
+# riverpod_lint uses Dart's native analyzer-plugin mechanism (analysis_server_plugin). In a pub
+# workspace it MUST be declared here at the workspace root — declaring `plugins:` in a member
+# package's analysis_options.yaml errors with `plugins_in_inner_options` and is ignored.
+#
+# KNOWN LIMITATION (Dart 3.12 / Flutter 3.44): this root-level declaration does NOT currently
+# propagate to member-package files under `flutter analyze` / `dart analyze`, so riverpod_lint
+# rules are NOT enforced via the CLI/CI (verified inert via a differential probe across multiple
+# configs). Do not treat `flutter analyze` as a riverpod-lint gate; for real CLI enforcement use
+# custom_lint (riverpod_lint 2.x) run as a separate `dart run custom_lint` step. Re-test the
+# native path after a toolchain bump. Refs: dart-lang/sdk#61481, rrousselGit/riverpod#4646.
 plugins:
   riverpod_lint: ^3.1.0

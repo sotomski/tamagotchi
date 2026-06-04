@@ -26,7 +26,10 @@ Future<void> main() async {
     ..connectivityMonitor = FlutterConnectivityMonitor()
     ..authSessionManager = FlutterAuthSessionManager();
 
-  client.auth.initialize();
+  // Restore and validate any persisted session BEFORE first paint, so a
+  // returning signed-in user doesn't briefly render as unauthenticated and
+  // S-01's auth guard can read settled auth state at boot.
+  await client.auth.initialize();
 
   runApp(
     ProviderScope(
