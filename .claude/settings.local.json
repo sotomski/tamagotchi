@@ -21,7 +21,8 @@
       "Bash(gh search *)",
       "Bash(gh api *)",
       "WebFetch(domain:docs.github.com)",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "Bash(~/.pub-cache/bin/skills help *)"
     ]
   }
 }
