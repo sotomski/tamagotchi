@@ -4,7 +4,7 @@
 
 ## What & Why
 
-Replace the bootstrap echo UI in `tamagotchi/tamagotchi_flutter/` with a Riverpod (codegen) + go_router app shell. This is roadmap item **F-01** — a foundation slice with no user-visible product outcome. Its purpose is to lock in the framework and feature-folder layout so every later slice (S-01 → S-09) can ship a screen + state container without re-arguing it.
+Replace the bootstrap echo UI in `tamagotchi_flutter/` with a Riverpod (codegen) + go_router app shell. This is roadmap item **F-01** — a foundation slice with no user-visible product outcome. Its purpose is to lock in the framework and feature-folder layout so every later slice (S-01 → S-09) can ship a screen + state container without re-arguing it.
 
 ## Starting Point
 

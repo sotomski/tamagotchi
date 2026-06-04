@@ -28,7 +28,7 @@ hints:
 
 Brownfield project already scaffolded on Serverpod 3.4.8 (persistent Dart server,
 Postgres 16 + pgvector, generated typed RPC client) plus Flutter 3.32 web client,
-organised as a pub workspace under `tamagotchi/`. The custom path applies because
+organised as a pub workspace at the repository root. The custom path applies because
 the recommended-defaults map shows `<none>` for `(web, dart)`; Serverpod + Flutter
 is the only first-class Dart full-stack pairing and is the stack on disk. All
 four agent-friendly gates pass per `stack-assessment.md`, with one known
