@@ -26,9 +26,8 @@ pubspec_overrides.yaml
 # scloud deployment generated files should not be committed to git
 **/.scloud/
 
-# Agent skills — treat like `pub get`: commit the manifests, not the fetched skills.
-#   Dart CLI: `skills get --ide claude` (manifest: .dart_skills/skills_config.json)
-#   npm CLI (dart-lang/skills only): `npx skills experimental_install` (manifest: skills-lock.json)
+# Agent skills — treat like `pub get`: commit the manifest, not the fetched skills.
+#   Fetch with: `skills get --ide claude` (manifest: .dart_skills/skills_config.json)
 # Ignore every fetched skill dir under .claude/skills/, but keep the hand-authored 10x-* ones.
 /.claude/skills/*/
 !/.claude/skills/10x-*/
