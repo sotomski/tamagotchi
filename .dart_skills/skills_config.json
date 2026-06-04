@@ -1,0 +1,415 @@
+{
+  "version": 1,
+  "installations": {
+    "claude": {
+      "relic": {
+        "skills": [
+          {
+            "name": "relic-websockets",
+            "installedAt": "2026-06-04T10:18:19.643479Z"
+          },
+          {
+            "name": "relic-app-setup",
+            "installedAt": "2026-06-04T10:18:19.651323Z"
+          },
+          {
+            "name": "relic-middleware",
+            "installedAt": "2026-06-04T10:18:19.663755Z"
+          },
+          {
+            "name": "relic-shelf-migration",
+            "installedAt": "2026-06-04T10:18:19.676419Z"
+          },
+          {
+            "name": "relic-static-files",
+            "installedAt": "2026-06-04T10:18:19.687240Z"
+          },
+          {
+            "name": "relic-routing",
+            "installedAt": "2026-06-04T10:18:19.698639Z"
+          },
+          {
+            "name": "relic-request-response",
+            "installedAt": "2026-06-04T10:18:19.709154Z"
+          }
+        ]
+      },
+      "serverpod": {
+        "skills": [
+          {
+            "name": "serverpod-scheduling",
+            "installedAt": "2026-06-04T10:18:19.719848Z"
+          },
+          {
+            "name": "serverpod-testing",
+            "installedAt": "2026-06-04T10:18:19.729831Z"
+          },
+          {
+            "name": "serverpod-configuration",
+            "installedAt": "2026-06-04T10:18:19.737449Z"
+          },
+          {
+            "name": "serverpod-endpoints",
+            "installedAt": "2026-06-04T10:18:19.746363Z"
+          },
+          {
+            "name": "serverpod-database",
+            "installedAt": "2026-06-04T10:18:19.754339Z"
+          },
+          {
+            "name": "serverpod-streams",
+            "installedAt": "2026-06-04T10:18:19.763994Z"
+          },
+          {
+            "name": "serverpod-server-events",
+            "installedAt": "2026-06-04T10:18:19.772390Z"
+          },
+          {
+            "name": "serverpod-models",
+            "installedAt": "2026-06-04T10:18:19.781514Z"
+          },
+          {
+            "name": "serverpod-modules",
+            "installedAt": "2026-06-04T10:18:19.789019Z"
+          },
+          {
+            "name": "serverpod-sessions",
+            "installedAt": "2026-06-04T10:18:19.796545Z"
+          },
+          {
+            "name": "serverpod-overview",
+            "installedAt": "2026-06-04T10:18:19.803172Z"
+          },
+          {
+            "name": "serverpod-upgrading",
+            "installedAt": "2026-06-04T10:18:19.810061Z"
+          },
+          {
+            "name": "serverpod-webserver",
+            "installedAt": "2026-06-04T10:18:19.818638Z"
+          },
+          {
+            "name": "serverpod-auth-module",
+            "installedAt": "2026-06-04T10:18:19.827523Z"
+          },
+          {
+            "name": "serverpod-file-uploads",
+            "installedAt": "2026-06-04T10:18:19.835321Z"
+          },
+          {
+            "name": "serverpod-caching",
+            "installedAt": "2026-06-04T10:18:19.846471Z"
+          },
+          {
+            "name": "serverpod-cli",
+            "installedAt": "2026-06-04T10:18:19.858920Z"
+          },
+          {
+            "name": "serverpod-health-checks",
+            "installedAt": "2026-06-04T10:18:19.870387Z"
+          },
+          {
+            "name": "serverpod-logging",
+            "installedAt": "2026-06-04T10:18:19.880925Z"
+          }
+        ]
+      },
+      "flutter": {
+        "skills": [
+          {
+            "name": "flutter-implement-json-serialization",
+            "installedAt": "2026-06-04T10:18:19.916311Z"
+          },
+          {
+            "name": "flutter-add-widget-test",
+            "installedAt": "2026-06-04T10:18:19.939318Z"
+          },
+          {
+            "name": "flutter-use-http-package",
+            "installedAt": "2026-06-04T10:18:19.950995Z"
+          },
+          {
+            "name": "flutter-build-responsive-layout",
+            "installedAt": "2026-06-04T10:18:19.964575Z"
+          },
+          {
+            "name": "flutter-apply-architecture-best-practices",
+            "installedAt": "2026-06-04T10:18:19.976650Z"
+          },
+          {
+            "name": "flutter-add-widget-preview",
+            "installedAt": "2026-06-04T10:18:19.987012Z"
+          },
+          {
+            "name": "flutter-setup-declarative-routing",
+            "installedAt": "2026-06-04T10:18:20.020232Z"
+          },
+          {
+            "name": "flutter-fix-layout-issues",
+            "installedAt": "2026-06-04T10:18:20.033140Z"
+          },
+          {
+            "name": "flutter-add-integration-test",
+            "installedAt": "2026-06-04T10:18:20.046885Z"
+          },
+          {
+            "name": "flutter-setup-localization",
+            "installedAt": "2026-06-04T10:18:20.062812Z"
+          }
+        ]
+      },
+      "riverpod": {
+        "skills": [
+          {
+            "name": "riverpod-family",
+            "installedAt": "2026-06-04T10:18:20.078614Z"
+          },
+          {
+            "name": "riverpod-consumers",
+            "installedAt": "2026-06-04T10:18:20.091217Z"
+          },
+          {
+            "name": "riverpod-retry",
+            "installedAt": "2026-06-04T10:18:20.102666Z"
+          },
+          {
+            "name": "riverpod-eager-initialization",
+            "installedAt": "2026-06-04T10:18:20.114164Z"
+          },
+          {
+            "name": "riverpod-faq-and-practices",
+            "installedAt": "2026-06-04T10:18:20.128707Z"
+          },
+          {
+            "name": "riverpod-auto-dispose",
+            "installedAt": "2026-06-04T10:18:20.139815Z"
+          },
+          {
+            "name": "riverpod-cancel",
+            "installedAt": "2026-06-04T10:18:20.151514Z"
+          },
+          {
+            "name": "riverpod-codegen-and-hooks",
+            "installedAt": "2026-06-04T10:18:20.162350Z"
+          },
+          {
+            "name": "riverpod-containers",
+            "installedAt": "2026-06-04T10:18:20.172677Z"
+          },
+          {
+            "name": "riverpod-scoping",
+            "installedAt": "2026-06-04T10:18:20.183248Z"
+          },
+          {
+            "name": "riverpod-from-provider",
+            "installedAt": "2026-06-04T10:18:20.194457Z"
+          },
+          {
+            "name": "riverpod-pull-to-refresh",
+            "installedAt": "2026-06-04T10:18:20.203954Z"
+          },
+          {
+            "name": "riverpod-observers",
+            "installedAt": "2026-06-04T10:18:20.213399Z"
+          },
+          {
+            "name": "riverpod-migration",
+            "installedAt": "2026-06-04T10:18:20.231708Z"
+          },
+          {
+            "name": "riverpod-testing",
+            "installedAt": "2026-06-04T10:18:20.238827Z"
+          },
+          {
+            "name": "riverpod-getting-started",
+            "installedAt": "2026-06-04T10:18:20.247418Z"
+          },
+          {
+            "name": "riverpod-overrides",
+            "installedAt": "2026-06-04T10:18:20.255911Z"
+          },
+          {
+            "name": "riverpod-select",
+            "installedAt": "2026-06-04T10:18:20.265515Z"
+          },
+          {
+            "name": "riverpod-refs",
+            "installedAt": "2026-06-04T10:18:20.277828Z"
+          },
+          {
+            "name": "riverpod-3-0-migration",
+            "installedAt": "2026-06-04T10:18:20.288281Z"
+          },
+          {
+            "name": "riverpod-mutations",
+            "installedAt": "2026-06-04T10:18:20.300774Z"
+          },
+          {
+            "name": "riverpod-providers",
+            "installedAt": "2026-06-04T10:18:20.313257Z"
+          },
+          {
+            "name": "riverpod-offline",
+            "installedAt": "2026-06-04T10:18:20.323203Z"
+          }
+        ]
+      },
+      "shadcn_ui": {
+        "skills": [
+          {
+            "name": "shadcn_ui-time-picker",
+            "installedAt": "2026-06-04T10:18:20.332243Z"
+          },
+          {
+            "name": "shadcn_ui-avatar",
+            "installedAt": "2026-06-04T10:18:20.344165Z"
+          },
+          {
+            "name": "shadcn_ui-card",
+            "installedAt": "2026-06-04T10:18:20.356175Z"
+          },
+          {
+            "name": "shadcn_ui-sheet",
+            "installedAt": "2026-06-04T10:18:20.366499Z"
+          },
+          {
+            "name": "shadcn_ui-switch",
+            "installedAt": "2026-06-04T10:18:20.375381Z"
+          },
+          {
+            "name": "shadcn_ui-responsive",
+            "installedAt": "2026-06-04T10:18:20.386527Z"
+          },
+          {
+            "name": "shadcn_ui-sonner",
+            "installedAt": "2026-06-04T10:18:20.397423Z"
+          },
+          {
+            "name": "shadcn_ui-form",
+            "installedAt": "2026-06-04T10:18:20.411129Z"
+          },
+          {
+            "name": "shadcn_ui-dialog",
+            "installedAt": "2026-06-04T10:18:20.423502Z"
+          },
+          {
+            "name": "shadcn_ui-button",
+            "installedAt": "2026-06-04T10:18:20.437155Z"
+          },
+          {
+            "name": "shadcn_ui-separator",
+            "installedAt": "2026-06-04T10:18:20.449551Z"
+          },
+          {
+            "name": "shadcn_ui-accordion",
+            "installedAt": "2026-06-04T10:18:20.462284Z"
+          },
+          {
+            "name": "shadcn_ui-tabs",
+            "installedAt": "2026-06-04T10:18:20.482748Z"
+          },
+          {
+            "name": "shadcn_ui-badge",
+            "installedAt": "2026-06-04T10:18:20.495724Z"
+          },
+          {
+            "name": "shadcn_ui-tooltip",
+            "installedAt": "2026-06-04T10:18:20.539282Z"
+          },
+          {
+            "name": "shadcn_ui-decorator",
+            "installedAt": "2026-06-04T10:18:20.553835Z"
+          },
+          {
+            "name": "shadcn_ui-getting-started",
+            "installedAt": "2026-06-04T10:18:20.569077Z"
+          },
+          {
+            "name": "shadcn_ui-theme",
+            "installedAt": "2026-06-04T10:18:20.581949Z"
+          },
+          {
+            "name": "shadcn_ui-table",
+            "installedAt": "2026-06-04T10:18:20.596523Z"
+          },
+          {
+            "name": "shadcn_ui-input-otp",
+            "installedAt": "2026-06-04T10:18:20.608509Z"
+          },
+          {
+            "name": "shadcn_ui-select",
+            "installedAt": "2026-06-04T10:18:20.619493Z"
+          },
+          {
+            "name": "shadcn_ui-menubar",
+            "installedAt": "2026-06-04T10:18:20.629888Z"
+          },
+          {
+            "name": "shadcn_ui-textarea",
+            "installedAt": "2026-06-04T10:18:20.640516Z"
+          },
+          {
+            "name": "shadcn_ui-input",
+            "installedAt": "2026-06-04T10:18:20.649787Z"
+          },
+          {
+            "name": "shadcn_ui-alert",
+            "installedAt": "2026-06-04T10:18:20.658706Z"
+          },
+          {
+            "name": "shadcn_ui-toast",
+            "installedAt": "2026-06-04T10:18:20.667823Z"
+          },
+          {
+            "name": "shadcn_ui-checkbox",
+            "installedAt": "2026-06-04T10:18:20.677617Z"
+          },
+          {
+            "name": "shadcn_ui-typography",
+            "installedAt": "2026-06-04T10:18:20.688448Z"
+          },
+          {
+            "name": "shadcn_ui-date-picker",
+            "installedAt": "2026-06-04T10:18:20.697914Z"
+          },
+          {
+            "name": "shadcn_ui-context-menu",
+            "installedAt": "2026-06-04T10:18:20.705656Z"
+          },
+          {
+            "name": "shadcn_ui-resizable",
+            "installedAt": "2026-06-04T10:18:20.713445Z"
+          },
+          {
+            "name": "shadcn_ui-slider",
+            "installedAt": "2026-06-04T10:18:20.720173Z"
+          },
+          {
+            "name": "shadcn_ui-progress",
+            "installedAt": "2026-06-04T10:18:20.727028Z"
+          },
+          {
+            "name": "shadcn_ui-calendar",
+            "installedAt": "2026-06-04T10:18:20.733763Z"
+          },
+          {
+            "name": "shadcn_ui-popover",
+            "installedAt": "2026-06-04T10:18:20.741105Z"
+          },
+          {
+            "name": "shadcn_ui-icon-button",
+            "installedAt": "2026-06-04T10:18:20.748754Z"
+          },
+          {
+            "name": "shadcn_ui-radio-group",
+            "installedAt": "2026-06-04T10:18:20.756783Z"
+          },
+          {
+            "name": "shadcn_ui-breadcrumb",
+            "installedAt": "2026-06-04T10:18:20.764810Z"
+          }
+        ]
+      }
+    }
+  }
+}

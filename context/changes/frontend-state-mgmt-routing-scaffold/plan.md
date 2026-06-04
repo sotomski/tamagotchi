@@ -6,7 +6,7 @@ Replace the bootstrap echo UI in the Flutter web client with a Riverpod + go_rou
 
 ## Current State Analysis
 
-- `tamagotchi/tamagotchi_flutter/lib/main.dart` is the bootstrap scaffold: a `late final Client client` global (`main.dart:15`) constructed in `main()` (`main.dart:33-37`), then `MyApp` (`main.dart:42`) mounts `MyHomePage` (`main.dart:55`) which mounts `GreetingsScreen` directly. No router. No state container. Two screens in `lib/screens/` (`greetings_screen.dart`, `sign_in_screen.dart`); both import the global via `'../main.dart'` (`greetings_screen.dart:3`, `sign_in_screen.dart:4`).
+- `tamagotchi_flutter/lib/main.dart` is the bootstrap scaffold: a `late final Client client` global (`main.dart:15`) constructed in `main()` (`main.dart:33-37`), then `MyApp` (`main.dart:42`) mounts `MyHomePage` (`main.dart:55`) which mounts `GreetingsScreen` directly. No router. No state container. Two screens in `lib/screens/` (`greetings_screen.dart`, `sign_in_screen.dart`); both import the global via `'../main.dart'` (`greetings_screen.dart:3`, `sign_in_screen.dart:4`).
 - `SignInScreen` is defined but unused — `MyHomePage` references it only inside a commented-out block (`main.dart:70-76`).
 - `pubspec.yaml` has no Riverpod, no router. Dependencies are `flutter`, `tamagotchi_client` (path), `serverpod_flutter: 3.4.8`, `serverpod_auth_idp_flutter: 3.4.8`, `cupertino_icons: ^1.0.5`.
 - The only Flutter test is `test/widget_test.dart` — it pumps `MyApp` and asserts the AppBar title "Serverpod Example". It will break the moment `main.dart` is rewritten and must be updated in the same change.
@@ -15,7 +15,7 @@ Replace the bootstrap echo UI in the Flutter web client with a Riverpod + go_rou
 
 ## Desired End State
 
-- `flutter analyze` and `flutter test` pass from `tamagotchi/tamagotchi_flutter/` with the new scaffold in place.
+- `flutter analyze` and `flutter test` pass from `tamagotchi_flutter/` with the new scaffold in place.
 - `lib/main.dart` is a slim bootstrap that resolves the server URL, constructs the `Client`, and calls `runApp(ProviderScope(overrides: [...], child: const AppWidget()))`. No global `Client`. No `MyApp` / `MyHomePage` classes.
 - `lib/app/` holds the shell (`app_widget.dart`, `app_router.dart`, `client_provider.dart`, `server_config.dart`). `lib/home/home_screen.dart` is an empty-state placeholder. `lib/auth/sign_in_screen.dart` is the Riverpod-aware port of the old sign-in widget. `lib/screens/` no longer exists.
 - A user launching the app lands at `/` and sees the empty-state home placeholder ("No creature yet — sign in to get started" plus a navigation button to `/sign-in`). Navigating to `/sign-in` renders the Serverpod `SignInWidget` and returns to `/` on success. No auth guard yet (S-01 adds the redirect).
@@ -51,7 +51,7 @@ The Serverpod `Client` is exposed via a `@Riverpod(keepAlive: true)` provider wh
 
 ## Critical Implementation Details
 
-- **build_runner is invoked from `tamagotchi/tamagotchi_flutter/`**, not the workspace root. `serverpod generate` is invoked from `tamagotchi/tamagotchi_server/`. Each codegen surface writes only to files inside its own package; they never need to be coordinated. Run order does not matter.
+- **build_runner is invoked from `tamagotchi_flutter/`**, not the workspace root. `serverpod generate` is invoked from `tamagotchi_server/`. Each codegen surface writes only to files inside its own package; they never need to be coordinated. Run order does not matter.
 - **The riverpod-generated `.g.dart` files are part of source** (not gitignored, not excluded from the analyzer) — Riverpod's convention is to commit them so consumers can be analyzed without running build_runner first. This differs from Serverpod's own generated trees (`tamagotchi_server/lib/src/generated/`, `tamagotchi_client/lib/src/protocol/`), which are also committed but are excluded from the analyzer.
 - **The widget test must not trigger `serverpodClientProvider`'s body.** The test pumps the root `AppWidget` inside a plain `ProviderScope` with **no overrides**; the router starts at `/`, `HomeScreen` is a stateless placeholder that does not read the client, and the provider body never runs. If a later test needs to render `/sign-in`, it will override the client itself — F-01's test does not.
 
@@ -65,7 +65,7 @@ Add Riverpod (codegen flavor), go_router, and the build_runner toolchain to `tam
 
 #### 1. pubspec.yaml additions
 
-**File**: `tamagotchi/tamagotchi_flutter/pubspec.yaml`
+**File**: `tamagotchi_flutter/pubspec.yaml`
 
 **Intent**: Add the runtime + dev dependencies that the app shell will need. Pick versions compatible with Flutter `^3.44.0` / Dart `^3.8.0` declared in the existing `environment:` block.
 
@@ -79,7 +79,7 @@ Add Riverpod (codegen flavor), go_router, and the build_runner toolchain to `tam
 
 #### 2. analysis_options.yaml — wire custom_lint
 
-**File**: `tamagotchi/tamagotchi_flutter/analysis_options.yaml`
+**File**: `tamagotchi_flutter/analysis_options.yaml`
 
 **Intent**: Activate `custom_lint` so `riverpod_lint`'s rules surface during `flutter analyze`. Without this, Riverpod-specific lint feedback is silently ignored.
 
@@ -89,10 +89,10 @@ Add Riverpod (codegen flavor), go_router, and the build_runner toolchain to `tam
 
 #### Automated Verification
 
-- `flutter pub get` from `tamagotchi/tamagotchi_flutter/` resolves cleanly with no version conflicts.
-- `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 (no annotated sources yet; the run is a no-op that confirms the toolchain works).
-- `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0.
-- `flutter test` from `tamagotchi/tamagotchi_flutter/` still passes (the existing `widget_test.dart` is untouched in this phase — it asserts the old `MyApp` shell, which still exists).
+- `flutter pub get` from `tamagotchi_flutter/` resolves cleanly with no version conflicts.
+- `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi_flutter/` exits 0 (no annotated sources yet; the run is a no-op that confirms the toolchain works).
+- `flutter analyze` from `tamagotchi_flutter/` exits 0.
+- `flutter test` from `tamagotchi_flutter/` still passes (the existing `widget_test.dart` is untouched in this phase — it asserts the old `MyApp` shell, which still exists).
 
 #### Manual Verification
 
@@ -112,7 +112,7 @@ Replace the bootstrap echo UI with the Riverpod + go_router scaffold. Establish 
 
 #### 1. Server URL provider
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/app/server_config.dart` (new)
+**File**: `tamagotchi_flutter/lib/app/server_config.dart` (new)
 
 **Intent**: Hold the resolved server URL as a Riverpod-visible value so future features (e.g., feature flags pinned to environments) can read it without reaching into `main.dart`.
 
@@ -120,7 +120,7 @@ Replace the bootstrap echo UI with the Riverpod + go_router scaffold. Establish 
 
 #### 2. Serverpod client provider
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/app/client_provider.dart` (new)
+**File**: `tamagotchi_flutter/lib/app/client_provider.dart` (new)
 
 **Intent**: Expose the Serverpod `Client` to consumers via Riverpod, so the `late final Client` global at `main.dart:15` can be deleted and screens stop importing `'../main.dart'`.
 
@@ -128,7 +128,7 @@ Replace the bootstrap echo UI with the Riverpod + go_router scaffold. Establish 
 
 #### 3. App router
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/app/app_router.dart` (new)
+**File**: `tamagotchi_flutter/lib/app/app_router.dart` (new)
 
 **Intent**: Declare the two-route map and expose it as a Riverpod-visible `GoRouter` instance. Auth guard is intentionally absent — S-01 adds it via a `refreshListenable` tied to `client.auth.authInfoListenable`.
 
@@ -136,7 +136,7 @@ Replace the bootstrap echo UI with the Riverpod + go_router scaffold. Establish 
 
 #### 4. App widget
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/app/app_widget.dart` (new)
+**File**: `tamagotchi_flutter/lib/app/app_widget.dart` (new)
 
 **Intent**: Root widget that consumes the router provider and mounts `MaterialApp.router`. Replaces the old `MyApp` / `MyHomePage` classes.
 
@@ -144,7 +144,7 @@ Replace the bootstrap echo UI with the Riverpod + go_router scaffold. Establish 
 
 #### 5. Home screen — empty-state placeholder
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/home/home_screen.dart` (new)
+**File**: `tamagotchi_flutter/lib/home/home_screen.dart` (new)
 
 **Intent**: A minimal empty-state placeholder so the router has somewhere to land. S-01 (FR-001) will replace this with the real signed-in empty-creature view; for now, it exists only to prove the router works and to give the user something coherent to see on first run.
 
@@ -152,7 +152,7 @@ Replace the bootstrap echo UI with the Riverpod + go_router scaffold. Establish 
 
 #### 6. Sign-in screen — Riverpod port
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/auth/sign_in_screen.dart` (new — replaces `lib/screens/sign_in_screen.dart`)
+**File**: `tamagotchi_flutter/lib/auth/sign_in_screen.dart` (new — replaces `lib/screens/sign_in_screen.dart`)
 
 **Intent**: Port the existing sign-in widget into the new feature layout and read the `Client` from Riverpod instead of the global. Behavior matches the old `lib/screens/sign_in_screen.dart`: shows `SignInWidget` when unauthenticated, returns to `/` after a successful sign-in. The `widget.child` parameter on the old class is dropped — routing now controls what comes next, not widget nesting.
 
@@ -160,7 +160,7 @@ Replace the bootstrap echo UI with the Riverpod + go_router scaffold. Establish 
 
 #### 7. main.dart — slim bootstrap
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/main.dart`
+**File**: `tamagotchi_flutter/lib/main.dart`
 
 **Intent**: Become a thin bootstrap: resolve the server URL, build the `Client`, initialize auth, then `runApp(ProviderScope(overrides: [...], child: AppWidget()))`. Delete the `late final Client client` global, `late String serverUrl`, `MyApp`, and `MyHomePage`. Delete the import of the old `screens/greetings_screen.dart`.
 
@@ -182,7 +182,7 @@ runApp(
 
 #### 8. Widget test — assert home placeholder renders
 
-**File**: `tamagotchi/tamagotchi_flutter/test/widget_test.dart`
+**File**: `tamagotchi_flutter/test/widget_test.dart`
 
 **Intent**: Update the test to match the new shell. Asserts that pumping `AppWidget` inside a bare `ProviderScope` (no client override) lands on the home placeholder. Proves the router boots without requiring an injected `Client` — which it doesn't, because `HomeScreen` is stateless and does not read providers.
 
@@ -190,7 +190,7 @@ runApp(
 
 #### 9. Delete the old screens directory
 
-**File**: `tamagotchi/tamagotchi_flutter/lib/screens/` (delete)
+**File**: `tamagotchi_flutter/lib/screens/` (delete)
 
 **Intent**: Retire the by-layer layout per `CLAUDE.md`. Delete `lib/screens/greetings_screen.dart` (server-echo demo, no longer mounted anywhere) and `lib/screens/sign_in_screen.dart` (replaced by `lib/auth/sign_in_screen.dart`). The empty directory is removed afterwards.
 
@@ -202,22 +202,22 @@ runApp(
 
 **Intent**: Generate the four `.g.dart` siblings for `server_config.dart`, `client_provider.dart`, `app_router.dart`, and (no `.g.dart` needed for `app_widget.dart`, `home_screen.dart`, `sign_in_screen.dart` — they are unannotated). Without this step, the `part '*.g.dart'` directives point at missing files and analysis fails.
 
-**Contract**: Run `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/`. Commit the resulting `.g.dart` files alongside their sources.
+**Contract**: Run `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi_flutter/`. Commit the resulting `.g.dart` files alongside their sources.
 
 ### Success Criteria
 
 #### Automated Verification
 
-- `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings.
-- `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0.
-- `flutter test` from `tamagotchi/tamagotchi_flutter/` passes — specifically the updated `widget_test.dart` case `'App boots into the home placeholder'`.
-- `git ls-files tamagotchi/tamagotchi_flutter/lib/screens/` returns nothing (the old directory is gone from the index).
-- `grep -r "late final Client client" tamagotchi/tamagotchi_flutter/lib/` returns no matches (the global is gone).
-- `grep -r "import '../main.dart'" tamagotchi/tamagotchi_flutter/lib/` returns no matches (no widget reaches into `main.dart` anymore).
+- `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings.
+- `flutter analyze` from `tamagotchi_flutter/` exits 0.
+- `flutter test` from `tamagotchi_flutter/` passes — specifically the updated `widget_test.dart` case `'App boots into the home placeholder'`.
+- `git ls-files tamagotchi_flutter/lib/screens/` returns nothing (the old directory is gone from the index).
+- `grep -r "late final Client client" tamagotchi_flutter/lib/` returns no matches (the global is gone).
+- `grep -r "import '../main.dart'" tamagotchi_flutter/lib/` returns no matches (no widget reaches into `main.dart` anymore).
 
 #### Manual Verification
 
-- Build the Flutter web app via `serverpod run flutter_build` from `tamagotchi/tamagotchi_server/`, then start the Serverpod server (`dart bin/main.dart --apply-migrations`) and load `http://localhost:8080/` in a browser; confirm the home placeholder ("No creature yet" + "Sign in" button) renders.
+- Build the Flutter web app via `serverpod run flutter_build` from `tamagotchi_server/`, then start the Serverpod server (`dart bin/main.dart --apply-migrations`) and load `http://localhost:8080/` in a browser; confirm the home placeholder ("No creature yet" + "Sign in" button) renders.
 - Click "Sign in"; confirm the URL changes to `/sign-in` and the Serverpod `SignInWidget` renders.
 - Navigate back to `/` directly via the browser URL bar; confirm the home placeholder renders again (router round-trip works).
 
@@ -237,7 +237,7 @@ runApp(
 
 ### Manual Testing Steps
 
-1. From `tamagotchi/tamagotchi_server/`: `serverpod run flutter_build` to produce the web bundle.
+1. From `tamagotchi_server/`: `serverpod run flutter_build` to produce the web bundle.
 2. Start the Serverpod server in development mode and load `http://localhost:8080/` in a browser.
 3. Confirm the page renders the home placeholder text "No creature yet" and a "Sign in" button.
 4. Click "Sign in". Confirm the URL changes to `/sign-in` and the Serverpod sign-in widget renders.
@@ -259,9 +259,9 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 - Roadmap source: `context/foundation/roadmap.md` — entry F-01 (`frontend-state-mgmt-routing-scaffold`).
 - PRD anchor: `context/foundation/prd.md` §Non-Functional Requirements (NFR-1 — 5-second perceived response).
 - Project conventions: `CLAUDE.md` (group-by-feature layout, Flutter web build command).
-- Current bootstrap: `tamagotchi/tamagotchi_flutter/lib/main.dart:1-79`.
-- Existing sign-in widget being ported: `tamagotchi/tamagotchi_flutter/lib/screens/sign_in_screen.dart:1-73`.
-- Codegen sibling cycle for the server: `tamagotchi/tamagotchi_server/CLAUDE.md` (the spy → generate cycle).
+- Current bootstrap: `tamagotchi_flutter/lib/main.dart:1-79`.
+- Existing sign-in widget being ported: `tamagotchi_flutter/lib/screens/sign_in_screen.dart:1-73`.
+- Codegen sibling cycle for the server: `tamagotchi_server/CLAUDE.md` (the spy → generate cycle).
 
 ## Progress
 
@@ -271,10 +271,10 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 
 #### Automated
 
-- [x] 1.1 `flutter pub get` from `tamagotchi/tamagotchi_flutter/` resolves cleanly with no version conflicts — f68e959
-- [x] 1.2 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 — f68e959
-- [x] 1.3 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0 — f68e959
-- [x] 1.4 `flutter test` from `tamagotchi/tamagotchi_flutter/` still passes — f68e959
+- [x] 1.1 `flutter pub get` from `tamagotchi_flutter/` resolves cleanly with no version conflicts — f68e959
+- [x] 1.2 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi_flutter/` exits 0 — f68e959
+- [x] 1.3 `flutter analyze` from `tamagotchi_flutter/` exits 0 — f68e959
+- [x] 1.4 `flutter test` from `tamagotchi_flutter/` still passes — f68e959
 
 #### Manual
 
@@ -284,12 +284,12 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 
 #### Automated
 
-- [x] 2.1 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi/tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings — 1e3b492
-- [x] 2.2 `flutter analyze` from `tamagotchi/tamagotchi_flutter/` exits 0 — 1e3b492
-- [x] 2.3 `flutter test` from `tamagotchi/tamagotchi_flutter/` passes — specifically `'App boots into the home placeholder'` — 1e3b492
-- [x] 2.4 `git ls-files tamagotchi/tamagotchi_flutter/lib/screens/` returns nothing — 1e3b492
-- [x] 2.5 `grep -r "late final Client client" tamagotchi/tamagotchi_flutter/lib/` returns no matches — 1e3b492
-- [x] 2.6 `grep -r "import '../main.dart'" tamagotchi/tamagotchi_flutter/lib/` returns no matches — 1e3b492
+- [x] 2.1 `dart run build_runner build --delete-conflicting-outputs` from `tamagotchi_flutter/` exits 0 and produces the expected `.g.dart` siblings — 1e3b492
+- [x] 2.2 `flutter analyze` from `tamagotchi_flutter/` exits 0 — 1e3b492
+- [x] 2.3 `flutter test` from `tamagotchi_flutter/` passes — specifically `'App boots into the home placeholder'` — 1e3b492
+- [x] 2.4 `git ls-files tamagotchi_flutter/lib/screens/` returns nothing — 1e3b492
+- [x] 2.5 `grep -r "late final Client client" tamagotchi_flutter/lib/` returns no matches — 1e3b492
+- [x] 2.6 `grep -r "import '../main.dart'" tamagotchi_flutter/lib/` returns no matches — 1e3b492
 
 #### Manual
 
@@ -303,7 +303,7 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
 > contract; logged here so the plan remains the source of truth.
 
 - **Server `flutter_build` command changed (out of the original "no server changes" scope).**
-  `tamagotchi/tamagotchi_server/pubspec.yaml`'s `serverpod.flutter_build` command dropped `--wasm`
+  `tamagotchi_server/pubspec.yaml`'s `serverpod.flutter_build` command dropped `--wasm`
   from both the windows and posix branches and added `rm -rf web/app` to the posix branch (commit
   1e3b492). Reason: the experimental dart2wasm renderer compiles and dry-runs cleanly but fails at
   runtime instantiation with `LinkError: Import "dart2wasm" ... requires a callable` on the
@@ -315,7 +315,7 @@ None. The scaffold introduces one Riverpod `ProviderScope` and one `GoRouter` in
   3.x native analyzer-plugin mechanism (sanctioned version drift, F3). On this toolchain the workspace-root
   `plugins:` block does not propagate to member packages under `flutter analyze`/`dart analyze`, so the
   lint gate does not run in CLI/CI. Accepted as a documented limitation (Fix A); see the comment in
-  `tamagotchi/analysis_options.yaml`.
+  `analysis_options.yaml`.
 - **Resolved dependency baseline** (the plan suggested ~2.6.0; the implementer was free to choose, and
   did — review finding F3). Actual versions: `flutter_riverpod ^3.3.0`, `riverpod_annotation ^4.0.0`,
   `go_router ^17.0.0`; dev: `riverpod_generator ^4.0.0`, `riverpod_lint ^3.1.0`, `build_runner ^2.4.0`.

@@ -19,9 +19,9 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        working-directory: tamagotchi/tamagotchi_server
+        working-directory: tamagotchi_server
         run: dart pub get
 
       - name: Check formatting
-        working-directory: tamagotchi/tamagotchi_server
+        working-directory: tamagotchi_server
         run: dart format --set-exit-if-changed .

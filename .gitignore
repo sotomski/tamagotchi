@@ -17,3 +17,19 @@ node_modules/
 # Local env
 .env
 .env.local
+
+# Dart / pub (workspace)
+.dart_tool/
+.packages
+pubspec_overrides.yaml
+
+# scloud deployment generated files should not be committed to git
+**/.scloud/
+
+# Agent skills — treat like `pub get`: commit the manifest, not the fetched skills.
+#   Fetch with: `skills get --ide claude` (manifest: .dart_skills/skills_config.json)
+# Ignore every fetched skill dir under .claude/skills/, but keep the hand-authored 10x-* ones.
+/.claude/skills/*/
+!/.claude/skills/10x-*/
+# Dart skills CLI registry clone cache (regenerated on `skills get`).
+/.dart_skills/repos/

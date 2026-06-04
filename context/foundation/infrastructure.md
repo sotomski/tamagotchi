@@ -114,7 +114,7 @@ Every row names the lens that surfaced it. Verify gating risks before 2026-06-15
 
 ## Getting Started
 
-The following commands assume Serverpod 3.4.8, Dart 3.8.0, `scloud` CLI v0.29.0 (already pre-installed in the devcontainer). Run from `tamagotchi/tamagotchi_server/` unless noted. **Validate against the installed CLI's `--help` before running — exact flag names on `scloud` v0.29.0 may differ from any general scloud documentation, and the docs site has 404s on key paths.**
+The following commands assume Serverpod 3.4.8, Dart 3.8.0, `scloud` CLI v0.29.0 (already pre-installed in the devcontainer). Run from `tamagotchi_server/` unless noted. **Validate against the installed CLI's `--help` before running — exact flag names on `scloud` v0.29.0 may differ from any general scloud documentation, and the docs site has 404s on key paths.**
 
 1. **Confirm the existing scloud session is active** in the devcontainer:
    ```bash
@@ -124,7 +124,7 @@ The following commands assume Serverpod 3.4.8, Dart 3.8.0, `scloud` CLI v0.29.0 
 
 2. **First-deploy preflight**:
    ```bash
-   cd tamagotchi/tamagotchi_server
+   cd tamagotchi_server
    scloud launch                         # generates scloud.yaml; provisions project + managed DB
    scloud deploy --dry-run --show-files  # verify the upload manifest before sending bytes
    scloud deploy                         # actual deploy
