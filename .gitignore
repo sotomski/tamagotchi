@@ -17,3 +17,11 @@ node_modules/
 # Local env
 .env
 .env.local
+
+# Dart / pub (workspace)
+.dart_tool/
+.packages
+pubspec_overrides.yaml
+
+# scloud deployment generated files should not be committed to git
+**/.scloud/
