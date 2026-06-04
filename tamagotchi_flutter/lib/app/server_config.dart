@@ -10,5 +10,6 @@ part 'server_config.g.dart';
 /// (e.g. environment-pinned feature flags) read the URL without reaching into
 /// `main.dart`.
 @Riverpod(keepAlive: true)
-String serverUrl(Ref ref) =>
-    throw UnimplementedError('serverUrlProvider must be overridden at the app root');
+String serverUrl(Ref ref) => throw UnimplementedError(
+  'serverUrlProvider must be overridden at the app root',
+);

@@ -28,7 +28,7 @@ jobs:
       - name: Install Serverpod CLIs
         run: |
           dart pub global activate serverpod_cli 3.4.8
-          dart pub global activate serverpod_cloud_cli 0.29.0
+          dart pub global activate serverpod_cloud_cli 0.30.0
 
       - name: Build Flutter web bundle into server's web/app/
         working-directory: tamagotchi_server
@@ -36,4 +36,6 @@ jobs:
 
       - name: Deploy
         working-directory: tamagotchi_server
-        run: scloud deploy
+        # --no-analytics: skip the first-run analytics consent prompt (blocks non-interactive CI)
+        # --yes: auto-accept confirmation prompts in non-interactive environments
+        run: scloud --no-analytics --yes deploy
