@@ -39,50 +39,62 @@ class CreatureEndpoint extends Endpoint {
 
     final mods = randomPersonalityModifiers(Random());
 
-    final creature = await session.db.transaction((transaction) async {
-      final created = await Creature.db.insertRow(
-        session,
-        Creature(
-          ownerUuid: ownerUuid,
-          name: trimmedName,
-          hunger: baselineCreatureStats.hunger,
-          energy: baselineCreatureStats.energy,
-          love: baselineCreatureStats.love,
-          illness: baselineCreatureStats.illness,
-        ),
-        transaction: transaction,
-      );
+    final Creature creature;
+    try {
+      creature = await session.db.transaction((transaction) async {
+        final created = await Creature.db.insertRow(
+          session,
+          Creature(
+            ownerUuid: ownerUuid,
+            name: trimmedName,
+            hunger: baselineCreatureStats.hunger,
+            energy: baselineCreatureStats.energy,
+            love: baselineCreatureStats.love,
+            illness: baselineCreatureStats.illness,
+          ),
+          transaction: transaction,
+        );
 
-      await CreaturePersonality.db.insertRow(
-        session,
-        CreaturePersonality(
-          creatureId: created.id!,
-          hungerDecayMod: mods.hungerDecayMod,
-          hungerRegenMod: mods.hungerRegenMod,
-          energyDecayMod: mods.energyDecayMod,
-          energyRegenMod: mods.energyRegenMod,
-          loveDecayMod: mods.loveDecayMod,
-          loveRegenMod: mods.loveRegenMod,
-          illnessDecayMod: mods.illnessDecayMod,
-          illnessRegenMod: mods.illnessRegenMod,
-        ),
-        transaction: transaction,
-      );
+        await CreaturePersonality.db.insertRow(
+          session,
+          CreaturePersonality(
+            creatureId: created.id!,
+            hungerDecayMod: mods.hungerDecayMod,
+            hungerRegenMod: mods.hungerRegenMod,
+            energyDecayMod: mods.energyDecayMod,
+            energyRegenMod: mods.energyRegenMod,
+            loveDecayMod: mods.loveDecayMod,
+            loveRegenMod: mods.loveRegenMod,
+            illnessDecayMod: mods.illnessDecayMod,
+            illnessRegenMod: mods.illnessRegenMod,
+          ),
+          transaction: transaction,
+        );
 
-      await JournalEntry.db.insertRow(
-        session,
-        JournalEntry(
-          creatureId: created.id!,
-          ownerUuid: ownerUuid,
-          event: JournalEvent.hatched,
-          prose: '',
-          statDelta: null,
-        ),
-        transaction: transaction,
-      );
+        await JournalEntry.db.insertRow(
+          session,
+          JournalEntry(
+            creatureId: created.id!,
+            ownerUuid: ownerUuid,
+            event: JournalEvent.hatched,
+            prose: '',
+            statDelta: null,
+          ),
+          transaction: transaction,
+        );
 
-      return created;
-    });
+        return created;
+      });
+    } catch (e) {
+      // The non-atomic pre-check can be raced; the unique index is the backstop.
+      // Translate its violation into the same typed error the pre-check throws.
+      if (isOwnerAlreadyHatchedViolation(e)) {
+        throw CreatureHatchError(
+          reason: CreatureHatchErrorReason.alreadyHatched,
+        );
+      }
+      rethrow;
+    }
 
     return CreatureStatus(creature: creature, mood: _moodOf(creature));
   }

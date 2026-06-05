@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:tamagotchi_server/src/creature/creature_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:test/test.dart';
 
@@ -53,52 +54,96 @@ void main() {
       },
     );
 
-    test('when hatching a second time then it is rejected as alreadyHatched',
-        () async {
-      final authed = _authedAs(sessionBuilder, const Uuid().v4());
+    test(
+      'when hatching a second time then it is rejected as alreadyHatched',
+      () async {
+        final authed = _authedAs(sessionBuilder, const Uuid().v4());
 
-      await endpoints.creature.hatch(authed, 'Nibbles');
+        await endpoints.creature.hatch(authed, 'Nibbles');
 
-      await expectLater(
-        () => endpoints.creature.hatch(authed, 'Spot'),
-        throwsA(
-          isA<CreatureHatchError>().having(
-            (e) => e.reason,
-            'reason',
-            CreatureHatchErrorReason.alreadyHatched,
+        await expectLater(
+          () => endpoints.creature.hatch(authed, 'Spot'),
+          throwsA(
+            isA<CreatureHatchError>().having(
+              (e) => e.reason,
+              'reason',
+              CreatureHatchErrorReason.alreadyHatched,
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
-    test('when hatching with a blank name then it is rejected as emptyName',
-        () async {
-      final authed = _authedAs(sessionBuilder, const Uuid().v4());
+    test(
+      'when hatching with a blank name then it is rejected as emptyName',
+      () async {
+        final authed = _authedAs(sessionBuilder, const Uuid().v4());
 
-      await expectLater(
-        () => endpoints.creature.hatch(authed, '   '),
-        throwsA(
-          isA<CreatureHatchError>().having(
-            (e) => e.reason,
-            'reason',
-            CreatureHatchErrorReason.emptyName,
+        await expectLater(
+          () => endpoints.creature.hatch(authed, '   '),
+          throwsA(
+            isA<CreatureHatchError>().having(
+              (e) => e.reason,
+              'reason',
+              CreatureHatchErrorReason.emptyName,
+            ),
           ),
-        ),
+        );
+      },
+    );
+
+    test(
+      'myCreature returns null before hatch then the creature with mood',
+      () async {
+        final authed = _authedAs(sessionBuilder, const Uuid().v4());
+
+        expect(await endpoints.creature.myCreature(authed), isNull);
+
+        await endpoints.creature.hatch(authed, 'Nibbles');
+
+        final status = await endpoints.creature.myCreature(authed);
+        expect(status, isNotNull);
+        expect(status!.creature.name, 'Nibbles');
+        expect(status.mood, CreatureMood.content);
+      },
+    );
+
+    // The double-hatch race can't be driven through two concurrent endpoint
+    // calls here — the rollback harness forbids concurrent DB calls — so this
+    // pins the load-bearing fact deterministically instead: a real duplicate
+    // ownerUuid insert raises the live Postgres unique violation, and the
+    // backstop classifier recognises *that real error* (real SQLSTATE +
+    // constraint/table names), not just a fabricated one. The endpoint's
+    // catch then turns it into the same typed error the pre-check throws.
+    test('a duplicate-owner insert raises a unique violation the backstop '
+        'classifies as a duplicate hatch', () async {
+      final owner = UuidValue.fromString(const Uuid().v4());
+      final session = sessionBuilder.build();
+
+      Creature seed(String name) => Creature(
+        ownerUuid: owner,
+        name: name,
+        hunger: baselineCreatureStats.hunger,
+        energy: baselineCreatureStats.energy,
+        love: baselineCreatureStats.love,
+        illness: baselineCreatureStats.illness,
       );
-    });
 
-    test('myCreature returns null before hatch then the creature with mood',
-        () async {
-      final authed = _authedAs(sessionBuilder, const Uuid().v4());
+      await Creature.db.insertRow(session, seed('first'));
 
-      expect(await endpoints.creature.myCreature(authed), isNull);
+      Object? caught;
+      try {
+        await Creature.db.insertRow(session, seed('second'));
+      } catch (e) {
+        caught = e;
+      }
 
-      await endpoints.creature.hatch(authed, 'Nibbles');
-
-      final status = await endpoints.creature.myCreature(authed);
-      expect(status, isNotNull);
-      expect(status!.creature.name, 'Nibbles');
-      expect(status.mood, CreatureMood.content);
+      expect(
+        caught,
+        isA<DatabaseQueryException>(),
+        reason: 'the owner unique index should reject the duplicate row',
+      );
+      expect(isOwnerAlreadyHatchedViolation(caught!), isTrue);
     });
   });
 }

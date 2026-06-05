@@ -1,6 +1,17 @@
 import 'dart:math';
 
+import 'package:serverpod/serverpod.dart';
+
 import '../generated/protocol.dart';
+
+/// The unique index that enforces one creature per owner at the database layer
+/// (declared in `creature.spy.yaml`, applied by the S-02 migration). It is the
+/// race-safe backstop behind the endpoint's non-atomic app pre-check.
+const ownerCreatureUniqueConstraint = 'creature_owner_idx';
+
+/// Postgres `unique_violation` SQLSTATE — raised when an insert collides with a
+/// unique index.
+const _uniqueViolationCode = '23505';
 
 /// Fixed stats every creature is hatched with (0-100 scale). Personality, not
 /// stats, is randomized at hatch (S-02 has no decay/regen). Love starts at 50 so
@@ -53,4 +64,22 @@ PersonalityModifiers randomPersonalityModifiers(Random rng) {
     illnessDecayMod: roll(),
     illnessRegenMod: roll(),
   );
+}
+
+/// Whether [error] is the Postgres unique-violation on the owner index — i.e. a
+/// concurrent hatch slipped past the non-atomic app pre-check and the DB
+/// backstop rejected the duplicate creature row.
+///
+/// The endpoint translates this into a typed
+/// `CreatureHatchError(alreadyHatched)` so the rare race surfaces the same
+/// client-visible error as the common case instead of a raw database fault.
+/// Matches the owner constraint by name, falling back to the `creature` table
+/// (whose only unique index is the owner one) if the driver leaves
+/// `constraintName` null — without masking a unique violation on any other
+/// table (e.g. the personality row).
+bool isOwnerAlreadyHatchedViolation(Object error) {
+  if (error is! DatabaseQueryException) return false;
+  if (error.code != _uniqueViolationCode) return false;
+  return error.constraintName == ownerCreatureUniqueConstraint ||
+      error.tableName == 'creature';
 }

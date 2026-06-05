@@ -1,8 +1,35 @@
 import 'dart:math';
 
+import 'package:serverpod/serverpod.dart';
 import 'package:tamagotchi_server/src/creature/creature_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:test/test.dart';
+
+/// A stand-in for a Serverpod query failure so the duplicate-owner classifier
+/// can be tested hermetically — without forcing a real mid-transaction unique
+/// violation (root CLAUDE.md guidance for non-atomic save sequences). Extends
+/// the public `base` exception; only the fields the classifier reads are set.
+final class _FakeQueryException extends DatabaseQueryException {
+  _FakeQueryException({this.code, this.constraintName, this.tableName});
+
+  @override
+  final String? code;
+  @override
+  final String? constraintName;
+  @override
+  final String? tableName;
+
+  @override
+  String get message => 'fake query failure';
+  @override
+  String? get detail => null;
+  @override
+  String? get hint => null;
+  @override
+  String? get columnName => null;
+  @override
+  int? get position => null;
+}
 
 void main() {
   group('deriveMood', () {
@@ -12,96 +39,99 @@ void main() {
     //   illness >= 50              -> sick   (illness has priority)
     //   else worst = max(hunger, 100-energy, 100-love)
     //   worst < 25 -> happy ; worst < 55 -> content ; else -> sad
-    final cases = <({
-      String name,
-      int hunger,
-      int energy,
-      int love,
-      int illness,
-      CreatureMood expected,
-    })>[
-      // Hatch baseline: love distress 50 -> content ("newborn, not yet bonded").
-      (
-        name: 'baseline -> content',
-        hunger: 0,
-        energy: 100,
-        love: 50,
-        illness: 0,
-        expected: CreatureMood.content,
-      ),
-      // All stats ideal: every distress 0 -> happy.
-      (
-        name: 'all-good -> happy',
-        hunger: 0,
-        energy: 100,
-        love: 100,
-        illness: 0,
-        expected: CreatureMood.happy,
-      ),
-      // Bad stats but healthy: worst distress 100 -> sad.
-      (
-        name: 'all-bad-but-healthy -> sad',
-        hunger: 100,
-        energy: 0,
-        love: 0,
-        illness: 0,
-        expected: CreatureMood.sad,
-      ),
-      // Illness priority: sick even when the other three stats are perfect.
-      (
-        name: 'illness overrides otherwise-perfect stats -> sick',
-        hunger: 0,
-        energy: 100,
-        love: 100,
-        illness: 50,
-        expected: CreatureMood.sick,
-      ),
-      // Illness just below the sick threshold falls through to the worst rule.
-      (
-        name: 'illness 49 with perfect stats -> happy',
-        hunger: 0,
-        energy: 100,
-        love: 100,
-        illness: 49,
-        expected: CreatureMood.happy,
-      ),
-      // happy/content boundary at 25: distress 24 is still happy.
-      (
-        name: 'worst distress 24 -> happy',
-        hunger: 24,
-        energy: 100,
-        love: 100,
-        illness: 0,
-        expected: CreatureMood.happy,
-      ),
-      // happy/content boundary at 25: distress 25 tips into content.
-      (
-        name: 'worst distress 25 -> content',
-        hunger: 25,
-        energy: 100,
-        love: 100,
-        illness: 0,
-        expected: CreatureMood.content,
-      ),
-      // content/sad boundary at 55: distress 54 is still content.
-      (
-        name: 'worst distress 54 -> content',
-        hunger: 54,
-        energy: 100,
-        love: 100,
-        illness: 0,
-        expected: CreatureMood.content,
-      ),
-      // content/sad boundary at 55: distress 55 tips into sad.
-      (
-        name: 'worst distress 55 -> sad',
-        hunger: 55,
-        energy: 100,
-        love: 100,
-        illness: 0,
-        expected: CreatureMood.sad,
-      ),
-    ];
+    final cases =
+        <
+          ({
+            String name,
+            int hunger,
+            int energy,
+            int love,
+            int illness,
+            CreatureMood expected,
+          })
+        >[
+          // Hatch baseline: love distress 50 -> content ("newborn, not yet bonded").
+          (
+            name: 'baseline -> content',
+            hunger: 0,
+            energy: 100,
+            love: 50,
+            illness: 0,
+            expected: CreatureMood.content,
+          ),
+          // All stats ideal: every distress 0 -> happy.
+          (
+            name: 'all-good -> happy',
+            hunger: 0,
+            energy: 100,
+            love: 100,
+            illness: 0,
+            expected: CreatureMood.happy,
+          ),
+          // Bad stats but healthy: worst distress 100 -> sad.
+          (
+            name: 'all-bad-but-healthy -> sad',
+            hunger: 100,
+            energy: 0,
+            love: 0,
+            illness: 0,
+            expected: CreatureMood.sad,
+          ),
+          // Illness priority: sick even when the other three stats are perfect.
+          (
+            name: 'illness overrides otherwise-perfect stats -> sick',
+            hunger: 0,
+            energy: 100,
+            love: 100,
+            illness: 50,
+            expected: CreatureMood.sick,
+          ),
+          // Illness just below the sick threshold falls through to the worst rule.
+          (
+            name: 'illness 49 with perfect stats -> happy',
+            hunger: 0,
+            energy: 100,
+            love: 100,
+            illness: 49,
+            expected: CreatureMood.happy,
+          ),
+          // happy/content boundary at 25: distress 24 is still happy.
+          (
+            name: 'worst distress 24 -> happy',
+            hunger: 24,
+            energy: 100,
+            love: 100,
+            illness: 0,
+            expected: CreatureMood.happy,
+          ),
+          // happy/content boundary at 25: distress 25 tips into content.
+          (
+            name: 'worst distress 25 -> content',
+            hunger: 25,
+            energy: 100,
+            love: 100,
+            illness: 0,
+            expected: CreatureMood.content,
+          ),
+          // content/sad boundary at 55: distress 54 is still content.
+          (
+            name: 'worst distress 54 -> content',
+            hunger: 54,
+            energy: 100,
+            love: 100,
+            illness: 0,
+            expected: CreatureMood.content,
+          ),
+          // content/sad boundary at 55: distress 55 tips into sad.
+          (
+            name: 'worst distress 55 -> sad',
+            hunger: 55,
+            energy: 100,
+            love: 100,
+            illness: 0,
+            expected: CreatureMood.sad,
+          ),
+        ];
 
     for (final c in cases) {
       test(c.name, () {
@@ -137,6 +167,61 @@ void main() {
       final b = randomPersonalityModifiers(Random(42));
       expect(a.hungerDecayMod, b.hungerDecayMod);
       expect(a.illnessRegenMod, b.illnessRegenMod);
+    });
+  });
+
+  group('isOwnerAlreadyHatchedViolation', () {
+    // Oracle: the duplicate-hatch backstop is the Postgres unique violation
+    // (SQLSTATE 23505) on the owner index — and ONLY that. Other failures, and
+    // unique violations on other tables, must NOT be reported as a duplicate
+    // hatch (that would mask real bugs behind a false "already have a creature").
+
+    test('true: unique violation named on the owner constraint', () {
+      expect(
+        isOwnerAlreadyHatchedViolation(
+          _FakeQueryException(
+            code: '23505',
+            constraintName: 'creature_owner_idx',
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('true: unique violation on the creature table without a constraint '
+        'name (driver omitted it)', () {
+      expect(
+        isOwnerAlreadyHatchedViolation(
+          _FakeQueryException(code: '23505', tableName: 'creature'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('false: unique violation on a different table is not masked', () {
+      expect(
+        isOwnerAlreadyHatchedViolation(
+          _FakeQueryException(
+            code: '23505',
+            constraintName: 'creature_personality_creature_idx',
+            tableName: 'creature_personality',
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('false: a non-unique database error (e.g. FK violation 23503)', () {
+      expect(
+        isOwnerAlreadyHatchedViolation(
+          _FakeQueryException(code: '23503', tableName: 'creature'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('false: an error that is not a database query exception', () {
+      expect(isOwnerAlreadyHatchedViolation(StateError('boom')), isFalse);
     });
   });
 }
