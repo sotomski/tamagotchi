@@ -1,0 +1,6 @@
+### The hatch/myCreature return type: a creature bundled with its derived mood.
+### Non-table serializable — mood is computed on read, never persisted.
+class: CreatureStatus
+fields:
+  creature: Creature
+  mood: CreatureMood

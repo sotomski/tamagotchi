@@ -9,5 +9,8 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+creature:
+  - hatch:
+  - myCreature:
 greeting:
   - hello:

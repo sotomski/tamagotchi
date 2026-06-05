@@ -1,0 +1,6 @@
+### Typed, client-visible failure for the two rejected hatch paths. Thrown from
+### CreatureEndpoint.hatch; the Flutter client switches on [reason] to render an
+### inline message.
+exception: CreatureHatchError
+fields:
+  reason: CreatureHatchErrorReason

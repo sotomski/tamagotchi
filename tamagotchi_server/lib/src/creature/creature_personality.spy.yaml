@@ -1,0 +1,25 @@
+### Per-stat decay/regen modifiers, randomized at hatch and inert until S-07.
+### Stored 1:1 with the creature. Multipliers around a 1.0 baseline; the
+### randomization range (0.5-1.5) is applied in creature_service.dart, not here.
+### Interaction modifiers (picky/gluttonous, introvert/extravert) are out of
+### scope and added additively in S-03/S-04.
+class: CreaturePersonality
+table: creature_personality
+fields:
+  ### UUID primary key.
+  id: UuidValue?, defaultPersist=random_v7
+  ### 1:1 FK to the owning creature (unique index below enforces 1:1).
+  creatureId: UuidValue, relation(parent=creature)
+  hungerDecayMod: double
+  hungerRegenMod: double
+  energyDecayMod: double
+  energyRegenMod: double
+  loveDecayMod: double
+  loveRegenMod: double
+  illnessDecayMod: double
+  illnessRegenMod: double
+indexes:
+  ### Enforce exactly one personality row per creature.
+  creature_personality_creature_idx:
+    fields: creatureId
+    unique: true
