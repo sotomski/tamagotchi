@@ -1,0 +1,7 @@
+### Typed, client-visible failure for the only genuine Feed error path: feeding
+### when the caller owns no creature. Refusals are NOT errors — they ride
+### FeedResult.accepted=false. Mirrors CreatureHatchError so the Flutter client
+### switches on [reason] instead of parsing a message string.
+exception: CreatureFeedError
+fields:
+  reason: CreatureFeedErrorReason

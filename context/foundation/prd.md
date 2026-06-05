@@ -36,7 +36,7 @@ A hobbyist in the virtual-pet-enthusiast or AI-curious-tinkerer space. Someone w
 
 ### Guardrails
 - AI responses stay in character: the creature never breaks character — no generic chatbot answers, no safety disclaimers leaking through, no personality drift within a session.
-- Stats are deterministic given inputs: the same personality traits plus the same care sequence produce the same stat and mood values. AI adds flavor to responses, not randomness to core mechanics.
+- Stats are deterministic given inputs, with one deliberate exception — the feed-acceptance gate: the same personality traits plus the same care sequence produce the same stat and mood values, *except* whether a given feed is accepted or refused, which is a random roll weighted by the creature's pickiness trait and current hunger (a hungrier creature is less likely to refuse). This randomness is confined to the accept/refuse decision; once a feed is accepted its stat magnitudes are fully deterministic, and Pet/Cure remain entirely deterministic. AI prose adds flavor, never stat randomness. (Rationale: FR-004's "a picky creature won't always accept food" requires genuine variability in the gate; the roll is reproducible under a seeded RNG for testing.)
 
 ## User Stories
 

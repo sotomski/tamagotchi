@@ -18,20 +18,26 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'creature/creature.dart' as _i5;
 import 'creature/creature_errors.dart' as _i6;
-import 'creature/creature_hatch_error_reason.dart' as _i7;
-import 'creature/creature_mood.dart' as _i8;
-import 'creature/creature_personality.dart' as _i9;
-import 'creature/creature_status.dart' as _i10;
-import 'creature/journal_entry.dart' as _i11;
-import 'creature/journal_event.dart' as _i12;
-import 'creature/stat_delta.dart' as _i13;
-import 'greetings/greeting.dart' as _i14;
+import 'creature/creature_feed_error.dart' as _i7;
+import 'creature/creature_feed_error_reason.dart' as _i8;
+import 'creature/creature_hatch_error_reason.dart' as _i9;
+import 'creature/creature_mood.dart' as _i10;
+import 'creature/creature_personality.dart' as _i11;
+import 'creature/creature_status.dart' as _i12;
+import 'creature/feed_result.dart' as _i13;
+import 'creature/journal_entry.dart' as _i14;
+import 'creature/journal_event.dart' as _i15;
+import 'creature/stat_delta.dart' as _i16;
+import 'greetings/greeting.dart' as _i17;
 export 'creature/creature.dart';
 export 'creature/creature_errors.dart';
+export 'creature/creature_feed_error.dart';
+export 'creature/creature_feed_error_reason.dart';
 export 'creature/creature_hatch_error_reason.dart';
 export 'creature/creature_mood.dart';
 export 'creature/creature_personality.dart';
 export 'creature/creature_status.dart';
+export 'creature/feed_result.dart';
 export 'creature/journal_entry.dart';
 export 'creature/journal_event.dart';
 export 'creature/stat_delta.dart';
@@ -364,29 +370,38 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i6.CreatureHatchError) {
       return _i6.CreatureHatchError.fromJson(data) as T;
     }
-    if (t == _i7.CreatureHatchErrorReason) {
-      return _i7.CreatureHatchErrorReason.fromJson(data) as T;
+    if (t == _i7.CreatureFeedError) {
+      return _i7.CreatureFeedError.fromJson(data) as T;
     }
-    if (t == _i8.CreatureMood) {
-      return _i8.CreatureMood.fromJson(data) as T;
+    if (t == _i8.CreatureFeedErrorReason) {
+      return _i8.CreatureFeedErrorReason.fromJson(data) as T;
     }
-    if (t == _i9.CreaturePersonality) {
-      return _i9.CreaturePersonality.fromJson(data) as T;
+    if (t == _i9.CreatureHatchErrorReason) {
+      return _i9.CreatureHatchErrorReason.fromJson(data) as T;
     }
-    if (t == _i10.CreatureStatus) {
-      return _i10.CreatureStatus.fromJson(data) as T;
+    if (t == _i10.CreatureMood) {
+      return _i10.CreatureMood.fromJson(data) as T;
     }
-    if (t == _i11.JournalEntry) {
-      return _i11.JournalEntry.fromJson(data) as T;
+    if (t == _i11.CreaturePersonality) {
+      return _i11.CreaturePersonality.fromJson(data) as T;
     }
-    if (t == _i12.JournalEvent) {
-      return _i12.JournalEvent.fromJson(data) as T;
+    if (t == _i12.CreatureStatus) {
+      return _i12.CreatureStatus.fromJson(data) as T;
     }
-    if (t == _i13.StatDelta) {
-      return _i13.StatDelta.fromJson(data) as T;
+    if (t == _i13.FeedResult) {
+      return _i13.FeedResult.fromJson(data) as T;
     }
-    if (t == _i14.Greeting) {
-      return _i14.Greeting.fromJson(data) as T;
+    if (t == _i14.JournalEntry) {
+      return _i14.JournalEntry.fromJson(data) as T;
+    }
+    if (t == _i15.JournalEvent) {
+      return _i15.JournalEvent.fromJson(data) as T;
+    }
+    if (t == _i16.StatDelta) {
+      return _i16.StatDelta.fromJson(data) as T;
+    }
+    if (t == _i17.Greeting) {
+      return _i17.Greeting.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.Creature?>()) {
       return (data != null ? _i5.Creature.fromJson(data) : null) as T;
@@ -394,31 +409,41 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i6.CreatureHatchError?>()) {
       return (data != null ? _i6.CreatureHatchError.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i7.CreatureHatchErrorReason?>()) {
-      return (data != null ? _i7.CreatureHatchErrorReason.fromJson(data) : null)
+    if (t == _i1.getType<_i7.CreatureFeedError?>()) {
+      return (data != null ? _i7.CreatureFeedError.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i8.CreatureFeedErrorReason?>()) {
+      return (data != null ? _i8.CreatureFeedErrorReason.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i8.CreatureMood?>()) {
-      return (data != null ? _i8.CreatureMood.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i9.CreaturePersonality?>()) {
-      return (data != null ? _i9.CreaturePersonality.fromJson(data) : null)
+    if (t == _i1.getType<_i9.CreatureHatchErrorReason?>()) {
+      return (data != null ? _i9.CreatureHatchErrorReason.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i10.CreatureStatus?>()) {
-      return (data != null ? _i10.CreatureStatus.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i10.CreatureMood?>()) {
+      return (data != null ? _i10.CreatureMood.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i11.JournalEntry?>()) {
-      return (data != null ? _i11.JournalEntry.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.CreaturePersonality?>()) {
+      return (data != null ? _i11.CreaturePersonality.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i12.JournalEvent?>()) {
-      return (data != null ? _i12.JournalEvent.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.CreatureStatus?>()) {
+      return (data != null ? _i12.CreatureStatus.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.StatDelta?>()) {
-      return (data != null ? _i13.StatDelta.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.FeedResult?>()) {
+      return (data != null ? _i13.FeedResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.Greeting?>()) {
-      return (data != null ? _i14.Greeting.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i14.JournalEntry?>()) {
+      return (data != null ? _i14.JournalEntry.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i15.JournalEvent?>()) {
+      return (data != null ? _i15.JournalEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i16.StatDelta?>()) {
+      return (data != null ? _i16.StatDelta.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i17.Greeting?>()) {
+      return (data != null ? _i17.Greeting.fromJson(data) : null) as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);
@@ -436,14 +461,17 @@ class Protocol extends _i1.SerializationManagerServer {
     return switch (type) {
       _i5.Creature => 'Creature',
       _i6.CreatureHatchError => 'CreatureHatchError',
-      _i7.CreatureHatchErrorReason => 'CreatureHatchErrorReason',
-      _i8.CreatureMood => 'CreatureMood',
-      _i9.CreaturePersonality => 'CreaturePersonality',
-      _i10.CreatureStatus => 'CreatureStatus',
-      _i11.JournalEntry => 'JournalEntry',
-      _i12.JournalEvent => 'JournalEvent',
-      _i13.StatDelta => 'StatDelta',
-      _i14.Greeting => 'Greeting',
+      _i7.CreatureFeedError => 'CreatureFeedError',
+      _i8.CreatureFeedErrorReason => 'CreatureFeedErrorReason',
+      _i9.CreatureHatchErrorReason => 'CreatureHatchErrorReason',
+      _i10.CreatureMood => 'CreatureMood',
+      _i11.CreaturePersonality => 'CreaturePersonality',
+      _i12.CreatureStatus => 'CreatureStatus',
+      _i13.FeedResult => 'FeedResult',
+      _i14.JournalEntry => 'JournalEntry',
+      _i15.JournalEvent => 'JournalEvent',
+      _i16.StatDelta => 'StatDelta',
+      _i17.Greeting => 'Greeting',
       _ => null,
     };
   }
@@ -462,21 +490,27 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'Creature';
       case _i6.CreatureHatchError():
         return 'CreatureHatchError';
-      case _i7.CreatureHatchErrorReason():
+      case _i7.CreatureFeedError():
+        return 'CreatureFeedError';
+      case _i8.CreatureFeedErrorReason():
+        return 'CreatureFeedErrorReason';
+      case _i9.CreatureHatchErrorReason():
         return 'CreatureHatchErrorReason';
-      case _i8.CreatureMood():
+      case _i10.CreatureMood():
         return 'CreatureMood';
-      case _i9.CreaturePersonality():
+      case _i11.CreaturePersonality():
         return 'CreaturePersonality';
-      case _i10.CreatureStatus():
+      case _i12.CreatureStatus():
         return 'CreatureStatus';
-      case _i11.JournalEntry():
+      case _i13.FeedResult():
+        return 'FeedResult';
+      case _i14.JournalEntry():
         return 'JournalEntry';
-      case _i12.JournalEvent():
+      case _i15.JournalEvent():
         return 'JournalEvent';
-      case _i13.StatDelta():
+      case _i16.StatDelta():
         return 'StatDelta';
-      case _i14.Greeting():
+      case _i17.Greeting():
         return 'Greeting';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -506,29 +540,38 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'CreatureHatchError') {
       return deserialize<_i6.CreatureHatchError>(data['data']);
     }
+    if (dataClassName == 'CreatureFeedError') {
+      return deserialize<_i7.CreatureFeedError>(data['data']);
+    }
+    if (dataClassName == 'CreatureFeedErrorReason') {
+      return deserialize<_i8.CreatureFeedErrorReason>(data['data']);
+    }
     if (dataClassName == 'CreatureHatchErrorReason') {
-      return deserialize<_i7.CreatureHatchErrorReason>(data['data']);
+      return deserialize<_i9.CreatureHatchErrorReason>(data['data']);
     }
     if (dataClassName == 'CreatureMood') {
-      return deserialize<_i8.CreatureMood>(data['data']);
+      return deserialize<_i10.CreatureMood>(data['data']);
     }
     if (dataClassName == 'CreaturePersonality') {
-      return deserialize<_i9.CreaturePersonality>(data['data']);
+      return deserialize<_i11.CreaturePersonality>(data['data']);
     }
     if (dataClassName == 'CreatureStatus') {
-      return deserialize<_i10.CreatureStatus>(data['data']);
+      return deserialize<_i12.CreatureStatus>(data['data']);
+    }
+    if (dataClassName == 'FeedResult') {
+      return deserialize<_i13.FeedResult>(data['data']);
     }
     if (dataClassName == 'JournalEntry') {
-      return deserialize<_i11.JournalEntry>(data['data']);
+      return deserialize<_i14.JournalEntry>(data['data']);
     }
     if (dataClassName == 'JournalEvent') {
-      return deserialize<_i12.JournalEvent>(data['data']);
+      return deserialize<_i15.JournalEvent>(data['data']);
     }
     if (dataClassName == 'StatDelta') {
-      return deserialize<_i13.StatDelta>(data['data']);
+      return deserialize<_i16.StatDelta>(data['data']);
     }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i14.Greeting>(data['data']);
+      return deserialize<_i17.Greeting>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -568,10 +611,10 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (t) {
       case _i5.Creature:
         return _i5.Creature.t;
-      case _i9.CreaturePersonality:
-        return _i9.CreaturePersonality.t;
-      case _i11.JournalEntry:
-        return _i11.JournalEntry.t;
+      case _i11.CreaturePersonality:
+        return _i11.CreaturePersonality.t;
+      case _i14.JournalEntry:
+        return _i14.JournalEntry.t;
     }
     return null;
   }

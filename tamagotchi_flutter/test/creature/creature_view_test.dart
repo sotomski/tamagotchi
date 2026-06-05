@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'package:tamagotchi_flutter/creature/creature_provider.dart';
+import 'package:tamagotchi_flutter/creature/feed_controller.dart';
 import 'package:tamagotchi_flutter/creature/hatch_controller.dart';
 import 'package:tamagotchi_flutter/home/home_screen.dart';
 
@@ -48,6 +49,53 @@ class _FakeHatchController extends HatchController {
   Future<void> hatch(String name) async {
     calls++;
     ref.read(_hatchedStatus.notifier).state = _status(name: name);
+  }
+}
+
+/// Flip-able seam for the Feed-flow tests: the overridden [creatureProvider]
+/// watches it, so flipping it to a post-feed status re-renders the stat rows —
+/// the same effect the real controller produces by invalidating
+/// [creatureProvider] after a feed.
+final _creatureSeam = StateProvider<CreatureStatus?>((ref) => null);
+
+/// What [_FakeFeedController.feed] publishes: the canned outcome it sets as its
+/// own state, and (optionally) a post-feed status to flip [_creatureSeam] to.
+final _feedResultSeam = StateProvider<FeedResult?>((ref) => null);
+final _postFeedSeam = StateProvider<CreatureStatus?>((ref) => null);
+
+FeedResult _feedResult({
+  required bool accepted,
+  required String userResponse,
+  CreatureStatus? status,
+}) => FeedResult(
+  userResponse: userResponse,
+  accepted: accepted,
+  status: status ?? _status(),
+);
+
+/// A [FeedController] that records calls and, instead of an RPC, publishes a
+/// canned [FeedResult] from [_feedResultSeam] and (if set) flips [_creatureSeam]
+/// to the post-feed status — exercising the real button/loading/response UI
+/// without a server (lesson #2).
+class _FakeFeedController extends FeedController {
+  int calls = 0;
+
+  @override
+  Future<void> feed() async {
+    calls++;
+    final post = ref.read(_postFeedSeam);
+    if (post != null) ref.read(_creatureSeam.notifier).state = post;
+    state = AsyncData(ref.read(_feedResultSeam));
+  }
+}
+
+/// A [FeedController] stuck in flight: `feed()` enters loading and never
+/// resolves, so the loading animation stays up under a single `pump()`.
+class _LoadingFeedController extends FeedController {
+  @override
+  Future<void> feed() async {
+    state = const AsyncLoading();
+    await Completer<void>().future;
   }
 }
 
@@ -163,5 +211,137 @@ void main() {
     expect(find.widgetWithText(ElevatedButton, 'Hatch'), findsOneWidget);
     expect(find.text('Please enter a name.'), findsOneWidget);
     expect(fake.calls, 0);
+  });
+
+  testWidgets('a present creature shows a Feed button (no response yet)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(ElevatedButton, 'Feed'), findsOneWidget);
+    // No feed attempted yet → no loading, no response bubble.
+    expect(find.text('Feeding…'), findsNothing);
+  });
+
+  testWidgets('tapping Feed calls the controller and renders the accepted '
+      'response', (tester) async {
+    final fake = _FakeFeedController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status()),
+          feedControllerProvider.overrideWith(() => fake),
+          _feedResultSeam.overrideWith(
+            (ref) => _feedResult(
+              accepted: true,
+              userResponse: 'Nom nom — the gilded truffle was divine!',
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Nothing rendered before the tap.
+    expect(find.textContaining('gilded truffle'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Feed'));
+    await tester.pumpAndSettle();
+
+    expect(fake.calls, 1);
+    expect(find.textContaining('gilded truffle'), findsOneWidget);
+    // The button stays for another feed.
+    expect(find.widgetWithText(ElevatedButton, 'Feed'), findsOneWidget);
+  });
+
+  testWidgets('a refusal renders its distinct (italic) copy, not as an error', (
+    tester,
+  ) async {
+    final fake = _FakeFeedController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status()),
+          feedControllerProvider.overrideWith(() => fake),
+          _feedResultSeam.overrideWith(
+            (ref) => _feedResult(
+              accepted: false,
+              userResponse: 'Ugh, not the soggy gruel again — hard pass.',
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Feed'));
+    await tester.pumpAndSettle();
+
+    final refusal = find.textContaining('soggy gruel');
+    expect(refusal, findsOneWidget);
+    // A refusal is data, not an AsyncError — styled italic, no error message.
+    expect(tester.widget<Text>(refusal).style?.fontStyle, FontStyle.italic);
+    expect(find.textContaining('Something went wrong'), findsNothing);
+  });
+
+  testWidgets('a feed in flight shows the loading animation in place of the '
+      'button', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status()),
+          feedControllerProvider.overrideWith(_LoadingFeedController.new),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Feed'));
+    // Single pump — the feed never completes; loading must already be visible.
+    await tester.pump();
+
+    expect(find.text('Feeding…'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Feed'), findsNothing);
+  });
+
+  testWidgets('stats refresh after a successful feed', (tester) async {
+    final fake = _FakeFeedController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => ref.watch(_creatureSeam)),
+          _creatureSeam.overrideWith((ref) => _status(hunger: 80)),
+          feedControllerProvider.overrideWith(() => fake),
+          _feedResultSeam.overrideWith(
+            (ref) => _feedResult(accepted: true, userResponse: 'Yum!'),
+          ),
+          // The fake flips _creatureSeam to this post-feed status, mirroring the
+          // real invalidate(creatureProvider).
+          _postFeedSeam.overrideWith((ref) => _status(hunger: 50)),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Pre-feed hunger.
+    expect(find.text('80'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Feed'));
+    await tester.pumpAndSettle();
+
+    // Post-feed hunger replaced it.
+    expect(find.text('50'), findsOneWidget);
+    expect(find.text('80'), findsNothing);
   });
 }

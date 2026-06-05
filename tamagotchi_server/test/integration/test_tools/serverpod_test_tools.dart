@@ -18,7 +18,9 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'package:tamagotchi_server/src/generated/creature/creature_status.dart'
     as _i5;
-import 'package:tamagotchi_server/src/generated/greetings/greeting.dart' as _i6;
+import 'package:tamagotchi_server/src/generated/creature/feed_result.dart'
+    as _i6;
+import 'package:tamagotchi_server/src/generated/greetings/greeting.dart' as _i7;
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:tamagotchi_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -556,6 +558,34 @@ class _CreatureEndpoint {
       }
     });
   }
+
+  _i3.Future<_i6.FeedResult> feed(_i1.TestSessionBuilder sessionBuilder) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'creature',
+            method: 'feed',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'creature',
+          methodName: 'feed',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.FeedResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _GreetingEndpoint {
@@ -568,7 +598,7 @@ class _GreetingEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i6.Greeting> hello(
+  _i3.Future<_i7.Greeting> hello(
     _i1.TestSessionBuilder sessionBuilder,
     String name,
   ) async {
@@ -591,7 +621,7 @@ class _GreetingEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.Greeting>);
+                as _i3.Future<_i7.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
