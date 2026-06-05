@@ -391,26 +391,26 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 #### Automated
 
-- [x] 3.1 `build_runner` regenerates `app_router.g.dart` cleanly
-- [x] 3.2 `flutter test test/app/app_router_redirect_test.dart` passes (both directions + live flip)
-- [x] 3.3 `flutter analyze` passes
+- [x] 3.1 `build_runner` regenerates `app_router.g.dart` cleanly — 1efb2c1
+- [x] 3.2 `flutter test test/app/app_router_redirect_test.dart` passes (both directions + live flip) — 1efb2c1
+- [x] 3.3 `flutter analyze` passes — 1efb2c1
 
 #### Manual
 
-- [x] 3.4 Signed-out `/` redirects to `/sign-in`; post-sign-in lands on `/`; re-evaluates live
-- [x] 3.5 No re-sign-in loop after removing `onAuthenticated` navigation
+- [x] 3.4 Signed-out `/` redirects to `/sign-in`; post-sign-in lands on `/`; re-evaluates live — 1efb2c1
+- [x] 3.5 No re-sign-in loop after removing `onAuthenticated` navigation — 1efb2c1
 
 ### Phase 4: Authenticated empty-creature home + log-out
 
 #### Automated
 
-- [ ] 4.1 `flutter analyze` passes for the rewritten `home_screen.dart`
-- [ ] 4.2 `build_runner` stays clean (if a provider is read)
+- [x] 4.1 `flutter analyze` passes for the rewritten `home_screen.dart`
+- [x] 4.2 `build_runner` stays clean (if a provider is read)
 
 #### Manual
 
-- [ ] 4.3 Home shows text-only empty state — no "Sign in" button, no Hatch button
-- [ ] 4.4 Log-out calls `signOutDevice()`; bounced to `/sign-in`; session cleared on reload
+- [x] 4.3 Home shows text-only empty state — no "Sign in" button, no Hatch button
+- [x] 4.4 Log-out calls `signOutDevice()`; bounced to `/sign-in`; session cleared on reload
 
 ### Phase 5: Deploy to Serverpod Cloud + provision EmailLabs secrets + docs
 
