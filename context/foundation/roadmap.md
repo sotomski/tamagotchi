@@ -3,7 +3,7 @@ project: AI-Tamagotchi
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-05-26
+updated: 2026-06-05
 prd_version: 1
 main_goal: learn
 top_blocker: decisions
@@ -27,11 +27,11 @@ The MVP exists to test whether AI-driven personality — coupled to a structured
 
 | ID   | Change ID                              | Outcome (user can …)                                                              | Prerequisites | PRD refs                       | Status   |
 | ---- | -------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ------------------------------ | -------- |
-| F-01 | `frontend-state-mgmt-routing-scaffold` | (foundation) Riverpod + router scaffold replaces the bootstrap counter UI         | —             | NFR-1                          | ready    |
-| F-02 | `llm-client-prompt-surface`            | (foundation) Server-side LLM client + prompt with last-10 journal entries (FR-009) | —             | FR-009                         | ready    |
-| S-01 | `signed-in-empty-creature-view`        | sign in (email+password) and land on a "no creature yet" home                     | F-01          | FR-001                         | proposed |
-| S-02 | `hatch-creature-and-view-stats`        | hatch a creature with randomized traits and see its current stats + mood          | S-01          | US-01, FR-002, FR-003          | proposed |
-| S-03 | `feed-with-personality-response`       | Feed the creature once and receive a personality-driven response + journal entry  | S-02, F-02    | US-01, FR-004, FR-009, FR-011  | proposed |
+| F-01 | `frontend-state-mgmt-routing-scaffold` | (foundation) Riverpod + router scaffold replaces the bootstrap counter UI         | —             | NFR-1                          | impl_reviewed |
+| F-02 | `llm-client-prompt-surface`            | (foundation) Server-side LLM client + prompt with last-10 journal entries (FR-009) | —             | FR-009                         | folded → S-03 |
+| S-01 | `signed-in-empty-creature-view`        | sign in (email+password) and land on a "no creature yet" home                     | F-01          | FR-001                         | deferred |
+| S-02 | `hatch-creature-and-view-stats`        | hatch a creature with randomized traits and see its current stats + mood          | S-01          | US-01, FR-002, FR-003          | implemented |
+| S-03 | `feed-with-personality-response`       | Feed the creature once and receive a personality-driven response + journal entry  | S-02 (+F-02 folded in) | US-01, FR-004, FR-009, FR-011  | impl_reviewed |
 | S-04 | `pet-with-personality-response`        | Pet the creature and receive a personality-driven response + journal entry        | S-03          | FR-005                         | proposed |
 | S-05 | `cure-the-creature`                    | Cure the creature when sick, regardless of energy                                 | S-03          | FR-006                         | proposed |
 | S-06 | `empty-energy-gate`                    | hit the empty-energy gate and receive a pre-written exhausted line (no AI call)   | S-03          | FR-007                         | proposed |
@@ -46,7 +46,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | Stream | Theme                          | Chain                                                       | Note                                                                                                          |
 | ------ | ------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | A      | Account & creature lifecycle   | `F-01` → `S-01` → `S-02` → `S-09`                           | Sets up state management, auth handoff, hatch+view, and reset. `S-09` forks late off `S-02`.                  |
-| B      | AI loop                        | `F-02` → `S-03` → (`S-04` / `S-05` / `S-06` / `S-08`)       | Joins Stream A at `S-03` (which also needs `S-02`). `F-02` is `blocked` on ORQ-1 (memory architecture).        |
+| B      | AI loop                        | `S-03` (incl. folded `F-02`) → (`S-04` / `S-05` / `S-06` / `S-08`) | Joins Stream A at `S-03` (which also needs `S-02`). `F-02` (LLM client + prompt surface) is folded into `S-03`; ORQ-1 resolved 2026-05-26. |
 | C      | Background decay               | `S-07`                                                      | Joins Stream A at `S-02`; runs parallel with Stream B once `S-02` lands.                                      |
 
 ## Baseline
@@ -74,7 +74,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** introducing state management plus routing upfront costs one slice with no user-visible outcome; the payoff is consistent state and navigation across every later slice. The alternative (let each slice grow its own pattern) is the failure mode this foundation exists to prevent.
-- **Status:** ready
+- **Status:** impl_reviewed (change folder `frontend-state-mgmt-routing-scaffold`; implemented + reviewed, not yet archived)
 
 ### F-02: LLM client + prompt-rendering surface
 
@@ -88,7 +88,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Which specific Mistral model + temperature + prompt schema produces consistently in-character responses? Owner: user. Block: no. (Prompt-engineering iteration during planning.)
 - **Risk:** F-02 sits in unfamiliar tech (no prior AI / LLM integration in the codebase). The memory-architecture decision the user had named as the top blocker resolved 2026-05-26 to "simple last-10 journal entries in the prompt, with semantic search as a deferred AI-callable tool post-MVP" — so the open call now is product-shaped (does the prompt feel in-character?), iterated at `/10x-plan` time.
-- **Status:** ready
+- **Status:** folded into S-03 (decided 2026-06-05). F-02 ships no standalone change folder; the `LlmService` + prompt surface (Mistral `mistral-small-2603`, REST, `mistralApiKey`, dev stub) are built as part of `feed-with-personality-response` behind an interface so S-03's deterministic layer can be tested against a stub. S-04/S-05 reuse the surface S-03 builds.
 
 ## Slices
 
@@ -102,7 +102,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** the auth scaffold already exists (`emailIdp.*` endpoints, `serverpod_auth_idp_flutter` wired) and `SignInScreen` is commented out in `main.dart:70–76`. The slice is mostly wiring + a route guard + an empty-state home — the lowest-cost first vertical slice on the way to the north star.
-- **Status:** proposed
+- **Status:** deferred (change folder `signed-in-empty-creature-view`; Phases 1–6 committed, Phase 7 EmailLabs sender-auth + DNS blocked on `codecreations.eu` DNS access, ETA unknown)
 
 ### S-02: Hatch a creature and view its stats
 
@@ -115,20 +115,22 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Trait constraint guardrails — should personality randomization have constraints to prevent degenerate combos (all-max, all-min)? Owner: user. Block: no. (PRD §Open Questions #1; acknowledged risk for MVP, tune if play-testing surfaces unplayable creatures.)
 - **Risk:** this slice fixes the data model for creature + journal. Now that ORQ-1 has resolved to "last-10 narrative entries, semantic search as a future AI tool", the journal model is a plain timestamp + narrative-prose + state-change record — no vector column needed at hatch time. A future post-MVP slice can add a vector column + ANN index without disturbing the data this slice produces.
-- **Status:** proposed
+- **Status:** implemented (change folder `hatch-creature-and-view-stats`; merged as commit `0c8b910` / #8)
 
 ### S-03: Feed the creature once and get a personality-driven response (NORTH STAR)
 
 - **Outcome:** user Feeds the creature; receives a personality-shaped, in-character AI response; the journal gains a narrative prose entry produced in the same call; stats update per FR-004's energy-cost + personality-modifier rules.
 - **Change ID:** `feed-with-personality-response`
 - **PRD refs:** US-01, FR-004, FR-009, FR-011
-- **Prerequisites:** S-02, F-02
+- **Prerequisites:** S-02 (F-02 folded in — this slice builds the `LlmService` + Mistral prompt surface behind an interface)
 - **Parallel with:** S-07
 - **Blockers:** —
-- **Unknowns:**
-  - Streaming vs single-block response — NFR-1 says "continuous visible progress during the wait"; this slice must decide whether the LLM call streams tokens or whether a loading animation is acceptable. Owner: user. Block: no. (Pick at `/10x-plan` time.)
-- **Risk:** north star — the slice that validates the entire product hypothesis. The *riskiest assumption* (that AI responses feel uniquely in-character given the chosen prompt + model + memory window) is tested here. Mitigation: scope to one interaction (Feed) only; defer Pet / Cure to follow-on slices so the prompt + response shape can iterate without coupling.
-- **Status:** proposed
+- **Scope note:** F-02 is folded into this slice (decided 2026-06-05). S-03 builds the server-side LLM client (Mistral `mistral-small-2603`, REST `/v1/chat/completions`, `Authorization: Bearer`, secret `mistralApiKey`, key-presence stub split) and the prompt surface, plus the Feed interaction, the deterministic stat layer, and the journal-pair write. **As built**, pickiness is *derived* from the existing `hungerDecayMod` (`pickyFactor = 1.5 - hungerDecayMod`) — **no new `picky` field, no schema change / migration** (the planned standalone trait proved unnecessary).
+- **Unknowns:** _(both resolved at build time, 2026-06-05)_
+  - ~~Streaming vs single-block response~~ — **Resolved: single-block structured response + a loading animation** (NFR-1 satisfied for a two-field payload; full-refusals make no LLM call). Token streaming deferred.
+  - ~~Pickiness probability function `P(reject) = f(picky, hunger)`~~ — **Resolved: `P(reject) = pickyFactor · (1 − hunger/100) · (1 − tastiness)`** where `pickyFactor = 1.5 − hungerDecayMod` (derived, no new trait) and `tastiness` is a per-feed `rng.nextDouble()`. Drawn under a seeded `Random` in fixed order (tastiness, then the reject roll) for reproducible tests.
+- **Risk:** north star — the slice that validates the entire product hypothesis. The *riskiest assumption* (that AI responses feel uniquely in-character given the chosen prompt + model + memory window) is tested here. Folding F-02 in raises the slice's surface area (LLM wiring + Feed + random gate in one change), mitigated by the `LlmService` interface + seeded-RNG seam so the deterministic layer is testable against stubs without a live model. Mitigation: scope to one interaction (Feed) only; defer Pet / Cure to follow-on slices so the prompt + response shape can iterate without coupling.
+- **Status:** impl_reviewed (change folder `feed-with-personality-response`; all 4 phases implemented, then `/10x-impl-review` run 2026-06-05 — review fix F3 applied, findings F1 (no Mistral HTTP timeout) and F2 (raw upstream body in logs) consciously deferred as follow-ups). Local PR-check parity green (analyze / format / 54 server tests / flutter analyze+format+15 tests); **PR #9 open against `main`**. Decisions realized: Mistral `mistral-small-2603` via REST behind `LlmService`; pickiness *derived* from `hungerDecayMod` (no schema change / no new `picky` field); accept/refuse gate driven by a seeded `Random`; LLM + RNG injected through one production-default `feedServiceFactory` seam (not `@visibleForTesting`); single-block response + loading animation (streaming deferred). `mistralApiKey` provisioned on scloud as `SERVERPOD_PASSWORD_mistralApiKey`.)
 
 ### S-04: Pet the creature and get a personality-driven response
 
@@ -210,10 +212,10 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | Roadmap ID | Change ID                              | Suggested issue title                                          | Ready for `/10x-plan` | Notes                                                                        |
 | ---------- | -------------------------------------- | -------------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------- |
 | F-01       | `frontend-state-mgmt-routing-scaffold` | Frontend state management + routing scaffold                   | yes                   | No prereqs, no blocking unknowns. Run `/10x-plan frontend-state-mgmt-routing-scaffold`. |
-| F-02       | `llm-client-prompt-surface`            | LLM client + prompt-rendering surface (FR-009)                 | yes                   | ORQ-1 resolved 2026-05-26 (last-10 entries; semantic search post-MVP). Plannable now. |
+| F-02       | `llm-client-prompt-surface`            | LLM client + prompt-rendering surface (FR-009)                 | n/a                   | Folded into S-03 (2026-06-05) — no standalone change. Mistral `mistral-small-2603` client + prompt surface built inside `feed-with-personality-response`. |
 | S-01       | `signed-in-empty-creature-view`        | Signed-in empty-creature view (FR-001)                         | no                    | Needs F-01 done first.                                                       |
 | S-02       | `hatch-creature-and-view-stats`        | Hatch creature + view stats (US-01 partial, FR-002, FR-003)    | no                    | Needs S-01. Journal schema is now unblocked (ORQ-1 resolved to last-10).      |
-| S-03       | `feed-with-personality-response`       | Feed + personality response + journal (US-01, FR-004, FR-009)  | no                    | NORTH STAR. Needs S-02 + F-02 done first.                                    |
+| S-03       | `feed-with-personality-response`       | Feed + personality response + journal (US-01, FR-004, FR-009)  | done                  | NORTH STAR — **implemented + impl-reviewed; PR #9 open against `main`.** F-02 folded in (LLM surface built here). Follow-ups: F1 (Mistral HTTP timeout), F2 (truncate upstream body in logs). |
 | S-04       | `pet-with-personality-response`        | Pet + personality response (FR-005)                            | no                    | Needs S-03.                                                                  |
 | S-05       | `cure-the-creature`                    | Cure interaction (FR-006)                                      | no                    | Needs S-03.                                                                  |
 | S-06       | `empty-energy-gate`                    | Empty-energy gate + pre-written responses (FR-007)             | no                    | Needs S-03.                                                                  |

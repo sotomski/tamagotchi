@@ -12,5 +12,6 @@ jwtRefresh:
 creature:
   - hatch:
   - myCreature:
+  - feed:
 greeting:
   - hello:

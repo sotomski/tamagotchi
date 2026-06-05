@@ -18,8 +18,10 @@ import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
 import 'package:tamagotchi_client/src/protocol/creature/creature_status.dart'
     as _i5;
-import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i6;
-import 'protocol.dart' as _i7;
+import 'package:tamagotchi_client/src/protocol/creature/feed_result.dart'
+    as _i6;
+import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i7;
+import 'protocol.dart' as _i8;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -254,6 +256,11 @@ class EndpointCreature extends _i2.EndpointRef {
   String get name => 'creature';
 
   /// Hatches the caller's one and only creature and returns its status.
+  ///
+  /// Rejects a blank [name] and a caller who already owns a creature. The three
+  /// inserts (creature, personality, hatched journal marker) run in one
+  /// transaction; the `ownerUuid` unique index is the race-safe backstop behind
+  /// the non-atomic app pre-check.
   _i3.Future<_i5.CreatureStatus> hatch(String name) =>
       caller.callServerEndpoint<_i5.CreatureStatus>(
         'creature',
@@ -268,6 +275,24 @@ class EndpointCreature extends _i2.EndpointRef {
         'myCreature',
         {},
       );
+
+  /// Feeds the caller's creature once and returns the in-character outcome.
+  ///
+  /// Rolls the picky/tastiness accept gate, asks the LLM for a response + journal
+  /// narrative (degrading to canned copy on failure), and writes the stat change
+  /// and journal entry as one coherent pair (mirroring [hatch]'s single
+  /// transaction). All randomness and the model call are encapsulated in the
+  /// [FeedService] obtained from [feedServiceFactory], so this method stays pure
+  /// orchestration — production gets the real wiring, tests inject fakes.
+  ///
+  /// The LLM call sits **outside** the transaction so a degrade still commits the
+  /// stat+journal pair atomically — a stat change never lands without its entry.
+  _i3.Future<_i6.FeedResult> feed() =>
+      caller.callServerEndpoint<_i6.FeedResult>(
+        'creature',
+        'feed',
+        {},
+      );
 }
 
 /// This is an example endpoint that returns a greeting message through
@@ -280,8 +305,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i6.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i6.Greeting>(
+  _i3.Future<_i7.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i7.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -319,7 +344,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i7.Protocol(),
+         _i8.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

@@ -1,0 +1,7 @@
+### Why a feed attempt failed outright. A single reason today (typed for client
+### switch parity with CreatureHatchErrorReason); behind the UI this should never
+### fire — you can only Feed a creature you can see.
+enum: CreatureFeedErrorReason
+values:
+  ### The caller owns no creature to feed.
+  - noCreature

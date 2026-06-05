@@ -1,0 +1,15 @@
+### The Feed interaction outcome returned to the client: the in-character user
+### response, whether the food was accepted, and the post-feed creature+mood so
+### the client renders without a second fetch. Non-table — computed per call,
+### never persisted (like CreatureStatus / StatDelta).
+class: FeedResult
+fields:
+  ### The user-facing, in-character response (LLM-generated, or canned copy on a
+  ### full-refusal / model-failure degrade).
+  userResponse: String
+  ### Whether the creature ate the food. False on a full-refusal (already full)
+  ### or a picky-refusal — neither is an error; both ride this flag.
+  accepted: bool
+  ### The creature's post-feed status: updated stats (on an accepted feed) plus a
+  ### freshly re-derived mood.
+  status: CreatureStatus
