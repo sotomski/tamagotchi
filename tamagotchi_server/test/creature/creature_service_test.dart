@@ -189,13 +189,15 @@ void main() {
       );
     });
 
-    test('true: a unique violation when the driver omits the constraint name',
-        () {
-      expect(
-        isUniqueViolation(_FakeQueryException(code: '23505')),
-        isTrue,
-      );
-    });
+    test(
+      'true: a unique violation when the driver omits the constraint name',
+      () {
+        expect(
+          isUniqueViolation(_FakeQueryException(code: '23505')),
+          isTrue,
+        );
+      },
+    );
 
     test('false: a non-unique database error (e.g. FK violation 23503)', () {
       expect(
