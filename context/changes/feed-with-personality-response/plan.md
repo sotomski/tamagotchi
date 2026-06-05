@@ -401,12 +401,12 @@ None — no schema change (pickiness derived; `FeedResult` non-table). `serverpo
 ### Phase 4: Flutter wiring + widget tests
 
 #### Automated
-- [x] 4.1 `build_runner build` succeeds (controller `.g.dart`)
-- [x] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`)
-- [x] 4.3 `flutter analyze` clean
-- [x] 4.4 `serverpod run flutter_build` builds the web app
+- [x] 4.1 `build_runner build` succeeds (controller `.g.dart`) — 5296cad
+- [x] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`) — 5296cad
+- [x] 4.3 `flutter analyze` clean — 5296cad
+- [x] 4.4 `serverpod run flutter_build` builds the web app — 5296cad
 
 #### Manual
-- [x] 4.5 Feed shows loading animation then response within ~5s; stats + journal update
-- [x] 4.6 Refusal renders distinctly; full creature shows canned line
-- [x] 4.7 No overflow when a long response renders
+- [x] 4.5 Feed shows loading animation then response within ~5s; stats + journal update — 5296cad
+- [x] 4.6 Refusal renders distinctly; full creature shows canned line — 5296cad
+- [x] 4.7 No overflow when a long response renders — 5296cad

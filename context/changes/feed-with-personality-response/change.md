@@ -1,7 +1,7 @@
 ---
 change_id: feed-with-personality-response
 title: Feed the creature once and get a personality-driven response + journal entry (NORTH STAR)
-status: implementing
+status: implemented
 created: 2026-06-05
 updated: 2026-06-05
 archived_at: null
