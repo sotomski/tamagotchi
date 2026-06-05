@@ -366,14 +366,14 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 #### Automated
 
-- [ ] 1.1 `config/passwords.yaml` is valid YAML containing all three pepper keys
-- [ ] 1.2 `git check-ignore tamagotchi_server/config/passwords.yaml` returns the path
-- [ ] 1.3 `dart analyze` passes in `tamagotchi_server/`
+- [x] 1.1 `config/passwords.yaml` is valid YAML containing all three pepper keys
+- [x] 1.2 `git check-ignore tamagotchi_server/config/passwords.yaml` returns the path
+- [x] 1.3 `dart analyze` passes in `tamagotchi_server/`
 
 #### Manual
 
-- [ ] 1.4 Server starts in `development` with no missing-password crash (Postgres sidecar up)
-- [ ] 1.5 Dev registration completes with the static code; `verifyRegistrationCode` accepts it
+- [x] 1.4 Server starts in `development` with no missing-password crash (Postgres sidecar up)
+- [x] 1.5 Dev registration completes with the static code; `verifyRegistrationCode` accepts it
 
 ### Phase 2: Production email callback (mailer + EmailLabs, run-mode-gated)
 

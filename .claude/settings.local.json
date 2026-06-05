@@ -25,5 +25,8 @@
       "Bash(~/.pub-cache/bin/skills help *)",
       "mcp__context7__query-docs"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "context7"
+  ]
 }

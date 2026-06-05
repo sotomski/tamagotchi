@@ -9,6 +9,12 @@ import 'src/generated/protocol.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 
+/// Fixed registration verification code used in `development` run mode so sign-up
+/// can be completed in the Flutter UI without a real mailer. Its length (8) matches
+/// the package default (`defaultVerificationCodeGenerator`); every other run mode
+/// uses that random default and delivers it by email.
+const _devRegistrationVerificationCode = '12345678';
+
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
   // Initialize Serverpod and connect it with your generated code.
@@ -17,6 +23,24 @@ void run(List<String> args) async {
   // Initialize authentication services for the server.
   // Token managers will be used to validate and issue authentication keys,
   // and the identity providers will be the authentication options available for users.
+  //
+  // In `development` run mode we override the registration verification code with a
+  // fixed value (`_devRegistrationVerificationCode`) so sign-up can be completed in
+  // the UI without a real mailer — `_sendRegistrationCode` just logs the code. Every
+  // other run mode omits the override and keeps the package default (a secure random
+  // 8-character code), which the registration send-callback delivers to the user.
+  final emailIdpConfig = pod.runMode == 'development'
+      ? EmailIdpConfigFromPasswords(
+          sendRegistrationVerificationCode: _sendRegistrationCode,
+          sendPasswordResetVerificationCode: _sendPasswordResetCode,
+          registrationVerificationCodeGenerator: () =>
+              _devRegistrationVerificationCode,
+        )
+      : EmailIdpConfigFromPasswords(
+          sendRegistrationVerificationCode: _sendRegistrationCode,
+          sendPasswordResetVerificationCode: _sendPasswordResetCode,
+        );
+
   pod.initializeAuthServices(
     tokenManagerBuilders: [
       // Use JWT for authentication keys towards the server.
@@ -24,10 +48,7 @@ void run(List<String> args) async {
     ],
     identityProviderBuilders: [
       // Configure the email identity provider for email/password authentication.
-      EmailIdpConfigFromPasswords(
-        sendRegistrationVerificationCode: _sendRegistrationCode,
-        sendPasswordResetVerificationCode: _sendPasswordResetCode,
-      ),
+      emailIdpConfig,
     ],
   );
 
