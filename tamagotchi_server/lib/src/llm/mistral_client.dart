@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 import 'package:serverpod/serverpod.dart';
 
 import 'creature_prompt.dart';
@@ -86,9 +85,9 @@ class MistralLlmService implements LlmService {
   }
 
   /// The Session-free HTTP core: posts [request] to Mistral with [apiKey] and
-  /// returns the two parsed fields. Split out from [generateInteraction] so a
-  /// smoke harness can exercise the real round-trip with just a key (no Session).
-  @visibleForTesting
+  /// returns the two parsed fields. Called by [generateInteraction] in
+  /// production; split out so a smoke harness can also exercise the real
+  /// round-trip with just a key (no Session).
   Future<({String userResponse, String journalNarrative})> completeForKey(
     String apiKey,
     InteractionRequest request,
