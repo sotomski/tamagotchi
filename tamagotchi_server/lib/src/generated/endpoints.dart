@@ -285,6 +285,16 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['creature'] as _i4.CreatureEndpoint)
                   .myCreature(session),
         ),
+        'feed': _i1.MethodConnector(
+          name: 'feed',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['creature'] as _i4.CreatureEndpoint).feed(session),
+        ),
       },
     );
     connectors['greeting'] = _i1.EndpointConnector(

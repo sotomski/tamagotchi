@@ -380,23 +380,23 @@ None — no schema change (pickiness derived; `FeedResult` non-table). `serverpo
 ### Phase 2: Feed domain logic + hermetic unit tests
 
 #### Automated
-- [x] 2.1 Unit tests pass (`dart test test/unit/feed_service_test.dart`)
-- [x] 2.2 `dart analyze` clean
+- [x] 2.1 Unit tests pass (`dart test test/unit/feed_service_test.dart`) — cf66e92
+- [x] 2.2 `dart analyze` clean — cf66e92
 - [x] 2.3 (Optional) Stryker shows no high-value survived mutants on the gate math — n/a (Stryker is a JS/TS mutation runner; no Dart mutation tool in this stack)
 
 #### Manual
-- [x] 2.4 `rejectProbability` triples match intuition
+- [x] 2.4 `rejectProbability` triples match intuition — cf66e92
 
 ### Phase 3: Feed endpoint + FeedResult + journal pair + integration tests
 
 #### Automated
-- [ ] 3.1 `serverpod generate` succeeds; `client.creature.feed()` + `FeedResult` exist
-- [ ] 3.2 Integration tests pass (`dart test test/integration/feed_endpoint_test.dart`)
-- [ ] 3.3 `dart analyze` clean (excl. generated)
+- [x] 3.1 `serverpod generate` succeeds; `client.creature.feed()` + `FeedResult` exist
+- [x] 3.2 Integration tests pass (`dart test test/integration/feed_endpoint_test.dart`)
+- [x] 3.3 `dart analyze` clean (excl. generated)
 
 #### Manual
-- [ ] 3.4 Real `feed` call returns in-character, food-referencing response + coherent journal entry
-- [ ] 3.5 Repeated feeds surface an in-character refusal
+- [x] 3.4 Real `feed` call returns in-character, food-referencing response + coherent journal entry
+- [x] 3.5 Repeated feeds surface an in-character refusal
 
 ### Phase 4: Flutter wiring + widget tests
 

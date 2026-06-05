@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../llm/llm_service.dart';
 import 'creature_service.dart';
+import 'feed_service.dart';
 
 /// The first first-party `requireLogin` endpoint: hatch a creature and view it.
 ///
@@ -122,6 +124,119 @@ class CreatureEndpoint extends Endpoint {
     if (creature == null) return null;
 
     return CreatureStatus(creature: creature, mood: _moodOf(creature));
+  }
+
+  /// Feeds the caller's creature once and returns the in-character outcome.
+  ///
+  /// Rolls the picky/tastiness accept gate, asks the LLM for a response + journal
+  /// narrative (degrading to canned copy on failure), and writes the stat change
+  /// and journal entry as one coherent pair (mirroring [hatch]'s single
+  /// transaction). All randomness and the model call are encapsulated in the
+  /// [FeedService] obtained from [feedServiceFactory], so this method stays pure
+  /// orchestration — production gets the real wiring, tests inject fakes.
+  ///
+  /// The LLM call sits **outside** the transaction so a degrade still commits the
+  /// stat+journal pair atomically — a stat change never lands without its entry.
+  Future<FeedResult> feed(Session session) async {
+    final ownerUuid = UuidValue.fromString(
+      session.authenticated!.userIdentifier,
+    );
+
+    final creature = await Creature.db.findFirstRow(
+      session,
+      where: (t) => t.ownerUuid.equals(ownerUuid),
+    );
+    if (creature == null) {
+      throw CreatureFeedError(reason: CreatureFeedErrorReason.noCreature);
+    }
+
+    final personality = await CreaturePersonality.db.findFirstRow(
+      session,
+      where: (t) => t.creatureId.equals(creature.id!),
+    );
+    if (personality == null) {
+      // Personality is written 1:1 with the creature at hatch; its absence is a
+      // data-integrity bug, not a user-facing path — fail loudly.
+      throw StateError('Creature ${creature.id} has no personality row');
+    }
+
+    final feedService = feedServiceFactory(session);
+    final decision = feedService.decide(creature, personality);
+
+    // Already full: a cheap canned line — no LLM call, no journal entry, no stat
+    // change.
+    if (decision.full) {
+      return FeedResult(
+        userResponse: feedService.fullRefusalLine(),
+        accepted: false,
+        status: CreatureStatus(creature: creature, mood: _moodOf(creature)),
+      );
+    }
+
+    // Short-term memory window (ORQ-1): the last 10 journal entries, newest
+    // first, narrative prose only (the empty-prose hatched marker is dropped).
+    final recent = await JournalEntry.db.find(
+      session,
+      where: (t) => t.creatureId.equals(creature.id!),
+      orderBy: (t) => t.timestamp,
+      orderDescending: true,
+      limit: 10,
+    );
+    final recentEntries = recent
+        .map((e) => e.prose)
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    final reply = await feedService.interaction(
+      session,
+      InteractionRequest(
+        personality: personality,
+        hunger: creature.hunger,
+        energy: creature.energy,
+        love: creature.love,
+        illness: creature.illness,
+        mood: _moodOf(creature),
+        interactionType: JournalEvent.feed,
+        accepted: decision.accepted,
+        tastiness: decision.tastiness,
+        recentEntries: recentEntries,
+      ),
+    );
+
+    // Coherent pair: stat update (accepted only) + journal entry in one
+    // transaction. The delta already encodes the 0-100 clamp, so adding it to the
+    // current stat lands the clamped target directly.
+    final updated = await session.db.transaction((transaction) async {
+      var result = creature;
+      if (decision.accepted) {
+        result = creature.copyWith(
+          hunger: creature.hunger + decision.delta.hungerDelta,
+          energy: creature.energy + decision.delta.energyDelta,
+        );
+        await Creature.db.updateRow(session, result, transaction: transaction);
+      }
+
+      await JournalEntry.db.insertRow(
+        session,
+        JournalEntry(
+          creatureId: creature.id!,
+          ownerUuid: ownerUuid,
+          event: JournalEvent.feed,
+          prose: reply.journalNarrative,
+          // Zero delta on a picky-refusal — the entry still records the refusal.
+          statDelta: decision.delta,
+        ),
+        transaction: transaction,
+      );
+
+      return result;
+    });
+
+    return FeedResult(
+      userResponse: reply.userResponse,
+      accepted: decision.accepted,
+      status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
+    );
   }
 
   CreatureMood _moodOf(Creature c) =>

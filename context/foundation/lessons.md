@@ -20,3 +20,10 @@
   - **flow (empty → present)** → point the provider at a flip-able seam — `creatureProvider.overrideWith((ref) => ref.watch(seam))` where `seam` is a `StateProvider<T?>` — and override the action notifier (`hatchControllerProvider.overrideWith(_FakeController.new)`) so its method sets the seam instead of calling the server. Tapping the real button then swaps the view, exercising the real form/validation without an RPC.
 - **Gotchas (Riverpod 3.x / `riverpod_generator` 4.x)**: `StateProvider` now lives in `package:flutter_riverpod/legacy.dart`. The `Override` type isn't exported by name — don't annotate `List<Override>`; pass the list literal inline to `ProviderScope(overrides: [...])` and let inference handle it. A fake notifier should `extends` the generated controller and override only its action method (it inherits `build()` + `ref`).
 - **Applies to**: implement, research, plan
+
+## Inject impure collaborators via one production-default factory seam, never @visibleForTesting
+
+- **Context**: Any phase wiring an impure/external collaborator (RNG, LLM/HTTP client, clock, mailer) into a Serverpod endpoint or other framework-instantiated class that can't take constructor injection.
+- **Problem**: Marking the seam @visibleForTesting forces production code to read a test-only member (needing // ignore lints), and per-dependency global seams scatter injection — both mix test concerns into production and let the call site be misconfigured.
+- **Rule**: Encapsulate impure/external collaborators behind one concrete service and inject it through a single plain factory seam whose default IS the production wiring (e.g. fooServiceFor(session)) — never @visibleForTesting. The endpoint calls the factory unconditionally; tests reassign the seam to inject fakes and self-clean with addTearDown.
+- **Applies to**: plan, implement, impl-review

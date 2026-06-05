@@ -1,8 +1,10 @@
 import 'dart:math';
 
-import 'package:meta/meta.dart';
+import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../llm/feed_copy.dart';
+import '../llm/llm_service.dart';
 
 /// The picky/tastiness gate that decides whether a creature accepts a feed, plus
 /// the deterministic stat math behind an accepted feed. Pure and DB-free —
@@ -92,8 +94,69 @@ FeedDecision evaluateFeed({
   return (full: false, accepted: true, tastiness: tastiness, delta: delta);
 }
 
-/// Test seam for the feed RNG: integration tests override this with a seeded
-/// `Random` so the gate is reproducible end-to-end (mirrors the
-/// `randomPersonalityModifiers` seam in `creature_service.dart`).
-@visibleForTesting
-Random Function() feedRandomFactory = () => Random();
+/// The impure collaborators a feed needs: a randomness source (the gate roll and
+/// the full-refusal line pick) and the LLM. The endpoint composes the pure gate
+/// math ([evaluateFeed]) and the DB writes around one of these — this type is the
+/// single place where non-determinism and network access enter the feed flow.
+///
+/// Production instances are assembled by [feedServiceFor] (real entropy + the
+/// key-presence-selected real/stub model). Tests construct one directly with a
+/// seeded/scripted [Random] and a stub or deliberately-failing [LlmService], so
+/// the endpoint never knows whether its collaborators are real or fake.
+class FeedService {
+  FeedService({required Random rng, required LlmService llm})
+    : _rng = rng,
+      _llm = llm;
+
+  final Random _rng;
+  final LlmService _llm;
+
+  /// Rolls the picky/tastiness accept gate for [creature] given its
+  /// [personality]. The draw order (tastiness, then the reject roll) is the
+  /// contract seeded tests depend on — see [evaluateFeed].
+  FeedDecision decide(Creature creature, CreaturePersonality personality) =>
+      evaluateFeed(creature: creature, personality: personality, rng: _rng);
+
+  /// Picks a canned "I'm stuffed" line for the full-refusal path off the *same*
+  /// rng the gate used, so a seeded run is reproducible end to end.
+  String fullRefusalLine() =>
+      fullRefusalLines[_rng.nextInt(fullRefusalLines.length)];
+
+  /// Produces the in-character response + journal narrative for one feed,
+  /// degrading to canned [degradeUserResponse]/[degradeJournalNarrative] if the
+  /// model call throws — so a flaky/unreachable model never blocks the
+  /// interaction and the stat+journal pair still commits.
+  Future<({String userResponse, String journalNarrative})> interaction(
+    Session session,
+    InteractionRequest request,
+  ) async {
+    try {
+      return await _llm.generateInteraction(session, request);
+    } catch (e, stackTrace) {
+      session.log(
+        'Feed LLM call failed; degrading to canned copy',
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      return (
+        userResponse: degradeUserResponse,
+        journalNarrative: degradeJournalNarrative,
+      );
+    }
+  }
+}
+
+/// Builds the production [FeedService] for [session]: real entropy plus the
+/// key-presence-selected real/stub LLM ([llmServiceFor]). This is the only wiring
+/// the endpoint uses in production — there is nothing to misconfigure at the call
+/// site.
+FeedService feedServiceFor(Session session) =>
+    FeedService(rng: Random(), llm: llmServiceFor(session));
+
+/// Dependency seam: the endpoint obtains its [FeedService] through this, never by
+/// constructing one. Defaults to the production wiring [feedServiceFor]; tests
+/// reassign it to inject determinism (a seeded/scripted [Random]) and hermetic
+/// collaborators (a stub or failing [LlmService]). Not a test-only member — it is
+/// the production injection point, and its default *is* production.
+FeedService Function(Session session) feedServiceFactory = feedServiceFor;

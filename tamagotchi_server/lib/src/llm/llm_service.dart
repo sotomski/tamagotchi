@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
@@ -87,8 +86,3 @@ LlmService llmServiceForKey(String? mistralApiKey) {
   }
   return StubLlmService();
 }
-
-/// Test seam: integration tests override this to inject a stub (or a
-/// deliberately-failing stub for the degrade path) instead of reaching Mistral.
-@visibleForTesting
-LlmService Function(Session session) llmServiceFactory = llmServiceFor;
