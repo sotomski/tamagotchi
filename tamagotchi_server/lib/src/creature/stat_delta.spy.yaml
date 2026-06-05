@@ -1,0 +1,8 @@
+### A non-persisted bundle of per-stat changes attached to a journal entry.
+### Defined now for forward use (S-03+ populates it); null on the hatched marker.
+class: StatDelta
+fields:
+  hungerDelta: int
+  energyDelta: int
+  loveDelta: int
+  illnessDelta: int

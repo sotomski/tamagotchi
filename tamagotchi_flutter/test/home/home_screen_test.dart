@@ -6,6 +6,7 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'package:tamagotchi_flutter/app/app_router.dart';
 import 'package:tamagotchi_flutter/app/app_widget.dart';
 import 'package:tamagotchi_flutter/app/client_provider.dart';
+import 'package:tamagotchi_flutter/creature/creature_provider.dart';
 
 /// In-memory [ClientAuthSuccessStorage] so the session manager works in tests
 /// without the secure-storage platform channel. Auth state is flipped by
@@ -63,7 +64,13 @@ void _drainBenignOverflow(WidgetTester tester) {
 /// Pumps the full app (so the auth guard runs) and returns its container.
 Future<ProviderContainer> _pumpApp(WidgetTester tester, Client client) async {
   final container = ProviderContainer(
-    overrides: [serverpodClientProvider.overrideWithValue(client)],
+    overrides: [
+      serverpodClientProvider.overrideWithValue(client),
+      // Keep the home hermetic: the creature fetch resolves to "no creature"
+      // (the S-02 empty state) instead of round-tripping a real RPC to a server
+      // that isn't running in widget tests.
+      creatureProvider.overrideWith((ref) => null),
+    ],
   );
   addTearDown(container.dispose);
 
@@ -80,7 +87,8 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester, Client client) async {
 
 void main() {
   testWidgets(
-    'authenticated home shows the text-only empty state with no action buttons',
+    'authenticated home with no creature shows the hatch form '
+    '(name field + Hatch button)',
     (tester) async {
       final client = _buildClient();
       // Authenticated before first paint → the guard keeps the user on /.
@@ -89,11 +97,12 @@ void main() {
       final container = await _pumpApp(tester, client);
       expect(_currentPath(container), '/');
 
-      // The empty-state message is shown...
-      expect(find.textContaining('No creature yet'), findsOneWidget);
-      // ...as a text-only body: no anonymous "Sign in" button (the placeholder
-      // is gone) and no Hatch button (hatching is S-02, not S-01).
-      expect(find.byType(ElevatedButton), findsNothing);
+      // S-02 empty state: the creature provider resolved to null, so the home
+      // shows the hatch affordance — a name field and a Hatch button (this is
+      // the assertion S-01 deliberately inverted: a button now exists).
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Hatch'), findsOneWidget);
+      // Still no anonymous "Sign in" button — the gate guarantees a real user.
       expect(find.text('Sign in'), findsNothing);
     },
   );

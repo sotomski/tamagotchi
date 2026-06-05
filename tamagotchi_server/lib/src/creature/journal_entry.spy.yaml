@@ -1,0 +1,24 @@
+### The creature's journal. Load-bearing table defined now (S-02) even though only
+### a non-narrative `hatched` marker is written here; narrative prose and stat
+### deltas arrive with S-03+. No vector column (ORQ-1: last-10 narrative entries).
+class: JournalEntry
+table: journal_entry
+fields:
+  ### UUID primary key.
+  id: UuidValue?, defaultPersist=random_v7
+  ### The creature this entry belongs to (many entries per creature).
+  creatureId: UuidValue
+  ### The owning auth user, stored directly for scoping.
+  ownerUuid: UuidValue
+  ### When the event occurred.
+  timestamp: DateTime, default=now
+  ### What kind of event this entry records.
+  event: JournalEvent
+  ### Narrative prose; empty for the hatched marker, populated by S-03+.
+  prose: String, default=''
+  ### Stat changes for this event; null for the hatched marker.
+  statDelta: StatDelta?
+indexes:
+  ### Many entries per creature — non-unique lookup index.
+  journal_entry_creature_idx:
+    fields: creatureId

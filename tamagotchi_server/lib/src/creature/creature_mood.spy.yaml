@@ -1,0 +1,9 @@
+### The creature's mood, derived-on-read from its four stats (never stored) so it
+### stays consistent once S-07 decay mutates stats. Derivation rule lives in
+### creature_service.dart.
+enum: CreatureMood
+values:
+  - happy
+  - content
+  - sad
+  - sick

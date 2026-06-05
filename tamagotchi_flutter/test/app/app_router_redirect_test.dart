@@ -22,10 +22,11 @@ class _InMemoryAuthStorage implements ClientAuthSuccessStorage {
 /// A real [Client] wired to a [FlutterAuthSessionManager] backed by in-memory
 /// storage, so `client.auth.isAuthenticated` / `authInfoListenable` are
 /// controllable from the test (no secure storage, no network).
-Client _buildClient() => Client('http://localhost:8080/')
-  ..authSessionManager = FlutterAuthSessionManager(
-    storage: _InMemoryAuthStorage(),
-  );
+Client _buildClient() =>
+    Client('http://localhost:8080/')
+      ..authSessionManager = FlutterAuthSessionManager(
+        storage: _InMemoryAuthStorage(),
+      );
 
 AuthSuccess _authSuccess() => AuthSuccess(
   authStrategy: 'email',
