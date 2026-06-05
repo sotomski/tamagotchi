@@ -535,25 +535,25 @@ via `--apply-migrations`. Interaction modifiers and journal narrative content ar
 
 #### Automated
 
-- [x] 3.1 `build_runner build` succeeds
-- [x] 3.2 Flutter analyzes clean
-- [x] 3.3 Web build succeeds (`flutter_build`)
+- [x] 3.1 `build_runner build` succeeds — d5ecf87
+- [x] 3.2 Flutter analyzes clean — d5ecf87
+- [x] 3.3 Web build succeeds (`flutter_build`) — d5ecf87
 
 #### Manual
 
-- [x] 3.4 Empty state shows name input + Hatch button
-- [x] 3.5 Hatch flow: spinner → stats view (name, four stats, mood `content`)
-- [x] 3.6 Reload persists creature; empty state gone
-- [x] 3.7 Blank name blocked client-side; duplicate-hatch error renders inline
+- [x] 3.4 Empty state shows name input + Hatch button — d5ecf87
+- [x] 3.5 Hatch flow: spinner → stats view (name, four stats, mood `content`) — d5ecf87
+- [x] 3.6 Reload persists creature; empty state gone — d5ecf87
+- [x] 3.7 Blank name blocked client-side; duplicate-hatch error renders inline — d5ecf87
 
 ### Phase 4: Flutter widget tests & S-01 assertion updates
 
 #### Automated
 
-- [ ] 4.1 All Flutter tests pass (`dart test`)
-- [ ] 4.2 Flutter analyzes clean
+- [x] 4.1 All Flutter tests pass (`dart test`)
+- [x] 4.2 Flutter analyzes clean
 
 #### Manual
 
-- [ ] 4.3 Test names read as behavioural assertions, not implementation mirrors
-- [ ] 4.4 Cookbook entry accurate and reusable for S-03
+- [x] 4.3 Test names read as behavioural assertions, not implementation mirrors
+- [x] 4.4 Cookbook entry accurate and reusable for S-03
