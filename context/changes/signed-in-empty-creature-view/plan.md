@@ -379,26 +379,26 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 #### Automated
 
-- [x] 2.1 `mailer` present in `pubspec.yaml`; `dart pub get` succeeds
-- [x] 2.2 `dart analyze` passes with the new imports + branched callbacks
+- [x] 2.1 `mailer` present in `pubspec.yaml`; `dart pub get` succeeds — c38c6fa
+- [x] 2.2 `dart analyze` passes with the new imports + branched callbacks — c38c6fa
 
 #### Manual
 
-- [x] 2.3 Review: `development` logs only; non-dev sends via EmailLabs `SmtpServer` with creds from `session.passwords`, `MailerException` caught/logged
-- [x] 2.4 Review: no real SMTP credentials committed
+- [x] 2.3 Review: `development` logs only; non-dev sends via EmailLabs `SmtpServer` with creds from `session.passwords`, `MailerException` caught/logged — c38c6fa
+- [x] 2.4 Review: no real SMTP credentials committed — c38c6fa
 
 ### Phase 3: Flutter auth gate (route guard) + sign-in cleanup
 
 #### Automated
 
-- [ ] 3.1 `build_runner` regenerates `app_router.g.dart` cleanly
-- [ ] 3.2 `flutter test test/app/app_router_redirect_test.dart` passes (both directions + live flip)
-- [ ] 3.3 `flutter analyze` passes
+- [x] 3.1 `build_runner` regenerates `app_router.g.dart` cleanly
+- [x] 3.2 `flutter test test/app/app_router_redirect_test.dart` passes (both directions + live flip)
+- [x] 3.3 `flutter analyze` passes
 
 #### Manual
 
-- [ ] 3.4 Signed-out `/` redirects to `/sign-in`; post-sign-in lands on `/`; re-evaluates live
-- [ ] 3.5 No re-sign-in loop after removing `onAuthenticated` navigation
+- [x] 3.4 Signed-out `/` redirects to `/sign-in`; post-sign-in lands on `/`; re-evaluates live
+- [x] 3.5 No re-sign-in loop after removing `onAuthenticated` navigation
 
 ### Phase 4: Authenticated empty-creature home + log-out
 

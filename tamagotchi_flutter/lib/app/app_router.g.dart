@@ -8,26 +8,32 @@ part of 'app_router.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The app's [GoRouter].
+/// The app's [GoRouter] with the S-01 auth gate.
 ///
-/// A flat two-route map. No auth guard yet — S-01 adds the redirect via a
-/// `refreshListenable` tied to `client.auth.authInfoListenable`.
+/// Watches [serverpodClientProvider] for `client.auth`: a `redirect` bounces
+/// unauthenticated users to `/sign-in` and keeps authenticated users on the
+/// app surface, while `refreshListenable` re-evaluates the redirect live on
+/// every sign-in / sign-out (the listenable fires when `authInfo` changes).
 
 @ProviderFor(appRouter)
 final appRouterProvider = AppRouterProvider._();
 
-/// The app's [GoRouter].
+/// The app's [GoRouter] with the S-01 auth gate.
 ///
-/// A flat two-route map. No auth guard yet — S-01 adds the redirect via a
-/// `refreshListenable` tied to `client.auth.authInfoListenable`.
+/// Watches [serverpodClientProvider] for `client.auth`: a `redirect` bounces
+/// unauthenticated users to `/sign-in` and keeps authenticated users on the
+/// app surface, while `refreshListenable` re-evaluates the redirect live on
+/// every sign-in / sign-out (the listenable fires when `authInfo` changes).
 
 final class AppRouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
     with $Provider<GoRouter> {
-  /// The app's [GoRouter].
+  /// The app's [GoRouter] with the S-01 auth gate.
   ///
-  /// A flat two-route map. No auth guard yet — S-01 adds the redirect via a
-  /// `refreshListenable` tied to `client.auth.authInfoListenable`.
+  /// Watches [serverpodClientProvider] for `client.auth`: a `redirect` bounces
+  /// unauthenticated users to `/sign-in` and keeps authenticated users on the
+  /// app surface, while `refreshListenable` re-evaluates the redirect live on
+  /// every sign-in / sign-out (the listenable fires when `authInfo` changes).
   AppRouterProvider._()
     : super(
         from: null,
@@ -61,4 +67,4 @@ final class AppRouterProvider
   }
 }
 
-String _$appRouterHash() => r'b1e639a3e5484e89b633af5e9834f4486f3fdd6f';
+String _$appRouterHash() => r'749b373426a997d41f1c83754e02033b07d5595a';
