@@ -11,6 +11,11 @@ resolution: workspace
 dependencies:
   serverpod: 3.4.8
   serverpod_auth_idp_server: 3.4.8
+  # HTTP client for the production verification-email path: an HTTPS POST to
+  # EmailLabs' `new_sendmail` REST API over 443 (scloud blocks outbound SMTP, so
+  # the SMTP `mailer` transport is dead on prod). Run-mode-gated in server.dart —
+  # not used in `development`, which logs the code instead.
+  http: ^1.6.0
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'

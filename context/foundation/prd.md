@@ -101,7 +101,7 @@ The user encounters this rule every time they interact. A picky creature that wa
 
 Each user owns their own creature and journal and can only see and interact with their own. The account model is flat — all accounts are equal, with no admin role and no special permissions. Authenticated users reach the main game surface; unauthenticated visitors are routed to sign-up / sign-in.
 
-Sign-in supports two pathways: email + password, and a delegated third-party identity provider (OAuth). New accounts are created on first successful sign-in via either pathway.
+Sign-in supports a single pathway: email + password. Users explicitly register an account (sign up), then sign in with those credentials. There is no third-party / OAuth sign-in.
 
 ## Non-Goals
 

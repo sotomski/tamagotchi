@@ -89,7 +89,7 @@ How the chosen platform operates day to day. One concrete answer per axis.
 - **Preview deploys**: scloud has no documented per-PR / per-branch preview-deploy primitive in the public docs as of 2026-05-23. The practical preview path is `scloud deploy` against a second project (e.g. `ai-tamagotchi-staging`) — the `scloud project create` / `scloud project link` commands exist. Branch-based automatic preview URLs are NOT a feature today; expect to wire this yourself in GitHub Actions if needed before launch.
 - **Secrets**: `scloud secret set <name>` / `scloud secret list` / `scloud secret unset <name>`. Secrets live in the scloud project, scoped per environment. Application reads them via Serverpod's existing `config/passwords.yaml` override mechanism (`SERVERPOD_PASSWORD_*` env vars). Rotation = `scloud secret set <name> <new-value>` + redeploy. Do NOT commit the local `tamagotchi_server/config/passwords.yaml` with real values.
 - **Rollback**: There is **no `scloud rollback` command**. The pattern is `scloud deployment list` (find a prior successful build ID) then re-`scloud deploy` against that build — verify with `scloud deployment show <id>` before. Typical time-to-revert: 1–3 minutes for build pull, plus a fresh container start. **DB migrations do not roll back automatically** — if a Serverpod migration was applied as part of the bad deploy, you'll need a forward-fix migration; do not assume reverting the app reverts the schema.
-- **Approval**: Human-only operations for this project: (1) first `scloud launch` (creates the project; double-check name + region intent), (2) `scloud db wipe` (irreversible, drops project DB), (3) any rotation of the GoogleSignIn / Apple OAuth client secrets (production identity provider), (4) custom-domain configuration once acquired. The agent may run unattended: `scloud deploy` against an existing project, `scloud log --tail`, `scloud secret set` for non-primary secrets, `scloud deployment list/show`.
+- **Approval**: Human-only operations for this project: (1) first `scloud launch` (creates the project; double-check name + region intent), (2) `scloud db wipe` (irreversible, drops project DB), (3) ~~any rotation of the GoogleSignIn / Apple OAuth client secrets (production identity provider)~~ **[superseded 2026-06-04 — OAuth dropped; sign-in is email+password only per `prd.md:104`. The equivalent human-gated op is now rotation of the EmailLabs SMTP secrets (`SERVERPOD_PASSWORD_emaillabsSmtp*`); see the **S-01 Production Deploy & EmailLabs Secrets** section below]**, (4) custom-domain configuration once acquired. The agent may run unattended: `scloud deploy` against an existing project, `scloud log --tail`, `scloud secret set` for non-primary secrets, `scloud deployment list/show`.
 - **Logs**: `scloud log --tail` for live tail; `scloud log --since 1h` / `--since 2026-05-23T08:00:00Z --until 2026-05-23T10:00:00Z` for time-bounded reads. Output is human-formatted (no `--json` flag observed). For agent-side filtering, pipe to `grep` / `awk` — and note this as an MCP candidate: read-only log access via MCP would benefit this stack if/when a control-plane MCP ships.
 
 ## Risk Register
@@ -133,11 +133,13 @@ The following commands assume Serverpod 3.4.8, Dart 3.8.0, `scloud` CLI v0.29.0 
 
 3. **Disable Redis-backed features in the production config.** The project ships with `tamagotchi_server/config/production.yaml` that likely includes a `redis:` block from the Serverpod scaffold. Either remove the block or explicitly set `redis.enabled: false` so the server uses in-memory session storage and skips PubSub init. The single-instance topology means no functionality is lost.
 
-4. **Set production secrets**:
+4. **Set production secrets.** Most are **platform-AUTO** — `database` + the three auth peppers (`jwtHmacSha512PrivateKey`, `jwtRefreshTokenHashPepper`, `emailSecretHashPepper`) and `serviceSecret` are managed by scloud (verify with `scloud password list`; `scloud password set`'ing any of them would regress the platform value). The only secrets this project provisions manually are the **EmailLabs SMTP** credentials — there are **no** OAuth client secrets (sign-in is email+password only per `prd.md:104`). See **S-01 Production Deploy & EmailLabs Secrets** below for the canonical procedure.
    ```bash
-   scloud secret set SERVERPOD_PASSWORD_DATABASE "<db-pass>"
-   # OAuth client secrets for the IDP flow (Google / Apple):
-   scloud secret set GOOGLE_OAUTH_CLIENT_SECRET "<value>"
+   # ~~scloud secret set SERVERPOD_PASSWORD_DATABASE "<db-pass>"~~   # superseded: database is platform-AUTO — do not set
+   # ~~scloud secret set GOOGLE_OAUTH_CLIENT_SECRET "<value>"~~     # superseded 2026-06-04: OAuth dropped (email-only, prd.md:104)
+   scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpUser     '1.<panelname>.smtp'
+   scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpPassword '<smtp-account-password>'
+   scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpFrom     'no-reply@tamagotchi.codecreations.eu'
    ```
 
 5. **Build and deploy the Flutter web client into the server's `/app/`**:
@@ -153,6 +155,55 @@ The following commands assume Serverpod 3.4.8, Dart 3.8.0, `scloud` CLI v0.29.0 
    scloud deployment list
    # note the latest successful build ID and pin it in your project notes
    ```
+
+## S-01 Production Deploy & EmailLabs Secrets
+
+Runbook for the `signed-in-empty-creature-view` (S-01) production deploy (added 2026-06-04). The privileged steps below are **user-executed** from an authenticated `scloud` session; this section is the exact command + record reference the implementation plan prepares.
+
+### Secrets: what scloud manages vs. what we set
+
+- **Platform-AUTO — never set.** `database` (DB password) plus the three auth peppers `jwtHmacSha512PrivateKey`, `jwtRefreshTokenHashPepper`, `emailSecretHashPepper` and `serviceSecret` are all **AUTO (Platform)** on the `tamagotchi` project (verified 2026-05-23). scloud generates them and injects the DB connection at runtime even though `config/production.yaml` ships placeholder DB values, so a deployed server boots with no missing-password crash. Running `scloud password set` on any of these **overrides the platform value — a regression.** Verify before deploy:
+  ```bash
+  scloud password list   # database + 3 peppers + serviceSecret must all read AUTO (Platform)
+  ```
+- **Third-party — we set these.** The EmailLabs credentials are the only secrets this project provisions manually. They reach Serverpod's password map (so `session.passwords[...]` resolves in `server.dart`'s send path) via the `SERVERPOD_PASSWORD_` prefix.
+
+  > **Transport pivoted SMTP → REST (2026-06-05, Phase 6).** scloud **categorically blocks outbound SMTP egress** (the `mailer`/`SmtpServer` send below timed out at TCP connect on deploy `89894694` — see "After this deploy"). The send now goes over **443 to EmailLabs' `new_sendmail` REST API**, so the live transport authenticates with the **REST AppKey/SecretKey**, not the SMTP-account password. The SMTP secrets below are superseded as the auth path but two of them are reused as REST body inputs.
+
+  **REST secrets — set these (live transport):**
+  ```bash
+  scloud secret set SERVERPOD_PASSWORD_emaillabsApiKey    '<AppKey>'     # EmailLabs panel → Administrator → API
+  scloud secret set SERVERPOD_PASSWORD_emaillabsApiSecret '<SecretKey>'  # EmailLabs panel → Administrator → API
+  scloud secret list   # confirm emaillabsApiKey + emaillabsApiSecret are present
+  ```
+  **Reused as REST body inputs (already set in Phase 5):**
+  ```bash
+  scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpUser '1.<panelname>.smtp'                   # the `smtp_account` body param (NOT auth)
+  scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpFrom 'no-reply@tamagotchi.codecreations.eu' # a verified tamagotchi.codecreations.eu From
+  ```
+  `SERVERPOD_PASSWORD_emaillabsSmtpPassword` (the SMTP-account password) is **now unused** by the REST transport — harmless to leave set, or `scloud secret unset` it.
+
+  **`new_sendmail` contract:** `POST https://api.emaillabs.net.pl/api/new_sendmail`, header `Authorization: Basic base64(AppKey:SecretKey)`, `application/x-www-form-urlencoded` body params `smtp_account` / `to[<email>]` (array form, value = name or empty) / `from` / `subject` / `text` (or `html`). Response is JSON `{code,status,message,data}`; success = `status:"success"`. **AppKey/SecretKey ≠ smtp_account.** REST auth is the AppKey/SecretKey pair; the `1.<panelname>.smtp` identifier appears only as the `smtp_account` body param and its SMTP password is not used. Placeholders only in this doc — real values live in scloud, never the repo.
+
+### Build + deploy
+
+```bash
+cd tamagotchi_server
+serverpod run flutter_build            # builds the Flutter web client into web/app/ (handles wasm + copy)
+scloud deploy --dry-run --show-files   # verify the upload manifest before sending bytes
+scloud deploy                          # deploy; migrations auto-apply — auth tables already at 20260521163433251, no new migration pending
+scloud log --tail                      # confirm boot (peppers AUTO ⇒ no missing-password crash)
+```
+
+### After this deploy
+
+Production runs the new auth wiring + the run-mode-gated EmailLabs send branch. A prod registration *reaches* the send step and the EmailLabs send fires — confirming the branch is wired.
+
+**⚠️ Finding (2026-06-05, deploy `89894694`): the prod SMTP send TIMES OUT at TCP connect.** `startRegistration` logged `SocketException: Connection timed out, host: smtp.emaillabs.net.pl, port: 587 (errno 110)`. This is **not** a sender-authorization bounce — it is a TCP-level timeout, the signature of an outbound-SMTP egress block. The same host is reachable on **587 and 465 from the devcontainer** (`smtp.emaillabs.net.pl` → 185.49.13.184), so the block is **scloud-side**: scloud appears to block outbound SMTP egress from its containers (a common cloud anti-spam measure).
+
+**Implication for the acceptance gate.** Phase 6's DNS sender authorization (SPF `include:_spf.emaillabs.co`, a panel-generated DKIM record at `<selector>._domainkey.tamagotchi.codecreations.eu`, optional Return-Path CNAME + a single `_dmarc` TXT) is still **necessary** for deliverability/alignment, but **not sufficient** — with SMTP egress blocked, no mail leaves the container regardless of DNS. The recommended fix is to send over **HTTPS (443) via the EmailLabs REST API** (`api.emaillabs.net.pl`, authenticated with the **REST AppKey/SecretKey** — distinct from the SMTP-account creds used for SMTP), since 443 egress is open from scloud; that is a code change to the Phase 2 send branch (replace the `mailer` SMTP call with an HTTP POST) plus provisioning the REST creds as scloud secrets. Alternatives: ask scloud support to permit SMTP egress, or test ports 465/25 from scloud (likely all blocked if egress is categorically closed). The production register → email → login → empty-creature home → logout flow is the S-01 acceptance gate and is **blocked until this transport issue is resolved** (likely requiring a Phase 6 re-plan).
+
+**✅ Resolved (2026-06-05, Phase 6 — transport pivot).** `server.dart`'s `_sendVerificationEmail` was rewritten from the `mailer`/SMTP call to an HTTPS POST to EmailLabs' `new_sendmail` REST API over **443** (the `mailer` dep dropped, `http` added; AppKey/SecretKey provisioned as `emaillabsApiKey`/`emaillabsApiSecret` secrets — see "Secrets" above). 443 egress is open from scloud, so the send now **reaches** EmailLabs (an HTTP `{code,status,message}` response) instead of timing out at TCP connect. Deliverability (EmailLabs sender authorization + SPF/DKIM/DMARC DNS for `tamagotchi.codecreations.eu`) is the remaining **Phase 7** gate — until those land, the send reaches EmailLabs but is rejected pre-authorization (an HTTP error, no longer a `SocketException`).
 
 ## Out of Scope
 

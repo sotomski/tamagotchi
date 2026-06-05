@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 ARG FLUTTER_VERSION=3.44.0
 ARG SERVERPOD_CLI_VERSION=3.4.8
-ARG SERVERPOD_CLOUD_CLI_VERSION=0.29.0
+ARG SERVERPOD_CLOUD_CLI_VERSION=0.30.0
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         curl \
@@ -12,6 +12,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         zip \
         libglu1-mesa \
         ca-certificates \
+        postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 USER vscode
