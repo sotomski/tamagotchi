@@ -390,23 +390,23 @@ None — no schema change (pickiness derived; `FeedResult` non-table). `serverpo
 ### Phase 3: Feed endpoint + FeedResult + journal pair + integration tests
 
 #### Automated
-- [x] 3.1 `serverpod generate` succeeds; `client.creature.feed()` + `FeedResult` exist
-- [x] 3.2 Integration tests pass (`dart test test/integration/feed_endpoint_test.dart`)
-- [x] 3.3 `dart analyze` clean (excl. generated)
+- [x] 3.1 `serverpod generate` succeeds; `client.creature.feed()` + `FeedResult` exist — 8c9e0c3
+- [x] 3.2 Integration tests pass (`dart test test/integration/feed_endpoint_test.dart`) — 8c9e0c3
+- [x] 3.3 `dart analyze` clean (excl. generated) — 8c9e0c3
 
 #### Manual
-- [x] 3.4 Real `feed` call returns in-character, food-referencing response + coherent journal entry
-- [x] 3.5 Repeated feeds surface an in-character refusal
+- [x] 3.4 Real `feed` call returns in-character, food-referencing response + coherent journal entry — 8c9e0c3
+- [x] 3.5 Repeated feeds surface an in-character refusal — 8c9e0c3
 
 ### Phase 4: Flutter wiring + widget tests
 
 #### Automated
-- [ ] 4.1 `build_runner build` succeeds (controller `.g.dart`)
-- [ ] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`)
-- [ ] 4.3 `flutter analyze` clean
-- [ ] 4.4 `serverpod run flutter_build` builds the web app
+- [x] 4.1 `build_runner build` succeeds (controller `.g.dart`)
+- [x] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`)
+- [x] 4.3 `flutter analyze` clean
+- [x] 4.4 `serverpod run flutter_build` builds the web app
 
 #### Manual
-- [ ] 4.5 Feed shows loading animation then response within ~5s; stats + journal update
-- [ ] 4.6 Refusal renders distinctly; full creature shows canned line
-- [ ] 4.7 No overflow when a long response renders
+- [x] 4.5 Feed shows loading animation then response within ~5s; stats + journal update
+- [x] 4.6 Refusal renders distinctly; full creature shows canned line
+- [x] 4.7 No overflow when a long response renders
