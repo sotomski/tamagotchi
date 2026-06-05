@@ -23,8 +23,9 @@ class _InMemoryAuthStorage implements ClientAuthSuccessStorage {
 /// storage, so `client.auth.isAuthenticated` / `authInfoListenable` are
 /// controllable from the test (no secure storage, no network).
 Client _buildClient() => Client('http://localhost:8080/')
-  ..authSessionManager =
-      FlutterAuthSessionManager(storage: _InMemoryAuthStorage());
+  ..authSessionManager = FlutterAuthSessionManager(
+    storage: _InMemoryAuthStorage(),
+  );
 
 AuthSuccess _authSuccess() => AuthSuccess(
   authStrategy: 'email',
@@ -34,9 +35,12 @@ AuthSuccess _authSuccess() => AuthSuccess(
 );
 
 /// The route the guard has settled the app on.
-String _currentPath(ProviderContainer container) =>
-    container.read(appRouterProvider).routerDelegate.currentConfiguration.uri
-        .path;
+String _currentPath(ProviderContainer container) => container
+    .read(appRouterProvider)
+    .routerDelegate
+    .currentConfiguration
+    .uri
+    .path;
 
 /// The real Serverpod [SignInWidget] form overflows its fixed-width box at the
 /// test viewport — a layout quirk inside the dependency, unrelated to the

@@ -118,7 +118,8 @@ Future<void> _sendRegistrationCode(
     session,
     recipient: email,
     subject: 'Verify your AI-Tamagotchi account',
-    body: 'Welcome to AI-Tamagotchi!\n\n'
+    body:
+        'Welcome to AI-Tamagotchi!\n\n'
         'Your verification code is: $verificationCode\n\n'
         'Enter this code in the app to finish creating your account.',
   );
@@ -141,7 +142,8 @@ Future<void> _sendPasswordResetCode(
     session,
     recipient: email,
     subject: 'Reset your AI-Tamagotchi password',
-    body: 'A password reset was requested for your AI-Tamagotchi account.\n\n'
+    body:
+        'A password reset was requested for your AI-Tamagotchi account.\n\n'
         'Your password reset code is: $verificationCode\n\n'
         'If you did not request this, you can safely ignore this email.',
   );
@@ -212,7 +214,8 @@ Future<void> _sendVerificationEmail(
     // Non-JSON body — leave status null so the guard below treats it as failure.
   }
 
-  final ok = response.statusCode >= 200 &&
+  final ok =
+      response.statusCode >= 200 &&
       response.statusCode < 300 &&
       status == 'success';
   if (!ok) {
