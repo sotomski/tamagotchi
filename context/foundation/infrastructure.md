@@ -166,14 +166,24 @@ Runbook for the `signed-in-empty-creature-view` (S-01) production deploy (added 
   ```bash
   scloud password list   # database + 3 peppers + serviceSecret must all read AUTO (Platform)
   ```
-- **Third-party — we set these.** The EmailLabs SMTP credentials are the only secrets this project provisions manually. They reach Serverpod's password map (so `session.passwords['emaillabsSmtp*']` resolves in `server.dart`'s send callbacks) via the `SERVERPOD_PASSWORD_` prefix:
+- **Third-party — we set these.** The EmailLabs credentials are the only secrets this project provisions manually. They reach Serverpod's password map (so `session.passwords[...]` resolves in `server.dart`'s send path) via the `SERVERPOD_PASSWORD_` prefix.
+
+  > **Transport pivoted SMTP → REST (2026-06-05, Phase 6).** scloud **categorically blocks outbound SMTP egress** (the `mailer`/`SmtpServer` send below timed out at TCP connect on deploy `89894694` — see "After this deploy"). The send now goes over **443 to EmailLabs' `new_sendmail` REST API**, so the live transport authenticates with the **REST AppKey/SecretKey**, not the SMTP-account password. The SMTP secrets below are superseded as the auth path but two of them are reused as REST body inputs.
+
+  **REST secrets — set these (live transport):**
   ```bash
-  scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpUser     '1.<panelname>.smtp'                  # SMTP-ACCOUNT login — NOT the REST AppKey/SecretKey
-  scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpPassword '<smtp-account-password>'             # SMTP-account password (set in the panel)
-  scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpFrom     'no-reply@tamagotchi.codecreations.eu'  # a verified tamagotchi.codecreations.eu From
-  scloud secret list   # confirm the three emaillabsSmtp* secrets are present
+  scloud secret set SERVERPOD_PASSWORD_emaillabsApiKey    '<AppKey>'     # EmailLabs panel → Administrator → API
+  scloud secret set SERVERPOD_PASSWORD_emaillabsApiSecret '<SecretKey>'  # EmailLabs panel → Administrator → API
+  scloud secret list   # confirm emaillabsApiKey + emaillabsApiSecret are present
   ```
-  **SMTP login ≠ API keys.** EmailLabs SMTP auth uses the SMTP-account credential (`1.<panelname>.smtp` + its own panel-set password), **not** the REST API AppKey/SecretKey — using the API keys for SMTP auth fails. Host `smtp.emaillabs.net.pl`, STARTTLS on 587. Placeholders only in this doc — real values live in scloud, never the repo.
+  **Reused as REST body inputs (already set in Phase 5):**
+  ```bash
+  scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpUser '1.<panelname>.smtp'                   # the `smtp_account` body param (NOT auth)
+  scloud secret set SERVERPOD_PASSWORD_emaillabsSmtpFrom 'no-reply@tamagotchi.codecreations.eu' # a verified tamagotchi.codecreations.eu From
+  ```
+  `SERVERPOD_PASSWORD_emaillabsSmtpPassword` (the SMTP-account password) is **now unused** by the REST transport — harmless to leave set, or `scloud secret unset` it.
+
+  **`new_sendmail` contract:** `POST https://api.emaillabs.net.pl/api/new_sendmail`, header `Authorization: Basic base64(AppKey:SecretKey)`, `application/x-www-form-urlencoded` body params `smtp_account` / `to[<email>]` (array form, value = name or empty) / `from` / `subject` / `text` (or `html`). Response is JSON `{code,status,message,data}`; success = `status:"success"`. **AppKey/SecretKey ≠ smtp_account.** REST auth is the AppKey/SecretKey pair; the `1.<panelname>.smtp` identifier appears only as the `smtp_account` body param and its SMTP password is not used. Placeholders only in this doc — real values live in scloud, never the repo.
 
 ### Build + deploy
 
@@ -192,6 +202,8 @@ Production runs the new auth wiring + the run-mode-gated EmailLabs send branch. 
 **⚠️ Finding (2026-06-05, deploy `89894694`): the prod SMTP send TIMES OUT at TCP connect.** `startRegistration` logged `SocketException: Connection timed out, host: smtp.emaillabs.net.pl, port: 587 (errno 110)`. This is **not** a sender-authorization bounce — it is a TCP-level timeout, the signature of an outbound-SMTP egress block. The same host is reachable on **587 and 465 from the devcontainer** (`smtp.emaillabs.net.pl` → 185.49.13.184), so the block is **scloud-side**: scloud appears to block outbound SMTP egress from its containers (a common cloud anti-spam measure).
 
 **Implication for the acceptance gate.** Phase 6's DNS sender authorization (SPF `include:_spf.emaillabs.co`, a panel-generated DKIM record at `<selector>._domainkey.tamagotchi.codecreations.eu`, optional Return-Path CNAME + a single `_dmarc` TXT) is still **necessary** for deliverability/alignment, but **not sufficient** — with SMTP egress blocked, no mail leaves the container regardless of DNS. The recommended fix is to send over **HTTPS (443) via the EmailLabs REST API** (`api.emaillabs.net.pl`, authenticated with the **REST AppKey/SecretKey** — distinct from the SMTP-account creds used for SMTP), since 443 egress is open from scloud; that is a code change to the Phase 2 send branch (replace the `mailer` SMTP call with an HTTP POST) plus provisioning the REST creds as scloud secrets. Alternatives: ask scloud support to permit SMTP egress, or test ports 465/25 from scloud (likely all blocked if egress is categorically closed). The production register → email → login → empty-creature home → logout flow is the S-01 acceptance gate and is **blocked until this transport issue is resolved** (likely requiring a Phase 6 re-plan).
+
+**✅ Resolved (2026-06-05, Phase 6 — transport pivot).** `server.dart`'s `_sendVerificationEmail` was rewritten from the `mailer`/SMTP call to an HTTPS POST to EmailLabs' `new_sendmail` REST API over **443** (the `mailer` dep dropped, `http` added; AppKey/SecretKey provisioned as `emaillabsApiKey`/`emaillabsApiSecret` secrets — see "Secrets" above). 443 egress is open from scloud, so the send now **reaches** EmailLabs (an HTTP `{code,status,message}` response) instead of timing out at TCP connect. Deliverability (EmailLabs sender authorization + SPF/DKIM/DMARC DNS for `tamagotchi.codecreations.eu`) is the remaining **Phase 7** gate — until those land, the send reaches EmailLabs but is rejected pre-authorization (an HTTP error, no longer a `SocketException`).
 
 ## Out of Scope
 

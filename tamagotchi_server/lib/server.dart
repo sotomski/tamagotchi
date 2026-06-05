@@ -1,9 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
-// Prefixed: `mailer` exports `Message`, which collides with relic_core's
-// `Message` re-exported transitively through `package:serverpod/serverpod.dart`.
-import 'package:mailer/mailer.dart' as mailer;
-import 'package:mailer/smtp_server.dart' show SmtpServer;
+import 'package:http/http.dart' as http;
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
@@ -109,9 +107,9 @@ Future<void> _sendRegistrationCode(
   required String verificationCode,
   required Transaction? transaction,
 }) async {
-  // In `development` there is no mailer wired: just log the (static) code so it
-  // can be entered manually in the UI. Every other run mode delivers the random
-  // default code over EmailLabs SMTP.
+  // In `development` no email is sent: just log the (static) code so it can be
+  // entered manually in the UI. Every other run mode delivers the random default
+  // code over EmailLabs (new_sendmail REST over 443).
   if (session.serverpod.runMode == 'development') {
     session.log('[EmailIdp] Registration code ($email): $verificationCode');
     return;
@@ -133,8 +131,8 @@ Future<void> _sendPasswordResetCode(
   required String verificationCode,
   required Transaction? transaction,
 }) async {
-  // Same run-mode gate as registration: log-only in `development`, real SMTP
-  // delivery via EmailLabs otherwise.
+  // Same run-mode gate as registration: log-only in `development`, real delivery
+  // via EmailLabs (new_sendmail REST over 443) otherwise.
   if (session.serverpod.runMode == 'development') {
     session.log('[EmailIdp] Password reset code ($email): $verificationCode');
     return;
@@ -149,45 +147,87 @@ Future<void> _sendPasswordResetCode(
   );
 }
 
-/// Sends a plain-text verification email via EmailLabs SMTP. Called only outside
-/// `development`; the SMTP-account credentials and verified From-address come
-/// from the server password map (`emaillabsSmtp*`), provisioned out-of-band via
-/// `scloud secret set` — never committed to the repo.
+/// Sends a plain-text verification email via EmailLabs' `new_sendmail` REST API
+/// over HTTPS (443). Called only outside `development`.
 ///
-/// NOTE: EmailLabs SMTP auth uses the dedicated "SMTP account" credential
-/// (`1.<panelname>.smtp` + its own password), NOT the REST API AppKey/SecretKey.
-/// Host `smtp.emaillabs.net.pl`, STARTTLS on 587 (`ssl: false`, the library
-/// upgrades the connection via the `starttls` command).
+/// scloud blocks outbound SMTP egress (25/465/587), so the send goes over 443 to
+/// EmailLabs' transactional REST endpoint instead of SMTP. REST auth is HTTP Basic
+/// with the EmailLabs **AppKey:SecretKey** (panel → Administrator → API) — NOT the
+/// SMTP-account password. The SMTP-account identifier (`1.<panelname>.smtp`)
+/// survives only as the `smtp_account` body param; its SMTP password is unused.
+/// Credentials + the verified From-address come from the server password map
+/// (`emaillabsApiKey` / `emaillabsApiSecret` / `emaillabsSmtpUser` /
+/// `emaillabsSmtpFrom`), provisioned out-of-band via `scloud secret set` — never
+/// committed to the repo. Body stays plain text (the `text` param); no HTML.
 Future<void> _sendVerificationEmail(
   Session session, {
   required String recipient,
   required String subject,
   required String body,
 }) async {
-  final smtpServer = SmtpServer(
-    'smtp.emaillabs.net.pl',
-    port: 587,
-    ssl: false,
-    allowInsecure: false,
-    username: session.passwords['emaillabsSmtpUser']!,
-    password: session.passwords['emaillabsSmtpPassword']!,
+  // EmailLabs REST auth: Basic base64(AppKey:SecretKey) — NOT the smtp_account
+  // password. The smtp_account identifier below is only a body param.
+  final auth = base64Encode(
+    utf8.encode(
+      '${session.passwords['emaillabsApiKey']}:'
+      '${session.passwords['emaillabsApiSecret']}',
+    ),
   );
 
-  final message = mailer.Message()
-    ..from = session.passwords['emaillabsSmtpFrom']!
-    ..recipients.add(recipient)
-    ..subject = subject
-    ..text = body;
-
+  final http.Response response;
   try {
-    await mailer.send(message, smtpServer);
-  } on mailer.MailerException catch (e, stackTrace) {
+    // Content-Type defaults to application/x-www-form-urlencoded for a Map body;
+    // the array-style `to[<email>]` key carries the recipient (value = name|'').
+    response = await http.post(
+      Uri.parse('https://api.emaillabs.net.pl/api/new_sendmail'),
+      headers: {'authorization': 'Basic $auth'},
+      body: {
+        'smtp_account': session.passwords['emaillabsSmtpUser']!,
+        'from': session.passwords['emaillabsSmtpFrom']!,
+        'subject': subject,
+        'text': body,
+        'to[$recipient]': '',
+      },
+    );
+  } catch (e, stackTrace) {
+    // No HTTP response at all (DNS/socket/egress failure) — fail loudly.
     session.log(
-      '[EmailIdp] Failed to send verification email to $recipient',
+      '[EmailIdp] Failed to reach EmailLabs to send verification email to '
+      '$recipient',
       level: LogLevel.error,
       exception: e,
       stackTrace: stackTrace,
     );
     rethrow;
+  }
+
+  // EmailLabs returns JSON {code,status,message,data}; success == status:"success".
+  String? status;
+  try {
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map && decoded['status'] is String) {
+      status = decoded['status'] as String;
+    }
+  } catch (_) {
+    // Non-JSON body — leave status null so the guard below treats it as failure.
+  }
+
+  final ok = response.statusCode >= 200 &&
+      response.statusCode < 300 &&
+      status == 'success';
+  if (!ok) {
+    session.log(
+      '[EmailIdp] EmailLabs new_sendmail rejected the send to $recipient '
+      '(HTTP ${response.statusCode}): ${response.body}',
+      level: LogLevel.error,
+    );
+    // A verification-code flow must fail loudly when no code can be delivered:
+    // throw so registration/reset surfaces the failure instead of silently
+    // appearing to succeed with no email sent (Q4=A, parity with the prior
+    // SMTP rethrow).
+    throw Exception(
+      'EmailLabs new_sendmail failed (HTTP ${response.statusCode}, '
+      'status "$status")',
+    );
   }
 }

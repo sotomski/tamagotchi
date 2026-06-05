@@ -515,16 +515,16 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 #### Automated
 
-- [ ] 6.1 `mailer` removed, `http` present in `pubspec.yaml`; `dart pub get` succeeds
-- [ ] 6.2 `dart analyze` passes with the REST transport + new imports
-- [ ] 6.3 Flutter web build succeeds; `scloud deploy` completes
-- [ ] 6.4 `scloud secret list` shows `emaillabsApiKey` + `emaillabsApiSecret`; `scloud password list` shows DB + 3 peppers still AUTO
-- [ ] 6.5 `infrastructure.md` documents the REST pivot + two new secret commands; `change.md` has the pivot Notes entry
+- [x] 6.1 `mailer` removed, `http` present in `pubspec.yaml`; `dart pub get` succeeds
+- [x] 6.2 `dart analyze` passes with the REST transport + new imports
+- [x] 6.3 Flutter web build succeeds; `scloud deploy` completes
+- [x] 6.4 `scloud secret list` shows `emaillabsApiKey` + `emaillabsApiSecret`; `scloud password list` shows DB + 3 peppers still AUTO
+- [x] 6.5 `infrastructure.md` documents the REST pivot + two new secret commands; `change.md` has the pivot Notes entry
 
 #### Manual
 
-- [ ] 6.6 Prod registration reaches EmailLabs over 443 — `new_sendmail` returns an HTTP response (not a TCP timeout); log shows `{code,status,message}`
-- [ ] 6.7 Review: no real secret values committed
+- [x] 6.6 Prod registration reaches EmailLabs over 443 — `new_sendmail` returns an HTTP response (not a TCP timeout); log shows `{code,status,message}`
+- [x] 6.7 Review: no real secret values committed
 
 ### Phase 7: EmailLabs sender authorization + DNS + production acceptance (FINAL)
 
