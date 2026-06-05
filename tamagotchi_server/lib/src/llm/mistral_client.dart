@@ -119,8 +119,7 @@ class MistralLlmService implements LlmService {
     // OpenAI-shaped envelope: choices[0].message.content is a JSON string that
     // (under json_schema mode) conforms to our two-field schema.
     final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-    final content =
-        decoded['choices']?[0]?['message']?['content'] as String?;
+    final content = decoded['choices']?[0]?['message']?['content'] as String?;
     if (content == null || content.isEmpty) {
       throw Exception(
         'Mistral response missing choices[0].message.content: ${response.body}',

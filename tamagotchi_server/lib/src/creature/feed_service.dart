@@ -34,8 +34,7 @@ double rejectProbability({
   required double picky,
   required int hunger,
   required double tastiness,
-}) =>
-    picky * (1 - hunger / 100) * (1 - tastiness);
+}) => picky * (1 - hunger / 100) * (1 - tastiness);
 
 /// The outcome of one feed gate: whether the creature was already [full], whether
 /// it [accepted], the rolled [tastiness] (fed into the LLM prompt), and the
@@ -74,7 +73,8 @@ FeedDecision evaluateFeed({
 
   final tastiness = rng.nextDouble();
   final picky = pickyFactor(personality.hungerDecayMod);
-  final reject = rng.nextDouble() <
+  final reject =
+      rng.nextDouble() <
       rejectProbability(
         picky: picky,
         hunger: creature.hunger,
@@ -82,7 +82,12 @@ FeedDecision evaluateFeed({
       );
 
   if (reject) {
-    return (full: false, accepted: false, tastiness: tastiness, delta: zeroDelta);
+    return (
+      full: false,
+      accepted: false,
+      tastiness: tastiness,
+      delta: zeroDelta,
+    );
   }
 
   final delta = StatDelta(

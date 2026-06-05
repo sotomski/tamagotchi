@@ -85,49 +85,51 @@ void main() {
       expect(user, contains('1.40'));
     });
 
-    test('recent entries appear in the user message; empty renders a placeholder',
-        () {
-      final withMemory =
-          buildInteractionMessages(
-                InteractionRequest(
-                  personality: _personality(),
-                  hunger: 10,
-                  energy: 90,
-                  love: 80,
-                  illness: 0,
-                  mood: CreatureMood.happy,
-                  interactionType: JournalEvent.feed,
-                  accepted: true,
-                  tastiness: 0.5,
-                  recentEntries: const [
-                    'Devoured a glorious Quadruple-Truffle Soufflé.',
-                    'Sulked when offered cold gruel.',
-                  ],
-                ),
-              )[1]['content']
-              as String;
+    test(
+      'recent entries appear in the user message; empty renders a placeholder',
+      () {
+        final withMemory =
+            buildInteractionMessages(
+                  InteractionRequest(
+                    personality: _personality(),
+                    hunger: 10,
+                    energy: 90,
+                    love: 80,
+                    illness: 0,
+                    mood: CreatureMood.happy,
+                    interactionType: JournalEvent.feed,
+                    accepted: true,
+                    tastiness: 0.5,
+                    recentEntries: const [
+                      'Devoured a glorious Quadruple-Truffle Soufflé.',
+                      'Sulked when offered cold gruel.',
+                    ],
+                  ),
+                )[1]['content']
+                as String;
 
-      expect(withMemory, contains('Quadruple-Truffle Soufflé'));
-      expect(withMemory, contains('cold gruel'));
+        expect(withMemory, contains('Quadruple-Truffle Soufflé'));
+        expect(withMemory, contains('cold gruel'));
 
-      final noMemory =
-          buildInteractionMessages(
-                InteractionRequest(
-                  personality: _personality(),
-                  hunger: 10,
-                  energy: 90,
-                  love: 80,
-                  illness: 0,
-                  mood: CreatureMood.happy,
-                  interactionType: JournalEvent.feed,
-                  accepted: true,
-                  tastiness: 0.5,
-                  recentEntries: const [],
-                ),
-              )[1]['content']
-              as String;
+        final noMemory =
+            buildInteractionMessages(
+                  InteractionRequest(
+                    personality: _personality(),
+                    hunger: 10,
+                    energy: 90,
+                    love: 80,
+                    illness: 0,
+                    mood: CreatureMood.happy,
+                    interactionType: JournalEvent.feed,
+                    accepted: true,
+                    tastiness: 0.5,
+                    recentEntries: const [],
+                  ),
+                )[1]['content']
+                as String;
 
-      expect(noMemory.toLowerCase(), contains('no earlier entries'));
-    });
+        expect(noMemory.toLowerCase(), contains('no earlier entries'));
+      },
+    );
   });
 }

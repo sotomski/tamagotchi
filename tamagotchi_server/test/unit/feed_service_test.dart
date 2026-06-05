@@ -140,43 +140,53 @@ void main() {
       expect(result.full, isTrue);
       expect(result.accepted, isFalse);
       expect(
-        (result.delta.hungerDelta, result.delta.energyDelta,
-            result.delta.loveDelta, result.delta.illnessDelta),
+        (
+          result.delta.hungerDelta,
+          result.delta.energyDelta,
+          result.delta.loveDelta,
+          result.delta.illnessDelta,
+        ),
         (0, 0, 0, 0),
       );
     });
 
-    test('accepted feed draws tastiness first, then applies the -30/-10 delta', () {
-      // picky = pickyFactor(1.0) = 0.5; reject p = 0.5*(1-0.8)*(1-0.5)=0.05.
-      // Draw order is the contract: tastiness (0.5) FIRST, then the reject roll
-      // (0.99, which is ≥ 0.05 ⇒ accepted). Stats: hunger 80→50 (-30),
-      // energy 100→90 (-10), love/illness untouched.
-      final result = evaluateFeed(
-        creature: _creature(hunger: 80, energy: 100),
-        personality: _personality(1.0),
-        rng: _ScriptedRandom(const [0.5, 0.99]),
-      );
-      expect(result.full, isFalse);
-      expect(result.accepted, isTrue);
-      expect(result.tastiness, closeTo(0.5, 1e-9));
-      expect(result.delta.hungerDelta, -30);
-      expect(result.delta.energyDelta, -10);
-      expect(result.delta.loveDelta, 0);
-      expect(result.delta.illnessDelta, 0);
-    });
+    test(
+      'accepted feed draws tastiness first, then applies the -30/-10 delta',
+      () {
+        // picky = pickyFactor(1.0) = 0.5; reject p = 0.5*(1-0.8)*(1-0.5)=0.05.
+        // Draw order is the contract: tastiness (0.5) FIRST, then the reject roll
+        // (0.99, which is ≥ 0.05 ⇒ accepted). Stats: hunger 80→50 (-30),
+        // energy 100→90 (-10), love/illness untouched.
+        final result = evaluateFeed(
+          creature: _creature(hunger: 80, energy: 100),
+          personality: _personality(1.0),
+          rng: _ScriptedRandom(const [0.5, 0.99]),
+        );
+        expect(result.full, isFalse);
+        expect(result.accepted, isTrue);
+        expect(result.tastiness, closeTo(0.5, 1e-9));
+        expect(result.delta.hungerDelta, -30);
+        expect(result.delta.energyDelta, -10);
+        expect(result.delta.loveDelta, 0);
+        expect(result.delta.illnessDelta, 0);
+      },
+    );
 
-    test('accepted delta clamps so a near-full creature never goes negative', () {
-      // hunger 10, energy 5: the fixed -30/-10 would underflow, but clampStat
-      // floors each stat at 0, so the delta is the clamped distance: -10 / -5.
-      final result = evaluateFeed(
-        creature: _creature(hunger: 10, energy: 5),
-        personality: _personality(1.0),
-        rng: _ScriptedRandom(const [0.9, 0.9999]),
-      );
-      expect(result.accepted, isTrue);
-      expect(result.delta.hungerDelta, -10);
-      expect(result.delta.energyDelta, -5);
-    });
+    test(
+      'accepted delta clamps so a near-full creature never goes negative',
+      () {
+        // hunger 10, energy 5: the fixed -30/-10 would underflow, but clampStat
+        // floors each stat at 0, so the delta is the clamped distance: -10 / -5.
+        final result = evaluateFeed(
+          creature: _creature(hunger: 10, energy: 5),
+          personality: _personality(1.0),
+          rng: _ScriptedRandom(const [0.9, 0.9999]),
+        );
+        expect(result.accepted, isTrue);
+        expect(result.delta.hungerDelta, -10);
+        expect(result.delta.energyDelta, -5);
+      },
+    );
 
     test('a picky refusal accepts nothing and leaves stats unchanged', () {
       // picky = pickyFactor(0.5) = 1.0 (maximally fussy); reject p =
@@ -190,8 +200,12 @@ void main() {
       expect(result.full, isFalse);
       expect(result.accepted, isFalse);
       expect(
-        (result.delta.hungerDelta, result.delta.energyDelta,
-            result.delta.loveDelta, result.delta.illnessDelta),
+        (
+          result.delta.hungerDelta,
+          result.delta.energyDelta,
+          result.delta.loveDelta,
+          result.delta.illnessDelta,
+        ),
         (0, 0, 0, 0),
       );
     });

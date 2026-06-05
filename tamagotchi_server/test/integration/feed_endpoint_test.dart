@@ -55,7 +55,8 @@ void _injectFeedService(
   List<double> doubles, {
   LlmService llm = const StubLlmService(),
 }) {
-  feedServiceFactory = (_) => FeedService(rng: _ScriptedRandom(doubles), llm: llm);
+  feedServiceFactory = (_) =>
+      FeedService(rng: _ScriptedRandom(doubles), llm: llm);
   // Self-cleaning: restore the production wiring when this test ends — even on
   // failure. Co-locating the reset with the mutation makes it impossible to add
   // an injection path that forgets to clean up, so a fake can never leak into the
@@ -110,12 +111,14 @@ Future<Creature> _seedCreature(
   return creature;
 }
 
-Future<List<JournalEntry>> _feedEntries(Session session, UuidValue creatureId) =>
-    JournalEntry.db.find(
-      session,
-      where: (t) =>
-          t.creatureId.equals(creatureId) & t.event.equals(JournalEvent.feed),
-    );
+Future<List<JournalEntry>> _feedEntries(
+  Session session,
+  UuidValue creatureId,
+) => JournalEntry.db.find(
+  session,
+  where: (t) =>
+      t.creatureId.equals(creatureId) & t.event.equals(JournalEvent.feed),
+);
 
 void main() {
   withServerpod('Given CreatureEndpoint.feed', (sessionBuilder, endpoints) {
@@ -252,21 +255,24 @@ void main() {
       },
     );
 
-    test('feeding with no creature throws CreatureFeedError(noCreature)', () async {
-      _injectFeedService(const [0.5, 0.99]);
-      final authed = _authedAs(sessionBuilder, const Uuid().v4());
+    test(
+      'feeding with no creature throws CreatureFeedError(noCreature)',
+      () async {
+        _injectFeedService(const [0.5, 0.99]);
+        final authed = _authedAs(sessionBuilder, const Uuid().v4());
 
-      await expectLater(
-        () => endpoints.creature.feed(authed),
-        throwsA(
-          isA<CreatureFeedError>().having(
-            (e) => e.reason,
-            'reason',
-            CreatureFeedErrorReason.noCreature,
+        await expectLater(
+          () => endpoints.creature.feed(authed),
+          throwsA(
+            isA<CreatureFeedError>().having(
+              (e) => e.reason,
+              'reason',
+              CreatureFeedErrorReason.noCreature,
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
     test(
       'feed is owner-scoped: feeding as user B never touches user A\'s creature',
