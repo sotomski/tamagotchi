@@ -366,26 +366,26 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 #### Automated
 
-- [x] 1.1 `config/passwords.yaml` is valid YAML containing all three pepper keys
-- [x] 1.2 `git check-ignore tamagotchi_server/config/passwords.yaml` returns the path
-- [x] 1.3 `dart analyze` passes in `tamagotchi_server/`
+- [x] 1.1 `config/passwords.yaml` is valid YAML containing all three pepper keys — 801ab93
+- [x] 1.2 `git check-ignore tamagotchi_server/config/passwords.yaml` returns the path — 801ab93
+- [x] 1.3 `dart analyze` passes in `tamagotchi_server/` — 801ab93
 
 #### Manual
 
-- [x] 1.4 Server starts in `development` with no missing-password crash (Postgres sidecar up)
-- [x] 1.5 Dev registration completes with the static code; `verifyRegistrationCode` accepts it
+- [x] 1.4 Server starts in `development` with no missing-password crash (Postgres sidecar up) — 801ab93
+- [x] 1.5 Dev registration completes with the static code; `verifyRegistrationCode` accepts it — 801ab93
 
 ### Phase 2: Production email callback (mailer + EmailLabs, run-mode-gated)
 
 #### Automated
 
-- [ ] 2.1 `mailer` present in `pubspec.yaml`; `dart pub get` succeeds
-- [ ] 2.2 `dart analyze` passes with the new imports + branched callbacks
+- [x] 2.1 `mailer` present in `pubspec.yaml`; `dart pub get` succeeds
+- [x] 2.2 `dart analyze` passes with the new imports + branched callbacks
 
 #### Manual
 
-- [ ] 2.3 Review: `development` logs only; non-dev sends via EmailLabs `SmtpServer` with creds from `session.passwords`, `MailerException` caught/logged
-- [ ] 2.4 Review: no real SMTP credentials committed
+- [x] 2.3 Review: `development` logs only; non-dev sends via EmailLabs `SmtpServer` with creds from `session.passwords`, `MailerException` caught/logged
+- [x] 2.4 Review: no real SMTP credentials committed
 
 ### Phase 3: Flutter auth gate (route guard) + sign-in cleanup
 

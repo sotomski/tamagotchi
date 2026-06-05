@@ -1,5 +1,9 @@
 import 'dart:io';
 
+// Prefixed: `mailer` exports `Message`, which collides with relic_core's
+// `Message` re-exported transitively through `package:serverpod/serverpod.dart`.
+import 'package:mailer/mailer.dart' as mailer;
+import 'package:mailer/smtp_server.dart' show SmtpServer;
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
@@ -98,26 +102,92 @@ void run(List<String> args) async {
   await pod.start();
 }
 
-void _sendRegistrationCode(
+Future<void> _sendRegistrationCode(
   Session session, {
   required String email,
   required UuidValue accountRequestId,
   required String verificationCode,
   required Transaction? transaction,
-}) {
-  // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
-  session.log('[EmailIdp] Registration code ($email): $verificationCode');
+}) async {
+  // In `development` there is no mailer wired: just log the (static) code so it
+  // can be entered manually in the UI. Every other run mode delivers the random
+  // default code over EmailLabs SMTP.
+  if (session.serverpod.runMode == 'development') {
+    session.log('[EmailIdp] Registration code ($email): $verificationCode');
+    return;
+  }
+  await _sendVerificationEmail(
+    session,
+    recipient: email,
+    subject: 'Verify your AI-Tamagotchi account',
+    body: 'Welcome to AI-Tamagotchi!\n\n'
+        'Your verification code is: $verificationCode\n\n'
+        'Enter this code in the app to finish creating your account.',
+  );
 }
 
-void _sendPasswordResetCode(
+Future<void> _sendPasswordResetCode(
   Session session, {
   required String email,
   required UuidValue passwordResetRequestId,
   required String verificationCode,
   required Transaction? transaction,
-}) {
-  // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
-  session.log('[EmailIdp] Password reset code ($email): $verificationCode');
+}) async {
+  // Same run-mode gate as registration: log-only in `development`, real SMTP
+  // delivery via EmailLabs otherwise.
+  if (session.serverpod.runMode == 'development') {
+    session.log('[EmailIdp] Password reset code ($email): $verificationCode');
+    return;
+  }
+  await _sendVerificationEmail(
+    session,
+    recipient: email,
+    subject: 'Reset your AI-Tamagotchi password',
+    body: 'A password reset was requested for your AI-Tamagotchi account.\n\n'
+        'Your password reset code is: $verificationCode\n\n'
+        'If you did not request this, you can safely ignore this email.',
+  );
+}
+
+/// Sends a plain-text verification email via EmailLabs SMTP. Called only outside
+/// `development`; the SMTP-account credentials and verified From-address come
+/// from the server password map (`emaillabsSmtp*`), provisioned out-of-band via
+/// `scloud secret set` — never committed to the repo.
+///
+/// NOTE: EmailLabs SMTP auth uses the dedicated "SMTP account" credential
+/// (`1.<panelname>.smtp` + its own password), NOT the REST API AppKey/SecretKey.
+/// Host `smtp.emaillabs.net.pl`, STARTTLS on 587 (`ssl: false`, the library
+/// upgrades the connection via the `starttls` command).
+Future<void> _sendVerificationEmail(
+  Session session, {
+  required String recipient,
+  required String subject,
+  required String body,
+}) async {
+  final smtpServer = SmtpServer(
+    'smtp.emaillabs.net.pl',
+    port: 587,
+    ssl: false,
+    allowInsecure: false,
+    username: session.passwords['emaillabsSmtpUser']!,
+    password: session.passwords['emaillabsSmtpPassword']!,
+  );
+
+  final message = mailer.Message()
+    ..from = session.passwords['emaillabsSmtpFrom']!
+    ..recipients.add(recipient)
+    ..subject = subject
+    ..text = body;
+
+  try {
+    await mailer.send(message, smtpServer);
+  } on mailer.MailerException catch (e, stackTrace) {
+    session.log(
+      '[EmailIdp] Failed to send verification email to $recipient',
+      level: LogLevel.error,
+      exception: e,
+      stackTrace: stackTrace,
+    );
+    rethrow;
+  }
 }

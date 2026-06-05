@@ -11,6 +11,9 @@ resolution: workspace
 dependencies:
   serverpod: 3.4.8
   serverpod_auth_idp_server: 3.4.8
+  # SMTP delivery for the production verification-email path (run-mode-gated in
+  # server.dart). Not used in `development`, which logs the code instead.
+  mailer: ^7.1.0
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'
