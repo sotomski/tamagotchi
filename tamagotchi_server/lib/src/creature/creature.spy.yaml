@@ -1,0 +1,26 @@
+### The core persisted creature, owned by the auth user. Stats are fixed at the
+### baseline at hatch (S-02 has no decay/regen); personality lives in a 1:1 table.
+class: Creature
+table: creature
+fields:
+  ### UUID primary key (matches the auth-table id convention).
+  id: UuidValue?, defaultPersist=random_v7
+  ### The owning auth user, stored as a bare scalar (no cross-module FK).
+  ownerUuid: UuidValue
+  ### The creature's display name, chosen at hatch.
+  name: String
+  ### Hunger on a 0-100 scale (higher = hungrier).
+  hunger: int
+  ### Energy on a 0-100 scale (higher = more rested).
+  energy: int
+  ### Love on a 0-100 scale (higher = more bonded).
+  love: int
+  ### Illness on a 0-100 scale (higher = sicker).
+  illness: int
+  ### When the creature was hatched.
+  hatchedAt: DateTime, default=now
+indexes:
+  ### One creature per user — DB-authoritative, race-safe backstop.
+  creature_owner_idx:
+    fields: ownerUuid
+    unique: true

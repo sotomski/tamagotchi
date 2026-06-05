@@ -16,7 +16,21 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'greetings/greeting.dart' as _i5;
+import 'creature/creature.dart' as _i5;
+import 'creature/creature_mood.dart' as _i6;
+import 'creature/creature_personality.dart' as _i7;
+import 'creature/creature_status.dart' as _i8;
+import 'creature/journal_entry.dart' as _i9;
+import 'creature/journal_event.dart' as _i10;
+import 'creature/stat_delta.dart' as _i11;
+import 'greetings/greeting.dart' as _i12;
+export 'creature/creature.dart';
+export 'creature/creature_mood.dart';
+export 'creature/creature_personality.dart';
+export 'creature/creature_status.dart';
+export 'creature/journal_entry.dart';
+export 'creature/journal_event.dart';
+export 'creature/stat_delta.dart';
 export 'greetings/greeting.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -27,6 +41,287 @@ class Protocol extends _i1.SerializationManagerServer {
   static final Protocol _instance = Protocol._();
 
   static final List<_i2.TableDefinition> targetTableDefinitions = [
+    _i2.TableDefinition(
+      name: 'creature',
+      dartName: 'Creature',
+      schema: 'public',
+      module: 'tamagotchi',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'gen_random_uuid_v7()',
+        ),
+        _i2.ColumnDefinition(
+          name: 'ownerUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'name',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'hunger',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'energy',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'love',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'illness',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'hatchedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'creature_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'creature_owner_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'ownerUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'creature_personality',
+      dartName: 'CreaturePersonality',
+      schema: 'public',
+      module: 'tamagotchi',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'gen_random_uuid_v7()',
+        ),
+        _i2.ColumnDefinition(
+          name: 'creatureId',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'hungerDecayMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'hungerRegenMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'energyDecayMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'energyRegenMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'loveDecayMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'loveRegenMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'illnessDecayMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'illnessRegenMod',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+      ],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'creature_personality_fk_0',
+          columns: ['creatureId'],
+          referenceTable: 'creature',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'creature_personality_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'creature_personality_creature_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'creatureId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'journal_entry',
+      dartName: 'JournalEntry',
+      schema: 'public',
+      module: 'tamagotchi',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'gen_random_uuid_v7()',
+        ),
+        _i2.ColumnDefinition(
+          name: 'creatureId',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'ownerUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'timestamp',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+        _i2.ColumnDefinition(
+          name: 'event',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:JournalEvent',
+        ),
+        _i2.ColumnDefinition(
+          name: 'prose',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+          columnDefault: '\'\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'statDelta',
+          columnType: _i2.ColumnType.json,
+          isNullable: true,
+          dartType: 'protocol:StatDelta?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'journal_entry_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'journal_entry_creature_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'creatureId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._i3.Protocol.targetTableDefinitions,
     ..._i4.Protocol.targetTableDefinitions,
     ..._i2.Protocol.targetTableDefinitions,
@@ -59,11 +354,54 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i5.Greeting) {
-      return _i5.Greeting.fromJson(data) as T;
+    if (t == _i5.Creature) {
+      return _i5.Creature.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.Greeting?>()) {
-      return (data != null ? _i5.Greeting.fromJson(data) : null) as T;
+    if (t == _i6.CreatureMood) {
+      return _i6.CreatureMood.fromJson(data) as T;
+    }
+    if (t == _i7.CreaturePersonality) {
+      return _i7.CreaturePersonality.fromJson(data) as T;
+    }
+    if (t == _i8.CreatureStatus) {
+      return _i8.CreatureStatus.fromJson(data) as T;
+    }
+    if (t == _i9.JournalEntry) {
+      return _i9.JournalEntry.fromJson(data) as T;
+    }
+    if (t == _i10.JournalEvent) {
+      return _i10.JournalEvent.fromJson(data) as T;
+    }
+    if (t == _i11.StatDelta) {
+      return _i11.StatDelta.fromJson(data) as T;
+    }
+    if (t == _i12.Greeting) {
+      return _i12.Greeting.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i5.Creature?>()) {
+      return (data != null ? _i5.Creature.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i6.CreatureMood?>()) {
+      return (data != null ? _i6.CreatureMood.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i7.CreaturePersonality?>()) {
+      return (data != null ? _i7.CreaturePersonality.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i8.CreatureStatus?>()) {
+      return (data != null ? _i8.CreatureStatus.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i9.JournalEntry?>()) {
+      return (data != null ? _i9.JournalEntry.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i10.JournalEvent?>()) {
+      return (data != null ? _i10.JournalEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i11.StatDelta?>()) {
+      return (data != null ? _i11.StatDelta.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i12.Greeting?>()) {
+      return (data != null ? _i12.Greeting.fromJson(data) : null) as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);
@@ -79,7 +417,14 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i5.Greeting => 'Greeting',
+      _i5.Creature => 'Creature',
+      _i6.CreatureMood => 'CreatureMood',
+      _i7.CreaturePersonality => 'CreaturePersonality',
+      _i8.CreatureStatus => 'CreatureStatus',
+      _i9.JournalEntry => 'JournalEntry',
+      _i10.JournalEvent => 'JournalEvent',
+      _i11.StatDelta => 'StatDelta',
+      _i12.Greeting => 'Greeting',
       _ => null,
     };
   }
@@ -94,7 +439,21 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i5.Greeting():
+      case _i5.Creature():
+        return 'Creature';
+      case _i6.CreatureMood():
+        return 'CreatureMood';
+      case _i7.CreaturePersonality():
+        return 'CreaturePersonality';
+      case _i8.CreatureStatus():
+        return 'CreatureStatus';
+      case _i9.JournalEntry():
+        return 'JournalEntry';
+      case _i10.JournalEvent():
+        return 'JournalEvent';
+      case _i11.StatDelta():
+        return 'StatDelta';
+      case _i12.Greeting():
         return 'Greeting';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -118,8 +477,29 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'Creature') {
+      return deserialize<_i5.Creature>(data['data']);
+    }
+    if (dataClassName == 'CreatureMood') {
+      return deserialize<_i6.CreatureMood>(data['data']);
+    }
+    if (dataClassName == 'CreaturePersonality') {
+      return deserialize<_i7.CreaturePersonality>(data['data']);
+    }
+    if (dataClassName == 'CreatureStatus') {
+      return deserialize<_i8.CreatureStatus>(data['data']);
+    }
+    if (dataClassName == 'JournalEntry') {
+      return deserialize<_i9.JournalEntry>(data['data']);
+    }
+    if (dataClassName == 'JournalEvent') {
+      return deserialize<_i10.JournalEvent>(data['data']);
+    }
+    if (dataClassName == 'StatDelta') {
+      return deserialize<_i11.StatDelta>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i5.Greeting>(data['data']);
+      return deserialize<_i12.Greeting>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -155,6 +535,14 @@ class Protocol extends _i1.SerializationManagerServer {
       if (table != null) {
         return table;
       }
+    }
+    switch (t) {
+      case _i5.Creature:
+        return _i5.Creature.t;
+      case _i7.CreaturePersonality:
+        return _i7.CreaturePersonality.t;
+      case _i9.JournalEntry:
+        return _i9.JournalEntry.t;
     }
     return null;
   }
