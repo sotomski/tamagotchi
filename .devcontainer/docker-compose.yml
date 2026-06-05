@@ -12,7 +12,7 @@ services:
       - ..:/workspaces/nabrudno:cached
       - claude-code-config:/home/vscode/.claude
     environment:
-      - SERVERPOD_CLOUD_TOKEN
+      - SERVERPOD_CLOUD_TOKEN=${SERVERPOD_CLOUD_TOKEN:-}
       - GH_TOKEN=${TAMAGOTCHI_GITHUB_TOKEN:-}
     depends_on:
       - postgres
