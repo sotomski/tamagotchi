@@ -368,14 +368,14 @@ None — no schema change (pickiness derived; `FeedResult` non-table). `serverpo
 ### Phase 1: LLM surface + secret wiring
 
 #### Automated
-- [ ] 1.1 Server analyzes cleanly (`dart analyze`)
-- [ ] 1.2 Prompt-builder unit test passes (persona/stats/mood/accepted/tastiness/recent entries)
-- [ ] 1.3 `feed_copy.dart` test passes (10–20 non-empty refusal lines; degrade/stub strings non-empty)
-- [ ] 1.4 Selection unit test passes (stub when key absent, Mistral when present)
+- [x] 1.1 Server analyzes cleanly (`dart analyze`)
+- [x] 1.2 Prompt-builder unit test passes (persona/stats/mood/accepted/tastiness/recent entries)
+- [x] 1.3 `feed_copy.dart` test passes (10–20 non-empty refusal lines; degrade/stub strings non-empty)
+- [x] 1.4 Selection unit test passes (stub when key absent, Mistral when present)
 
 #### Manual
-- [ ] 1.5 Real Mistral round-trip returns two non-empty fields + named food (with local key)
-- [ ] 1.6 Key-less harness returns stub copy, no network call
+- [x] 1.5 Real Mistral round-trip returns two non-empty fields + named food (with local key)
+- [x] 1.6 Key-less harness returns stub copy, no network call
 
 ### Phase 2: Feed domain logic + hermetic unit tests
 

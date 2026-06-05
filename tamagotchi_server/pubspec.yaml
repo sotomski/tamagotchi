@@ -16,6 +16,9 @@ dependencies:
   # the SMTP `mailer` transport is dead on prod). Run-mode-gated in server.dart —
   # not used in `development`, which logs the code instead.
   http: ^1.6.0
+  # `@visibleForTesting` on the LLM selection seam (lib/src/llm/llm_service.dart).
+  # Already a transitive dep; declared directly to satisfy depend_on_referenced_packages.
+  meta: ^1.16.0
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'
