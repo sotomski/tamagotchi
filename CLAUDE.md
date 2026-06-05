@@ -21,6 +21,13 @@ Skills live under `.claude/skills/` and auto-trigger by task (e.g. `flutter-fix-
 - **Project-local: `10x-*`** — hand-authored 10xDevs toolkit skills, committed directly (not fetched by the CLI; the only skill dirs not gitignored).
 - **Two fetched skills cut against our conventions — prefer the project pattern over the skill's default:** `flutter-use-http-package` (raw REST) and `flutter-implement-json-serialization` (hand-written `fromJson`/`toJson`). Frontend↔backend goes through the **generated Serverpod RPC client** (`tamagotchi_client`) with Serverpod model classes — do not hand-roll HTTP calls or JSON mapping for backend communication.
 
+### Consult skills proactively — don't wait for auto-surfacing
+~120 skills are installed, so the skill-listing budget can crowd out the relevant description and a matching skill may never surface on its own. Skills are also plain files: **before writing or substantially editing Riverpod / Serverpod / Flutter code, scan `.claude/skills/` for a matching `SKILL.md` and `Read` it** (readable even when not surfaced as invocable — `grep -l '^description:' .claude/skills/*/SKILL.md` then read the hit). They are the canonical source for version-specific gotchas (Riverpod 3.x, the `withServerpod` harness) that training data gets wrong. Quick map:
+- **Riverpod** — providers / consumers: `riverpod-providers`, `riverpod-consumers`; tests + `overrideWith` + `ProviderScope`: `riverpod-testing`, `riverpod-overrides`; 3.x breaking changes (legacy `StateProvider` import, `Ref` changes): `riverpod-3-0-migration`; codegen: `riverpod-codegen-and-hooks`.
+- **Serverpod** — endpoints: `serverpod-endpoints`; models / migrations / queries: `serverpod-models`, `serverpod-database`; `withServerpod` / rollback / `sessionBuilder` / auth in tests: `serverpod-testing`.
+- **Flutter** — widget / integration tests: `flutter-add-widget-test`, `flutter-add-integration-test`; layout: `flutter-fix-layout-issues`, `flutter-build-responsive-layout`.
+- **shadcn_ui** — `shadcn_ui-<component>`, but only when intentionally adding shadcn (the app is Material today).
+
 ## Context directory
 Project-level docs live in `context/foundation/`:
 - `@context/foundation/prd.md` — what we're building and why.
