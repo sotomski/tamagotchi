@@ -404,26 +404,26 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 #### Automated
 
-- [x] 4.1 `flutter analyze` passes for the rewritten `home_screen.dart`
-- [x] 4.2 `build_runner` stays clean (if a provider is read)
+- [x] 4.1 `flutter analyze` passes for the rewritten `home_screen.dart` — 573c972
+- [x] 4.2 `build_runner` stays clean (if a provider is read) — 573c972
 
 #### Manual
 
-- [x] 4.3 Home shows text-only empty state — no "Sign in" button, no Hatch button
-- [x] 4.4 Log-out calls `signOutDevice()`; bounced to `/sign-in`; session cleared on reload
+- [x] 4.3 Home shows text-only empty state — no "Sign in" button, no Hatch button — 573c972
+- [x] 4.4 Log-out calls `signOutDevice()`; bounced to `/sign-in`; session cleared on reload — 573c972
 
 ### Phase 5: Deploy to Serverpod Cloud + provision EmailLabs secrets + docs
 
 #### Automated
 
-- [ ] 5.1 Flutter web build succeeds; scloud deploy completes
-- [ ] 5.2 `scloud password list` shows DB + 3 peppers AUTO; the 3 `emaillabsSmtp*` secrets present
-- [ ] 5.3 `infrastructure.md` documents peppers-AUTO + the three `scloud secret set emaillabsSmtp*` lines; `change.md` shows `status: in_progress`
+- [x] 5.1 Flutter web build succeeds; scloud deploy completes
+- [x] 5.2 `scloud password list` shows DB + 3 peppers AUTO; the 3 `emaillabsSmtp*` secrets present
+- [x] 5.3 `infrastructure.md` documents peppers-AUTO + the three `scloud secret set emaillabsSmtp*` lines; `change.md` shows `status: in_progress`
 
 #### Manual
 
-- [ ] 5.4 Prod app loads; flow works up to the email step; EmailLabs send attempted (failure pre-DNS is expected)
-- [ ] 5.5 Review: no real secrets committed; OAuth refs reconciled
+- [x] 5.4 Prod app loads; flow works up to the email step; EmailLabs send attempted (failure pre-DNS is expected)
+- [x] 5.5 Review: no real secrets committed; OAuth refs reconciled
 
 ### Phase 6: EmailLabs sender authorization + DNS config (FINAL)
 
