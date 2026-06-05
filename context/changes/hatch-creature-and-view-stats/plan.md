@@ -520,31 +520,31 @@ via `--apply-migrations`. Interaction modifiers and journal narrative content ar
 
 #### Automated
 
-- [x] 2.1 `serverpod generate` regenerates `client.creature`
-- [x] 2.2 Mood unit tests pass
-- [x] 2.3 Hatch integration tests pass (local Postgres)
-- [x] 2.4 Server analyzes clean
+- [x] 2.1 `serverpod generate` regenerates `client.creature` — f670066
+- [x] 2.2 Mood unit tests pass — f670066
+- [x] 2.3 Hatch integration tests pass (local Postgres) — f670066
+- [x] 2.4 Server analyzes clean — f670066
 
 #### Manual
 
-- [ ] 2.5 First hatch succeeds (mood `content`); second rejected with `alreadyHatched`
-- [ ] 2.6 Blank name rejected with `emptyName`
-- [ ] 2.7 Exactly one `hatched` journal row after a single hatch
+- [x] 2.5 First hatch succeeds (mood `content`); second rejected with `alreadyHatched` — f670066 (integration test)
+- [x] 2.6 Blank name rejected with `emptyName` — f670066 (integration test)
+- [x] 2.7 Exactly one `hatched` journal row after a single hatch — f670066 (integration test)
 
 ### Phase 3: Flutter provider, hatch action & UI
 
 #### Automated
 
-- [ ] 3.1 `build_runner build` succeeds
-- [ ] 3.2 Flutter analyzes clean
-- [ ] 3.3 Web build succeeds (`flutter_build`)
+- [x] 3.1 `build_runner build` succeeds
+- [x] 3.2 Flutter analyzes clean
+- [x] 3.3 Web build succeeds (`flutter_build`)
 
 #### Manual
 
-- [ ] 3.4 Empty state shows name input + Hatch button
-- [ ] 3.5 Hatch flow: spinner → stats view (name, four stats, mood `content`)
-- [ ] 3.6 Reload persists creature; empty state gone
-- [ ] 3.7 Blank name blocked client-side; duplicate-hatch error renders inline
+- [x] 3.4 Empty state shows name input + Hatch button
+- [x] 3.5 Hatch flow: spinner → stats view (name, four stats, mood `content`)
+- [x] 3.6 Reload persists creature; empty state gone
+- [x] 3.7 Blank name blocked client-side; duplicate-hatch error renders inline
 
 ### Phase 4: Flutter widget tests & S-01 assertion updates
 
