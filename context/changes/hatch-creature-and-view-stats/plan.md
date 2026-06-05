@@ -550,10 +550,10 @@ via `--apply-migrations`. Interaction modifiers and journal narrative content ar
 
 #### Automated
 
-- [x] 4.1 All Flutter tests pass (`dart test`)
-- [x] 4.2 Flutter analyzes clean
+- [x] 4.1 All Flutter tests pass (`dart test`) — 90edede
+- [x] 4.2 Flutter analyzes clean — 90edede
 
 #### Manual
 
-- [x] 4.3 Test names read as behavioural assertions, not implementation mirrors
-- [x] 4.4 Cookbook entry accurate and reusable for S-03
+- [x] 4.3 Test names read as behavioural assertions, not implementation mirrors — 90edede
+- [x] 4.4 Cookbook entry accurate and reusable for S-03 — 90edede
