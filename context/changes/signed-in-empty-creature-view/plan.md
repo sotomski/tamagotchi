@@ -515,18 +515,20 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 #### Automated
 
-- [x] 6.1 `mailer` removed, `http` present in `pubspec.yaml`; `dart pub get` succeeds
-- [x] 6.2 `dart analyze` passes with the REST transport + new imports
-- [x] 6.3 Flutter web build succeeds; `scloud deploy` completes
-- [x] 6.4 `scloud secret list` shows `emaillabsApiKey` + `emaillabsApiSecret`; `scloud password list` shows DB + 3 peppers still AUTO
-- [x] 6.5 `infrastructure.md` documents the REST pivot + two new secret commands; `change.md` has the pivot Notes entry
+- [x] 6.1 `mailer` removed, `http` present in `pubspec.yaml`; `dart pub get` succeeds — 3a64891
+- [x] 6.2 `dart analyze` passes with the REST transport + new imports — 3a64891
+- [x] 6.3 Flutter web build succeeds; `scloud deploy` completes — 3a64891
+- [x] 6.4 `scloud secret list` shows `emaillabsApiKey` + `emaillabsApiSecret`; `scloud password list` shows DB + 3 peppers still AUTO — 3a64891
+- [x] 6.5 `infrastructure.md` documents the REST pivot + two new secret commands; `change.md` has the pivot Notes entry — 3a64891
 
 #### Manual
 
-- [x] 6.6 Prod registration reaches EmailLabs over 443 — `new_sendmail` returns an HTTP response (not a TCP timeout); log shows `{code,status,message}`
-- [x] 6.7 Review: no real secret values committed
+- [x] 6.6 Prod registration reaches EmailLabs over 443 — `new_sendmail` returns an HTTP response (not a TCP timeout); log shows `{code,status,message}` — 3a64891
+- [x] 6.7 Review: no real secret values committed — 3a64891
 
 ### Phase 7: EmailLabs sender authorization + DNS + production acceptance (FINAL)
+
+> **DEFERRED (2026-06-05)** — blocked on DNS control-panel access for the codecreations.eu zone (operator contacted). Credentials are fixed (prod `new_sendmail` now returns the expected pre-auth `500 "SMTP account is not authorized to send from no-reply@tamagotchi.codecreations.eu"`, not the old 401). The 4 EmailLabs CNAMEs to publish + the resume runbook are recorded in `change.md` Notes (Option B, panel-exact). Resume here when DNS access is restored.
 
 #### Automated
 
