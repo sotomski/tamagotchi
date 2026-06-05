@@ -112,11 +112,11 @@ void main() {
     // calls here — the rollback harness forbids concurrent DB calls — so this
     // pins the load-bearing fact deterministically instead: a real duplicate
     // ownerUuid insert raises the live Postgres unique violation, and the
-    // backstop classifier recognises *that real error* (real SQLSTATE +
-    // constraint/table names), not just a fabricated one. The endpoint's
-    // catch then turns it into the same typed error the pre-check throws.
+    // backstop's trigger recognises *that real error* (real SQLSTATE 23505),
+    // not just a fabricated one. The endpoint then confirms the race by
+    // re-reading the owner's creature and surfaces the typed alreadyHatched.
     test('a duplicate-owner insert raises a unique violation the backstop '
-        'classifies as a duplicate hatch', () async {
+        'recognises as a unique violation', () async {
       final owner = UuidValue.fromString(const Uuid().v4());
       final session = sessionBuilder.build();
 
@@ -143,7 +143,7 @@ void main() {
         isA<DatabaseQueryException>(),
         reason: 'the owner unique index should reject the duplicate row',
       );
-      expect(isOwnerAlreadyHatchedViolation(caught!), isTrue);
+      expect(isUniqueViolation(caught!), isTrue);
     });
   });
 }

@@ -86,12 +86,22 @@ class CreatureEndpoint extends Endpoint {
         return created;
       });
     } catch (e) {
-      // The non-atomic pre-check can be raced; the unique index is the backstop.
-      // Translate its violation into the same typed error the pre-check throws.
-      if (isOwnerAlreadyHatchedViolation(e)) {
-        throw CreatureHatchError(
-          reason: CreatureHatchErrorReason.alreadyHatched,
+      // The non-atomic pre-check can be raced: a concurrent hatch may commit
+      // between our check and insert, and the owner unique index then rejects
+      // ours. Rather than parse the violation's table/constraint strings,
+      // confirm the race by re-reading the owner's creature — a unique violation
+      // that leaves a creature in place is a duplicate hatch and surfaces the
+      // same typed error the pre-check throws; anything else propagates.
+      if (isUniqueViolation(e)) {
+        final raced = await Creature.db.findFirstRow(
+          session,
+          where: (t) => t.ownerUuid.equals(ownerUuid),
         );
+        if (raced != null) {
+          throw CreatureHatchError(
+            reason: CreatureHatchErrorReason.alreadyHatched,
+          );
+        }
       }
       rethrow;
     }

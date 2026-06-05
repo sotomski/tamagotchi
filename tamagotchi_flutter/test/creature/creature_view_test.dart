@@ -161,7 +161,7 @@ void main() {
 
     // Still on the form, with an inline validation message; no hatch attempted.
     expect(find.widgetWithText(ElevatedButton, 'Hatch'), findsOneWidget);
-    expect(find.text('Please enter a name'), findsOneWidget);
+    expect(find.text('Please enter a name.'), findsOneWidget);
     expect(fake.calls, 0);
   });
 }

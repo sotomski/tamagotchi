@@ -4,11 +4,6 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 
-/// The unique index that enforces one creature per owner at the database layer
-/// (declared in `creature.spy.yaml`, applied by the S-02 migration). It is the
-/// race-safe backstop behind the endpoint's non-atomic app pre-check.
-const ownerCreatureUniqueConstraint = 'creature_owner_idx';
-
 /// Postgres `unique_violation` SQLSTATE — raised when an insert collides with a
 /// unique index.
 const _uniqueViolationCode = '23505';
@@ -66,20 +61,13 @@ PersonalityModifiers randomPersonalityModifiers(Random rng) {
   );
 }
 
-/// Whether [error] is the Postgres unique-violation on the owner index — i.e. a
-/// concurrent hatch slipped past the non-atomic app pre-check and the DB
-/// backstop rejected the duplicate creature row.
+/// Whether [error] is a Postgres unique-violation (SQLSTATE 23505).
 ///
-/// The endpoint translates this into a typed
-/// `CreatureHatchError(alreadyHatched)` so the rare race surfaces the same
-/// client-visible error as the common case instead of a raw database fault.
-/// Matches the owner constraint by name, falling back to the `creature` table
-/// (whose only unique index is the owner one) if the driver leaves
-/// `constraintName` null — without masking a unique violation on any other
-/// table (e.g. the personality row).
-bool isOwnerAlreadyHatchedViolation(Object error) {
-  if (error is! DatabaseQueryException) return false;
-  if (error.code != _uniqueViolationCode) return false;
-  return error.constraintName == ownerCreatureUniqueConstraint ||
-      error.tableName == 'creature';
-}
+/// This is only the *trigger* for the hatch backstop: a unique violation
+/// escaping the insert transaction means a concurrent hatch may have raced past
+/// the non-atomic app pre-check. The endpoint then re-reads the owner's creature
+/// to confirm the race before reporting `alreadyHatched`, so this layer never
+/// parses table or constraint names — a unique index added elsewhere later
+/// (e.g. on the personality row) cannot be misclassified here.
+bool isUniqueViolation(Object error) =>
+    error is DatabaseQueryException && error.code == _uniqueViolationCode;

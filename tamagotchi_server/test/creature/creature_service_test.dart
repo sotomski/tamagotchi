@@ -170,15 +170,16 @@ void main() {
     });
   });
 
-  group('isOwnerAlreadyHatchedViolation', () {
-    // Oracle: the duplicate-hatch backstop is the Postgres unique violation
-    // (SQLSTATE 23505) on the owner index — and ONLY that. Other failures, and
-    // unique violations on other tables, must NOT be reported as a duplicate
-    // hatch (that would mask real bugs behind a false "already have a creature").
+  group('isUniqueViolation', () {
+    // Oracle: this is only the *trigger* for the hatch backstop — true for any
+    // Postgres unique violation (SQLSTATE 23505), false for every other error.
+    // It deliberately does NOT inspect table or constraint names: the endpoint
+    // disambiguates a real duplicate hatch by re-reading the owner's creature,
+    // so adding a unique index elsewhere later can't be misclassified here.
 
-    test('true: unique violation named on the owner constraint', () {
+    test('true: a unique violation regardless of table/constraint name', () {
       expect(
-        isOwnerAlreadyHatchedViolation(
+        isUniqueViolation(
           _FakeQueryException(
             code: '23505',
             constraintName: 'creature_owner_idx',
@@ -188,32 +189,17 @@ void main() {
       );
     });
 
-    test('true: unique violation on the creature table without a constraint '
-        'name (driver omitted it)', () {
+    test('true: a unique violation when the driver omits the constraint name',
+        () {
       expect(
-        isOwnerAlreadyHatchedViolation(
-          _FakeQueryException(code: '23505', tableName: 'creature'),
-        ),
+        isUniqueViolation(_FakeQueryException(code: '23505')),
         isTrue,
-      );
-    });
-
-    test('false: unique violation on a different table is not masked', () {
-      expect(
-        isOwnerAlreadyHatchedViolation(
-          _FakeQueryException(
-            code: '23505',
-            constraintName: 'creature_personality_creature_idx',
-            tableName: 'creature_personality',
-          ),
-        ),
-        isFalse,
       );
     });
 
     test('false: a non-unique database error (e.g. FK violation 23503)', () {
       expect(
-        isOwnerAlreadyHatchedViolation(
+        isUniqueViolation(
           _FakeQueryException(code: '23503', tableName: 'creature'),
         ),
         isFalse,
@@ -221,7 +207,7 @@ void main() {
     });
 
     test('false: an error that is not a database query exception', () {
-      expect(isOwnerAlreadyHatchedViolation(StateError('boom')), isFalse);
+      expect(isUniqueViolation(StateError('boom')), isFalse);
     });
   });
 }

@@ -32,7 +32,7 @@ class _HatchFormState extends ConsumerState<HatchForm> {
   void _submit() {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _localError = 'Please enter a name');
+      setState(() => _localError = 'Please enter a name.');
       return;
     }
     setState(() => _localError = null);
