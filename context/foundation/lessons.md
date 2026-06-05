@@ -27,3 +27,10 @@
 - **Problem**: Marking the seam @visibleForTesting forces production code to read a test-only member (needing // ignore lints), and per-dependency global seams scatter injection — both mix test concerns into production and let the call site be misconfigured.
 - **Rule**: Encapsulate impure/external collaborators behind one concrete service and inject it through a single plain factory seam whose default IS the production wiring (e.g. fooServiceFor(session)) — never @visibleForTesting. The endpoint calls the factory unconditionally; tests reassign the seam to inject fakes and self-clean with addTearDown.
 - **Applies to**: plan, implement, impl-review
+
+## Run `dart format` before committing — the Format CI gate is `--set-exit-if-changed`
+
+- **Context**: Any phase that lands Dart in `tamagotchi_server/` or `tamagotchi_flutter/` (lib or test). Both packages have a Format workflow (`.github/workflows/format.yml`, `flutter.yml`) that runs `dart format --set-exit-if-changed .`.
+- **Problem**: Several S-03 phase commits landed unformatted code (`feed_service.dart`, `mistral_client.dart`, three test files), so the Format check was silently red on the branch until a later catch-up commit reformatted five files. `dart analyze` passing does NOT imply formatting is clean — they are separate gates, and the format check fails the build on *any* diff.
+- **Rule**: Run `dart format .` (server) and `dart format .` (flutter) and stage the result *before* each phase-end commit — do not rely on analyze. Treat formatting as part of the phase's automated verification, same as analyze/tests. When replicating CI locally, run `dart format --set-exit-if-changed .` in both packages and expect exit 0.
+- **Applies to**: implement, impl-review
