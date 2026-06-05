@@ -1,0 +1,8 @@
+### Why a hatch attempt was rejected. Lets the Flutter client switch on a typed
+### reason instead of parsing a message string.
+enum: CreatureHatchErrorReason
+values:
+  ### The caller already owns a creature (one creature per user).
+  - alreadyHatched
+  ### The supplied name was blank.
+  - emptyName

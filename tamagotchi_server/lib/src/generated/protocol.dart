@@ -17,14 +17,18 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'creature/creature.dart' as _i5;
-import 'creature/creature_mood.dart' as _i6;
-import 'creature/creature_personality.dart' as _i7;
-import 'creature/creature_status.dart' as _i8;
-import 'creature/journal_entry.dart' as _i9;
-import 'creature/journal_event.dart' as _i10;
-import 'creature/stat_delta.dart' as _i11;
-import 'greetings/greeting.dart' as _i12;
+import 'creature/creature_errors.dart' as _i6;
+import 'creature/creature_hatch_error_reason.dart' as _i7;
+import 'creature/creature_mood.dart' as _i8;
+import 'creature/creature_personality.dart' as _i9;
+import 'creature/creature_status.dart' as _i10;
+import 'creature/journal_entry.dart' as _i11;
+import 'creature/journal_event.dart' as _i12;
+import 'creature/stat_delta.dart' as _i13;
+import 'greetings/greeting.dart' as _i14;
 export 'creature/creature.dart';
+export 'creature/creature_errors.dart';
+export 'creature/creature_hatch_error_reason.dart';
 export 'creature/creature_mood.dart';
 export 'creature/creature_personality.dart';
 export 'creature/creature_status.dart';
@@ -357,51 +361,64 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i5.Creature) {
       return _i5.Creature.fromJson(data) as T;
     }
-    if (t == _i6.CreatureMood) {
-      return _i6.CreatureMood.fromJson(data) as T;
+    if (t == _i6.CreatureHatchError) {
+      return _i6.CreatureHatchError.fromJson(data) as T;
     }
-    if (t == _i7.CreaturePersonality) {
-      return _i7.CreaturePersonality.fromJson(data) as T;
+    if (t == _i7.CreatureHatchErrorReason) {
+      return _i7.CreatureHatchErrorReason.fromJson(data) as T;
     }
-    if (t == _i8.CreatureStatus) {
-      return _i8.CreatureStatus.fromJson(data) as T;
+    if (t == _i8.CreatureMood) {
+      return _i8.CreatureMood.fromJson(data) as T;
     }
-    if (t == _i9.JournalEntry) {
-      return _i9.JournalEntry.fromJson(data) as T;
+    if (t == _i9.CreaturePersonality) {
+      return _i9.CreaturePersonality.fromJson(data) as T;
     }
-    if (t == _i10.JournalEvent) {
-      return _i10.JournalEvent.fromJson(data) as T;
+    if (t == _i10.CreatureStatus) {
+      return _i10.CreatureStatus.fromJson(data) as T;
     }
-    if (t == _i11.StatDelta) {
-      return _i11.StatDelta.fromJson(data) as T;
+    if (t == _i11.JournalEntry) {
+      return _i11.JournalEntry.fromJson(data) as T;
     }
-    if (t == _i12.Greeting) {
-      return _i12.Greeting.fromJson(data) as T;
+    if (t == _i12.JournalEvent) {
+      return _i12.JournalEvent.fromJson(data) as T;
+    }
+    if (t == _i13.StatDelta) {
+      return _i13.StatDelta.fromJson(data) as T;
+    }
+    if (t == _i14.Greeting) {
+      return _i14.Greeting.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.Creature?>()) {
       return (data != null ? _i5.Creature.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i6.CreatureMood?>()) {
-      return (data != null ? _i6.CreatureMood.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i6.CreatureHatchError?>()) {
+      return (data != null ? _i6.CreatureHatchError.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i7.CreaturePersonality?>()) {
-      return (data != null ? _i7.CreaturePersonality.fromJson(data) : null)
+    if (t == _i1.getType<_i7.CreatureHatchErrorReason?>()) {
+      return (data != null ? _i7.CreatureHatchErrorReason.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i8.CreatureStatus?>()) {
-      return (data != null ? _i8.CreatureStatus.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i8.CreatureMood?>()) {
+      return (data != null ? _i8.CreatureMood.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i9.JournalEntry?>()) {
-      return (data != null ? _i9.JournalEntry.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i9.CreaturePersonality?>()) {
+      return (data != null ? _i9.CreaturePersonality.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i10.JournalEvent?>()) {
-      return (data != null ? _i10.JournalEvent.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i10.CreatureStatus?>()) {
+      return (data != null ? _i10.CreatureStatus.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i11.StatDelta?>()) {
-      return (data != null ? _i11.StatDelta.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.JournalEntry?>()) {
+      return (data != null ? _i11.JournalEntry.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.Greeting?>()) {
-      return (data != null ? _i12.Greeting.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.JournalEvent?>()) {
+      return (data != null ? _i12.JournalEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i13.StatDelta?>()) {
+      return (data != null ? _i13.StatDelta.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i14.Greeting?>()) {
+      return (data != null ? _i14.Greeting.fromJson(data) : null) as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);
@@ -418,13 +435,15 @@ class Protocol extends _i1.SerializationManagerServer {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _i5.Creature => 'Creature',
-      _i6.CreatureMood => 'CreatureMood',
-      _i7.CreaturePersonality => 'CreaturePersonality',
-      _i8.CreatureStatus => 'CreatureStatus',
-      _i9.JournalEntry => 'JournalEntry',
-      _i10.JournalEvent => 'JournalEvent',
-      _i11.StatDelta => 'StatDelta',
-      _i12.Greeting => 'Greeting',
+      _i6.CreatureHatchError => 'CreatureHatchError',
+      _i7.CreatureHatchErrorReason => 'CreatureHatchErrorReason',
+      _i8.CreatureMood => 'CreatureMood',
+      _i9.CreaturePersonality => 'CreaturePersonality',
+      _i10.CreatureStatus => 'CreatureStatus',
+      _i11.JournalEntry => 'JournalEntry',
+      _i12.JournalEvent => 'JournalEvent',
+      _i13.StatDelta => 'StatDelta',
+      _i14.Greeting => 'Greeting',
       _ => null,
     };
   }
@@ -441,19 +460,23 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (data) {
       case _i5.Creature():
         return 'Creature';
-      case _i6.CreatureMood():
+      case _i6.CreatureHatchError():
+        return 'CreatureHatchError';
+      case _i7.CreatureHatchErrorReason():
+        return 'CreatureHatchErrorReason';
+      case _i8.CreatureMood():
         return 'CreatureMood';
-      case _i7.CreaturePersonality():
+      case _i9.CreaturePersonality():
         return 'CreaturePersonality';
-      case _i8.CreatureStatus():
+      case _i10.CreatureStatus():
         return 'CreatureStatus';
-      case _i9.JournalEntry():
+      case _i11.JournalEntry():
         return 'JournalEntry';
-      case _i10.JournalEvent():
+      case _i12.JournalEvent():
         return 'JournalEvent';
-      case _i11.StatDelta():
+      case _i13.StatDelta():
         return 'StatDelta';
-      case _i12.Greeting():
+      case _i14.Greeting():
         return 'Greeting';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -480,26 +503,32 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'Creature') {
       return deserialize<_i5.Creature>(data['data']);
     }
+    if (dataClassName == 'CreatureHatchError') {
+      return deserialize<_i6.CreatureHatchError>(data['data']);
+    }
+    if (dataClassName == 'CreatureHatchErrorReason') {
+      return deserialize<_i7.CreatureHatchErrorReason>(data['data']);
+    }
     if (dataClassName == 'CreatureMood') {
-      return deserialize<_i6.CreatureMood>(data['data']);
+      return deserialize<_i8.CreatureMood>(data['data']);
     }
     if (dataClassName == 'CreaturePersonality') {
-      return deserialize<_i7.CreaturePersonality>(data['data']);
+      return deserialize<_i9.CreaturePersonality>(data['data']);
     }
     if (dataClassName == 'CreatureStatus') {
-      return deserialize<_i8.CreatureStatus>(data['data']);
+      return deserialize<_i10.CreatureStatus>(data['data']);
     }
     if (dataClassName == 'JournalEntry') {
-      return deserialize<_i9.JournalEntry>(data['data']);
+      return deserialize<_i11.JournalEntry>(data['data']);
     }
     if (dataClassName == 'JournalEvent') {
-      return deserialize<_i10.JournalEvent>(data['data']);
+      return deserialize<_i12.JournalEvent>(data['data']);
     }
     if (dataClassName == 'StatDelta') {
-      return deserialize<_i11.StatDelta>(data['data']);
+      return deserialize<_i13.StatDelta>(data['data']);
     }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i12.Greeting>(data['data']);
+      return deserialize<_i14.Greeting>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -539,10 +568,10 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (t) {
       case _i5.Creature:
         return _i5.Creature.t;
-      case _i7.CreaturePersonality:
-        return _i7.CreaturePersonality.t;
-      case _i9.JournalEntry:
-        return _i9.JournalEntry.t;
+      case _i9.CreaturePersonality:
+        return _i9.CreaturePersonality.t;
+      case _i11.JournalEntry:
+        return _i11.JournalEntry.t;
     }
     return null;
   }

@@ -506,24 +506,24 @@ via `--apply-migrations`. Interaction modifiers and journal narrative content ar
 
 #### Automated
 
-- [x] 1.1 `serverpod generate` completes without errors
-- [x] 1.2 `serverpod create-migration` produces a new migration + registry line
-- [x] 1.3 Migration applies cleanly via `--apply-migrations`
-- [x] 1.4 Server analyzes clean (`dart analyze`)
+- [x] 1.1 `serverpod generate` completes without errors — d49a77b
+- [x] 1.2 `serverpod create-migration` produces a new migration + registry line — d49a77b
+- [x] 1.3 Migration applies cleanly via `--apply-migrations` — d49a77b
+- [x] 1.4 Server analyzes clean (`dart analyze`) — d49a77b
 
 #### Manual
 
-- [x] 1.5 Three tables exist with expected columns + two unique indexes
-- [x] 1.6 `migration_registry.txt` lists the new migration after the auth baseline
+- [x] 1.5 Three tables exist with expected columns + two unique indexes — d49a77b
+- [x] 1.6 `migration_registry.txt` lists the new migration after the auth baseline — d49a77b
 
 ### Phase 2: Backend service, endpoint & tests
 
 #### Automated
 
-- [ ] 2.1 `serverpod generate` regenerates `client.creature`
-- [ ] 2.2 Mood unit tests pass
-- [ ] 2.3 Hatch integration tests pass (local Postgres)
-- [ ] 2.4 Server analyzes clean
+- [x] 2.1 `serverpod generate` regenerates `client.creature`
+- [x] 2.2 Mood unit tests pass
+- [x] 2.3 Hatch integration tests pass (local Postgres)
+- [x] 2.4 Server analyzes clean
 
 #### Manual
 
