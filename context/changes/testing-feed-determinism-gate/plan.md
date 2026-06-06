@@ -344,21 +344,21 @@ No new integration tests in this phase. The `_ScriptedRandom` → `ScriptedRando
 
 #### Automated
 
-- [x] 3.1 `dart run mutation_test -f html -o mutation_out mutation_test.xml` completes without error
-- [x] 3.2 `dart test test/unit/ --no-color` exits 0 after any triage assertions added
+- [x] 3.1 `dart run mutation_test -f html -o mutation_out mutation_test.xml` completes without error — 157078a
+- [x] 3.2 `dart test test/unit/ --no-color` exits 0 after any triage assertions added — 157078a
 
 #### Manual
 
-- [x] 3.3 HTML report reviewed: all survivors classified as killed or documented equivalent in XML
+- [x] 3.3 HTML report reviewed: all survivors classified as killed or documented equivalent in XML — 157078a
 
 ### Phase 4: Cookbook update and rollout close
 
 #### Automated
 
-- [ ] 4.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/`
+- [x] 4.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/`
 
 #### Manual
 
-- [ ] 4.2 `test-plan.md §6.1` contains the cookbook pattern (no longer reads "TBD")
-- [ ] 4.3 `test-plan.md §6.6` has a Phase 1 note
-- [ ] 4.4 `change.md` shows `status: complete`
+- [x] 4.2 `test-plan.md §6.1` contains the cookbook pattern (no longer reads "TBD")
+- [x] 4.3 `test-plan.md §6.6` has a Phase 1 note
+- [x] 4.4 `change.md` shows `status: complete`
