@@ -355,10 +355,10 @@ No new integration tests in this phase. The `_ScriptedRandom` → `ScriptedRando
 
 #### Automated
 
-- [x] 4.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/`
+- [x] 4.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/` — 1dabb22
 
 #### Manual
 
-- [x] 4.2 `test-plan.md §6.1` contains the cookbook pattern (no longer reads "TBD")
-- [x] 4.3 `test-plan.md §6.6` has a Phase 1 note
-- [x] 4.4 `change.md` shows `status: complete`
+- [x] 4.2 `test-plan.md §6.1` contains the cookbook pattern (no longer reads "TBD") — 1dabb22
+- [x] 4.3 `test-plan.md §6.6` has a Phase 1 note — 1dabb22
+- [x] 4.4 `change.md` shows `status: complete` — 1dabb22
