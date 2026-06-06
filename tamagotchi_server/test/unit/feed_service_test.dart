@@ -5,29 +5,7 @@ import 'package:tamagotchi_server/src/creature/feed_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:test/test.dart';
 
-/// A `Random` whose `nextDouble()` returns a scripted queue in order, so a test
-/// pins both the draw *order* and the accept/refuse outcome without hunting for
-/// a seed. Throws if drawn past the end — that turns "consumed no draws" into an
-/// assertable property (the full-refusal path must return before any draw).
-class _ScriptedRandom implements Random {
-  _ScriptedRandom(this._doubles);
-
-  final List<double> _doubles;
-  int _i = 0;
-
-  @override
-  double nextDouble() {
-    if (_i >= _doubles.length) {
-      throw StateError('nextDouble() drawn more times than scripted');
-    }
-    return _doubles[_i++];
-  }
-
-  @override
-  bool nextBool() => throw UnimplementedError();
-  @override
-  int nextInt(int max) => throw UnimplementedError();
-}
+import '../helpers/scripted_random.dart';
 
 const _ownerUuid = '00000000-0000-0000-0000-000000000001';
 const _creatureId = '00000000-0000-0000-0000-000000000002';
@@ -135,7 +113,7 @@ void main() {
       final result = evaluateFeed(
         creature: _creature(hunger: 0),
         personality: _personality(1.0),
-        rng: _ScriptedRandom(const []),
+        rng: ScriptedRandom(const []),
       );
       expect(result.full, isTrue);
       expect(result.accepted, isFalse);
@@ -160,7 +138,7 @@ void main() {
         final result = evaluateFeed(
           creature: _creature(hunger: 80, energy: 100),
           personality: _personality(1.0),
-          rng: _ScriptedRandom(const [0.5, 0.99]),
+          rng: ScriptedRandom(const [0.5, 0.99]),
         );
         expect(result.full, isFalse);
         expect(result.accepted, isTrue);
@@ -180,7 +158,7 @@ void main() {
         final result = evaluateFeed(
           creature: _creature(hunger: 10, energy: 5),
           personality: _personality(1.0),
-          rng: _ScriptedRandom(const [0.9, 0.9999]),
+          rng: ScriptedRandom(const [0.9, 0.9999]),
         );
         expect(result.accepted, isTrue);
         expect(result.delta.hungerDelta, -10);
@@ -195,7 +173,7 @@ void main() {
       final result = evaluateFeed(
         creature: _creature(hunger: 10),
         personality: _personality(0.5),
-        rng: _ScriptedRandom(const [0.0, 0.0]),
+        rng: ScriptedRandom(const [0.0, 0.0]),
       );
       expect(result.full, isFalse);
       expect(result.accepted, isFalse);
@@ -209,5 +187,70 @@ void main() {
         (0, 0, 0, 0),
       );
     });
+
+    test('hunger=1 is NOT treated as full', () {
+      // Oracle FR-004: the full-creature gate fires only at hunger==0; any
+      // positive hunger must proceed to the random gate.
+      // pickyFactor(1.0)=0.5; tastiness=0.5; rejectProbability=
+      //   0.5*(1-0.01)*(1-0.5)≈0.2475; roll 0.99>0.2475 ⇒ accepted.
+      // hungerDelta: clampStat(1-30)-1 = 0-1 = -1; energyDelta: 90-100 = -10.
+      final result = evaluateFeed(
+        creature: _creature(hunger: 1),
+        personality: _personality(1.0),
+        rng: ScriptedRandom(const [0.5, 0.99]),
+      );
+      expect(result.full, isFalse);
+      expect(result.accepted, isTrue);
+      expect(result.delta.hungerDelta, -1);
+      expect(result.delta.energyDelta, -10);
+    });
+
+    test('same Random(seed) produces identical FeedDecision', () {
+      // Oracle PRD §Success Criteria: same seed + same inputs → identical
+      // outputs. Two independent Random(42) instances must produce
+      // bit-identical nextDouble() streams; the oracle is equality between
+      // the two calls, not any particular value.
+      final result1 = evaluateFeed(
+        creature: _creature(hunger: 60),
+        personality: _personality(1.0),
+        rng: Random(42),
+      );
+      final result2 = evaluateFeed(
+        creature: _creature(hunger: 60),
+        personality: _personality(1.0),
+        rng: Random(42),
+      );
+      expect(result1.accepted, result2.accepted);
+      expect(result1.full, result2.full);
+      expect(result1.tastiness, result2.tastiness);
+      expect(result1.delta.hungerDelta, result2.delta.hungerDelta);
+      expect(result1.delta.energyDelta, result2.delta.energyDelta);
+      expect(result1.delta.loveDelta, result2.delta.loveDelta);
+      expect(result1.delta.illnessDelta, result2.delta.illnessDelta);
+    });
+
+    test(
+      'opposite hungerDecayMod produces measurably different accept outcomes',
+      () {
+        // Oracle FR-004 + PRD: opposite-trait creatures must diverge under
+        // identical conditions.
+        // max-picky: mod=0.5 → pickyFactor=1.0; rejectProbability=
+        //   1.0*(1-0.6)*(1-0.5)=0.2; roll 0.1<0.2 ⇒ rejected.
+        // min-picky: mod=1.5 → pickyFactor=0.0; rejectProbability=0.0;
+        //   0.1<0.0 is always false ⇒ accepted.
+        final maxPickyResult = evaluateFeed(
+          creature: _creature(hunger: 60),
+          personality: _personality(0.5),
+          rng: ScriptedRandom(const [0.5, 0.1]),
+        );
+        final minPickyResult = evaluateFeed(
+          creature: _creature(hunger: 60),
+          personality: _personality(1.5),
+          rng: ScriptedRandom(const [0.5, 0.1]),
+        );
+        expect(maxPickyResult.accepted, isFalse);
+        expect(minPickyResult.accepted, isTrue);
+      },
+    );
   });
 }
