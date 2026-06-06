@@ -6,8 +6,6 @@
     <file>lib/src/creature/feed_service.dart</file>
   </files>
   <commands>
-    <command group="unit" expected-return="0" timeout="60">
-      dart test test/unit/ --no-color
-    </command>
+    <command group="unit" expected-return="0" timeout="60">dart test test/unit/ --no-color</command>
   </commands>
 </mutations>

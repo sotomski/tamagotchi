@@ -331,25 +331,25 @@ No new integration tests in this phase. The `_ScriptedRandom` → `ScriptedRando
 
 #### Automated
 
-- [x] 2.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/`
-- [x] 2.2 `dart format --set-exit-if-changed .` exits 0 in `tamagotchi_server/`
-- [x] 2.3 `dart test test/unit/ --no-color` exits 0 (all existing + 3 new tests pass)
-- [x] 2.4 `dart test test/ --no-color` exits 0 (integration regression check; requires Postgres sidecar)
+- [x] 2.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/` — 0168f53
+- [x] 2.2 `dart format --set-exit-if-changed .` exits 0 in `tamagotchi_server/` — 0168f53
+- [x] 2.3 `dart test test/unit/ --no-color` exits 0 (all existing + 3 new tests pass) — 0168f53
+- [x] 2.4 `dart test test/ --no-color` exits 0 (integration regression check; requires Postgres sidecar) — 0168f53
 
 #### Manual
 
-- [x] 2.5 All three new test names appear with `pass` in `--reporter=expanded` output
+- [x] 2.5 All three new test names appear with `pass` in `--reporter=expanded` output — 0168f53
 
 ### Phase 3: Mutation gate
 
 #### Automated
 
-- [ ] 3.1 `dart run mutation_test -f html -o mutation_out mutation_test.xml` completes without error
-- [ ] 3.2 `dart test test/unit/ --no-color` exits 0 after any triage assertions added
+- [x] 3.1 `dart run mutation_test -f html -o mutation_out mutation_test.xml` completes without error
+- [x] 3.2 `dart test test/unit/ --no-color` exits 0 after any triage assertions added
 
 #### Manual
 
-- [ ] 3.3 HTML report reviewed: all survivors classified as killed or documented equivalent in XML
+- [x] 3.3 HTML report reviewed: all survivors classified as killed or documented equivalent in XML
 
 ### Phase 4: Cookbook update and rollout close
 

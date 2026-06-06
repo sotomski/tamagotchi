@@ -28,6 +28,18 @@
 - **Rule**: Encapsulate impure/external collaborators behind one concrete service and inject it through a single plain factory seam whose default IS the production wiring (e.g. fooServiceFor(session)) — never @visibleForTesting. The endpoint calls the factory unconditionally; tests reassign the seam to inject fakes and self-clean with addTearDown.
 - **Applies to**: plan, implement, impl-review
 
+## `mutation_test` XML: put `<command>` text on one line with no leading whitespace
+
+- **Context**: Any phase that runs `mutation_test` via a `mutation_test.xml` config (scoped mutation gate).
+- **Problem**: `_addCommand` in mutation_test 1.8.0 splits the element's inner text on single spaces — indented, multi-line content puts a newline/whitespace token as `text[0]`, which `.trim()` collapses to `""`. `Process.start("")` then fails with `ProcessException: No such file or directory`. The error message shows the original raw text (which looks correct), masking the real cause. The dry-run (`--dry`) never executes commands, so it passes and hides the bug entirely.
+- **Rule**: Write `<command>` with the command text immediately after the tag, on one line, no leading whitespace:
+  ```xml
+  <command group="unit" expected-return="0" timeout="60">dart test test/unit/ --no-color</command>
+  ```
+  Never put a newline before the command text, even for readability. The dry-run is not sufficient to validate the XML — always do one real (non-`--dry`) run to confirm the command launches.
+- **Bonus**: Pass `-f md -o mutation_out` to get a markdown report instead of the default HTML tree; add `mutation_out/` to `.gitignore`.
+- **Applies to**: implement, plan
+
 ## Run `dart format` before committing — the Format CI gate is `--set-exit-if-changed`
 
 - **Context**: Any phase that lands Dart in `tamagotchi_server/` or `tamagotchi_flutter/` (lib or test). Both packages have a Format workflow (`.github/workflows/format.yml`, `flutter.yml`) that runs `dart format --set-exit-if-changed .`.
