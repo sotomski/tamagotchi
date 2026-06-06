@@ -320,12 +320,12 @@ No new integration tests in this phase. The `_ScriptedRandom` → `ScriptedRando
 
 #### Automated
 
-- [ ] 1.1 `dart pub get` succeeds in `tamagotchi_server/` with `mutation_test: ^1.8.0` added
-- [ ] 1.2 `dart run mutation_test --dry mutation_test.xml` lists mutations for `feed_service.dart`
+- [x] 1.1 `dart pub get` succeeds in `tamagotchi_server/` with `mutation_test: ^1.8.0` added
+- [x] 1.2 `dart run mutation_test --dry mutation_test.xml` lists mutations for `feed_service.dart`
 
 #### Manual
 
-- [ ] 1.3 Dry-run output lists mutations in `evaluateFeed`, `pickyFactor`, `rejectProbability`, `clampStat`
+- [x] 1.3 Dry-run output lists mutations in `evaluateFeed`, `pickyFactor`, `rejectProbability`, `clampStat`
 
 ### Phase 2: Helper extraction and three new unit tests
 

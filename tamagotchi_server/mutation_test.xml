@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Run: dart run mutation_test -f md -o mutation_out mutation_test.xml -->
+<!-- Dry-run: dart run mutation_test --dry -f md -o mutation_out mutation_test.xml -->
+<mutations version="1.2">
+  <files>
+    <file>lib/src/creature/feed_service.dart</file>
+  </files>
+  <commands>
+    <command group="unit" expected-return="0" timeout="60">
+      dart test test/unit/ --no-color
+    </command>
+  </commands>
+</mutations>
