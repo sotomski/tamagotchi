@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:serverpod/serverpod.dart';
 import 'package:tamagotchi_server/src/creature/feed_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
@@ -8,31 +6,8 @@ import 'package:tamagotchi_server/src/llm/llm_service.dart';
 import 'package:tamagotchi_server/src/llm/stub_llm_service.dart';
 import 'package:test/test.dart';
 
+import '../helpers/scripted_random.dart';
 import 'test_tools/serverpod_test_tools.dart';
-
-/// A `Random` with a scripted `nextDouble()` queue (so the picky/tastiness gate
-/// resolves deterministically without seed-hunting) and a fixed `nextInt() => 0`
-/// (the full-refusal path picks `fullRefusalLines[0]`). Throws if drawn past the
-/// scripted doubles — turning "consumed no draws" into an assertable property.
-class _ScriptedRandom implements Random {
-  _ScriptedRandom(this._doubles);
-
-  final List<double> _doubles;
-  int _i = 0;
-
-  @override
-  double nextDouble() {
-    if (_i >= _doubles.length) {
-      throw StateError('nextDouble() drawn more times than scripted');
-    }
-    return _doubles[_i++];
-  }
-
-  @override
-  int nextInt(int max) => 0;
-  @override
-  bool nextBool() => throw UnimplementedError();
-}
 
 /// An [LlmService] that always throws, to drive the degrade path: the endpoint
 /// must catch this, substitute canned copy, and still commit the stat+journal
@@ -56,7 +31,7 @@ void _injectFeedService(
   LlmService llm = const StubLlmService(),
 }) {
   feedServiceFactory = (_) =>
-      FeedService(rng: _ScriptedRandom(doubles), llm: llm);
+      FeedService(rng: ScriptedRandom(doubles), llm: llm);
   // Self-cleaning: restore the production wiring when this test ends — even on
   // failure. Co-locating the reset with the mutation makes it impossible to add
   // an injection path that forgets to clean up, so a fake can never leak into the
