@@ -320,25 +320,25 @@ No new integration tests in this phase. The `_ScriptedRandom` → `ScriptedRando
 
 #### Automated
 
-- [x] 1.1 `dart pub get` succeeds in `tamagotchi_server/` with `mutation_test: ^1.8.0` added
-- [x] 1.2 `dart run mutation_test --dry mutation_test.xml` lists mutations for `feed_service.dart`
+- [x] 1.1 `dart pub get` succeeds in `tamagotchi_server/` with `mutation_test: ^1.8.0` added — 03ac78e
+- [x] 1.2 `dart run mutation_test --dry mutation_test.xml` lists mutations for `feed_service.dart` — 03ac78e
 
 #### Manual
 
-- [x] 1.3 Dry-run output lists mutations in `evaluateFeed`, `pickyFactor`, `rejectProbability`, `clampStat`
+- [x] 1.3 Dry-run output lists mutations in `evaluateFeed`, `pickyFactor`, `rejectProbability`, `clampStat` — 03ac78e
 
 ### Phase 2: Helper extraction and three new unit tests
 
 #### Automated
 
-- [ ] 2.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/`
-- [ ] 2.2 `dart format --set-exit-if-changed .` exits 0 in `tamagotchi_server/`
-- [ ] 2.3 `dart test test/unit/ --no-color` exits 0 (all existing + 3 new tests pass)
-- [ ] 2.4 `dart test test/ --no-color` exits 0 (integration regression check; requires Postgres sidecar)
+- [x] 2.1 `dart analyze --fatal-infos` passes in `tamagotchi_server/`
+- [x] 2.2 `dart format --set-exit-if-changed .` exits 0 in `tamagotchi_server/`
+- [x] 2.3 `dart test test/unit/ --no-color` exits 0 (all existing + 3 new tests pass)
+- [x] 2.4 `dart test test/ --no-color` exits 0 (integration regression check; requires Postgres sidecar)
 
 #### Manual
 
-- [ ] 2.5 All three new test names appear with `pass` in `--reporter=expanded` output
+- [x] 2.5 All three new test names appear with `pass` in `--reporter=expanded` output
 
 ### Phase 3: Mutation gate
 
