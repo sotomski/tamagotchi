@@ -1,0 +1,22 @@
+min_version: "2.0.0"
+
+pre-push:
+  piped: true
+
+  commands:
+    flutter-tests:
+      priority: 1
+      run: "cd tamagotchi_flutter && flutter test"
+      fail_text: "Flutter tests failed. Fix before pushing."
+
+    start-test-db:
+      priority: 2
+      run: "command -v docker >/dev/null 2>&1 && (cd tamagotchi_server && docker compose up -d) || true"
+      fail_text: "Could not start test database."
+
+    server-tests:
+      priority: 3
+      env:
+        SERVERPOD_PASSWORD_database: "CDm3BOYJ8Z4lhCj_Wvzum3UPoMHF2NVU"
+      run: "cd tamagotchi_server && dart test"
+      fail_text: "Server tests failed. Fix before pushing."
