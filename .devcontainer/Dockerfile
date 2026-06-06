@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 ARG FLUTTER_VERSION=3.44.0
 ARG SERVERPOD_CLI_VERSION=3.4.8
 ARG SERVERPOD_CLOUD_CLI_VERSION=0.30.0
+ARG LEFTHOOK_VERSION=2.1.9
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         curl \
@@ -13,6 +14,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         libglu1-mesa \
         ca-certificates \
         postgresql-client \
+    && ARCH=$(uname -m | sed 's/x86_64/x86_64/;s/aarch64/arm64/') \
+    && curl -sL "https://github.com/evilmartians/lefthook/releases/download/v${LEFTHOOK_VERSION}/lefthook_${LEFTHOOK_VERSION}_Linux_${ARCH}" \
+         -o /usr/local/bin/lefthook \
+    && chmod +x /usr/local/bin/lefthook \
     && rm -rf /var/lib/apt/lists/*
 
 USER vscode

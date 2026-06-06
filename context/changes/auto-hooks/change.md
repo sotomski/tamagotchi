@@ -1,7 +1,7 @@
 ---
 change_id: auto-hooks
 title: Add Claude Code write/edit hook for dart format+analyze and pre-push test gate
-status: implementing
+status: implemented
 created: 2026-06-06
 updated: 2026-06-06
 archived_at: null

@@ -13,5 +13,5 @@
         "PATH": "/home/vscode/flutter/bin:/home/vscode/flutter/bin/cache/dart-sdk/bin:/home/vscode/.pub-cache/bin:${containerEnv:PATH}"
     },
     "forwardPorts": [8080, 8081, 8082, 8090],
-    "postCreateCommand": "flutter doctor || true"
+    "postCreateCommand": "flutter doctor || true && lefthook install"
 }

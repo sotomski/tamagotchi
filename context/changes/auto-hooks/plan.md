@@ -255,27 +255,27 @@ lefthook install
 
 #### Automated
 
-- [x] 1.1 `.claude/settings.json` exists and is valid JSON
-- [x] 1.2 Hook script is executable
-- [x] 1.3 Hook script exits 0 on clean codebase
+- [x] 1.1 `.claude/settings.json` exists and is valid JSON — b0c8205
+- [x] 1.2 Hook script is executable — b0c8205
+- [x] 1.3 Hook script exits 0 on clean codebase — b0c8205
 
 #### Manual
 
-- [x] 1.4 Hook fires at end of Claude turn editing a `.dart` file
-- [x] 1.5 Deliberate analyze error blocks turn; Claude fixes it; next turn completes clean
+- [x] 1.4 Hook fires at end of Claude turn editing a `.dart` file — b0c8205
+- [x] 1.5 Deliberate analyze error blocks turn; Claude fixes it; next turn completes clean — b0c8205
 
 ### Phase 2: Lefthook Pre-Push Gate
 
 #### Automated
 
-- [ ] 2.1 `lefthook.yml` exists and is valid YAML
-- [ ] 2.2 `.git/hooks/pre-push` exists and is executable
-- [ ] 2.3 `lefthook version` succeeds
-- [ ] 2.4 `.gitignore` contains `lefthook-local.yml`
-- [ ] 2.5 Dockerfile contains `LEFTHOOK_VERSION` ARG
+- [x] 2.1 `lefthook.yml` exists and is valid YAML — 9b3ecec
+- [x] 2.2 `.git/hooks/pre-push` exists and is executable — 9b3ecec
+- [x] 2.3 `lefthook version` succeeds — 9b3ecec
+- [x] 2.4 `.gitignore` contains `lefthook-local.yml` — 9b3ecec
+- [x] 2.5 Dockerfile contains `LEFTHOOK_VERSION` ARG — 9b3ecec
 
 #### Manual
 
-- [ ] 2.6 `LEFTHOOK=0 git push` skips gate
-- [ ] 2.7 Failing test blocks push with `fail_text` message
-- [ ] 2.8 All-green test suite allows push to proceed
+- [x] 2.6 `LEFTHOOK=0 git push` skips gate — 9b3ecec
+- [x] 2.7 Failing test blocks push with `fail_text` message — 9b3ecec
+- [x] 2.8 All-green test suite allows push to proceed — 9b3ecec
