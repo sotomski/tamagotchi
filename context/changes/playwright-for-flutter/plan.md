@@ -654,10 +654,10 @@ for confirmation before the epilogue.
 
 #### Automated
 
-- [x] 6.1 `test-plan.md` shows `e2e: patrol` (not `none`)
-- [x] 6.2 `tech-stack.md` test layer includes patrol
+- [x] 6.1 `test-plan.md` shows `e2e: patrol` (not `none`) — a1be8fc
+- [x] 6.2 `tech-stack.md` test layer includes patrol — a1be8fc
 
 #### Manual
 
-- [x] 6.3 `§6.7` cookbook recipe is followable end-to-end
-- [x] 6.4 CI-as-follow-up note is explicit
+- [x] 6.3 `§6.7` cookbook recipe is followable end-to-end — a1be8fc
+- [x] 6.4 CI-as-follow-up note is explicit — a1be8fc
