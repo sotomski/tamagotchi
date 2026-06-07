@@ -641,23 +641,23 @@ for confirmation before the epilogue.
 
 #### Automated
 
-- [x] 5.1 `flutter pub get` resolves with `marionette_flutter`
-- [x] 5.2 `dart analyze` clean; release/e2e builds unaffected (kDebugMode-gated)
-- [x] 5.3 `marionette_mcp` activates and is registered as an MCP server
+- [x] 5.1 `flutter pub get` resolves with `marionette_flutter` — 913b4d0
+- [x] 5.2 `dart analyze` clean; release/e2e builds unaffected (kDebugMode-gated) — 913b4d0
+- [x] 5.3 `marionette_mcp` activates and is registered as an MCP server — 913b4d0
 
 #### Manual
 
-- [x] 5.4 marionette drives a debug build (or web limitation documented)
-- [x] 5.5 Non-debug patrol runs unaffected by the binding change
+- [x] 5.4 marionette drives a debug build (or web limitation documented) — 913b4d0
+- [x] 5.5 Non-debug patrol runs unaffected by the binding change — 913b4d0
 
 ### Phase 6: Foundation docs + cookbook
 
 #### Automated
 
-- [ ] 6.1 `test-plan.md` shows `e2e: patrol` (not `none`)
-- [ ] 6.2 `tech-stack.md` test layer includes patrol
+- [x] 6.1 `test-plan.md` shows `e2e: patrol` (not `none`)
+- [x] 6.2 `tech-stack.md` test layer includes patrol
 
 #### Manual
 
-- [ ] 6.3 `§6.7` cookbook recipe is followable end-to-end
-- [ ] 6.4 CI-as-follow-up note is explicit
+- [x] 6.3 `§6.7` cookbook recipe is followable end-to-end
+- [x] 6.4 CI-as-follow-up note is explicit
