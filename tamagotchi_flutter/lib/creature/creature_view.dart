@@ -52,6 +52,7 @@ class CreatureView extends ConsumerWidget {
               const _FeedingIndicator()
             else
               ElevatedButton.icon(
+                key: const Key('feedButton'),
                 onPressed: () =>
                     ref.read(feedControllerProvider.notifier).feed(),
                 icon: const Icon(Icons.restaurant),
@@ -89,7 +90,7 @@ class _FeedingIndicator extends StatelessWidget {
     return const Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircularProgressIndicator(),
+        CircularProgressIndicator(key: Key('feedingIndicator')),
         SizedBox(height: 8),
         Text('Feeding…'),
       ],
@@ -117,6 +118,7 @@ class _FeedResponse extends StatelessWidget {
           );
 
     return Container(
+      key: const Key('feedResponse'),
       constraints: const BoxConstraints(maxWidth: 420),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -134,9 +136,13 @@ class _FeedResponse extends StatelessWidget {
   }
 }
 
-/// One labelled stat line, e.g. `Energy  100`.
+/// One labelled stat line, e.g. `Energy  100`. Carries a per-stat `Key`
+/// (`statRow-<label>`) so a patrol test can scope to a specific stat row and
+/// assert its (dynamic) value changed — text finders alone can't distinguish
+/// which stat a number belongs to.
 class _StatRow extends StatelessWidget {
-  const _StatRow({required this.label, required this.value});
+  _StatRow({required this.label, required this.value})
+    : super(key: Key('statRow-$label'));
 
   final String label;
   final int value;

@@ -38,7 +38,11 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: creatureStatus.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(
+          child: CircularProgressIndicator(
+            key: Key('creatureLoadingIndicator'),
+          ),
+        ),
         error: (error, _) => _CreatureLoadError(
           onRetry: () => ref.invalidate(creatureProvider),
         ),

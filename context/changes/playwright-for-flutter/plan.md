@@ -586,31 +586,31 @@ for confirmation before the epilogue.
 
 #### Automated
 
-- [x] 1.1 Devcontainer rebuilds with patrol_cli + Chromium present
-- [x] 1.2 `patrol doctor` reports web toolchain ready
-- [x] 1.3 `dart analyze` clean after server.dart change
-- [x] 1.4 e2e server boots `--mode e2e` against tamagotchi_test on :8080
-- [x] 1.5 Smoke test passes (`patrol test … smoke_test.dart`)
+- [x] 1.1 Devcontainer rebuilds with patrol_cli + Chromium present — 5dc57f6
+- [x] 1.2 `patrol doctor` reports web toolchain ready — 5dc57f6
+- [x] 1.3 `dart analyze` clean after server.dart change — 5dc57f6
+- [x] 1.4 e2e server boots `--mode e2e` against tamagotchi_test on :8080 — 5dc57f6
+- [x] 1.5 Smoke test passes (`patrol test … smoke_test.dart`) — 5dc57f6
 
 #### Manual
 
-- [x] 1.6 Headless Chromium runs under container resources (no OOM/crash)
-- [x] 1.7 No CORS error patrol origin → :8080 (or tweak noted)
-- [x] 1.8 Stub LLM selected in e2e mode (no Mistral call); exit/artifact paths noted
+- [x] 1.6 Headless Chromium runs under container resources (no OOM/crash) — 5dc57f6
+- [x] 1.7 No CORS error patrol origin → :8080 (or tweak noted) — 5dc57f6
+- [x] 1.8 Stub LLM selected in e2e mode (no Mistral call); exit/artifact paths noted — 5dc57f6
 
 ### Phase 2: Widget Keys + quality levers
 
 #### Automated
 
-- [ ] 2.1 `dart analyze` clean after adding Keys
-- [ ] 2.2 `dart format --set-exit-if-changed` clean on touched files
-- [ ] 2.3 Existing widget tests still pass (`flutter test`)
-- [ ] 2.4 `seed_test.dart` compiles and runs green via patrol
+- [x] 2.1 `dart analyze` clean after adding Keys
+- [x] 2.2 `dart format --set-exit-if-changed` clean on touched files
+- [x] 2.3 Existing widget tests still pass (`flutter test`)
+- [x] 2.4 `seed_test.dart` compiles and runs green via patrol
 
 #### Manual
 
-- [ ] 2.5 Seed test is a faithful patrol model of the four patterns
-- [ ] 2.6 `E2E_RULES.md` covers the five anti-patterns + real-vs-mocked boundary
+- [x] 2.5 Seed test is a faithful patrol model of the four patterns
+- [x] 2.6 `E2E_RULES.md` covers the five anti-patterns + real-vs-mocked boundary
 
 ### Phase 3: Backend harness — DB-seed + login-once auth
 
