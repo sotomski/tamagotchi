@@ -602,27 +602,27 @@ for confirmation before the epilogue.
 
 #### Automated
 
-- [x] 2.1 `dart analyze` clean after adding Keys
-- [x] 2.2 `dart format --set-exit-if-changed` clean on touched files
-- [x] 2.3 Existing widget tests still pass (`flutter test`)
-- [x] 2.4 `seed_test.dart` compiles and runs green via patrol
+- [x] 2.1 `dart analyze` clean after adding Keys — c39b05a
+- [x] 2.2 `dart format --set-exit-if-changed` clean on touched files — c39b05a
+- [x] 2.3 Existing widget tests still pass (`flutter test`) — c39b05a
+- [x] 2.4 `seed_test.dart` compiles and runs green via patrol — c39b05a
 
 #### Manual
 
-- [x] 2.5 Seed test is a faithful patrol model of the four patterns
-- [x] 2.6 `E2E_RULES.md` covers the five anti-patterns + real-vs-mocked boundary
+- [x] 2.5 Seed test is a faithful patrol model of the four patterns — c39b05a
+- [x] 2.6 `E2E_RULES.md` covers the five anti-patterns + real-vs-mocked boundary — c39b05a
 
 ### Phase 3: Backend harness — DB-seed + login-once auth
 
 #### Automated
 
-- [ ] 3.1 `e2e_seed.dart` seeds + tears down user + creature (re-runnable)
-- [ ] 3.2 Patrol harness reaches authenticated home via login-once helper
+- [x] 3.1 `e2e_seed.dart` seeds + tears down user + creature (re-runnable)
+- [x] 3.2 Patrol harness reaches authenticated home via login-once helper
 
 #### Manual
 
-- [ ] 3.3 Authenticated session survives a patrol-driven page reload
-- [ ] 3.4 Primary vs fallback path used is recorded with rationale
+- [x] 3.3 Authenticated session survives a patrol-driven page reload
+- [x] 3.4 Primary vs fallback path used is recorded with rationale
 
 ### Phase 4: Persistence e2e test (the one risk)
 
