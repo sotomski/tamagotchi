@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
@@ -16,7 +18,17 @@ Future<void> main() async {
   // path is handed to go_router on load.
   usePathUrlStrategy();
 
-  WidgetsFlutterBinding.ensureInitialized();
+  // In debug builds, install Marionette's binding so an MCP-driven agent can
+  // drive the live app for exploration (playwright-for-flutter Phase 5).
+  // kDebugMode-gated: release builds keep the standard WidgetsFlutterBinding and
+  // the marionette import tree-shakes away. Patrol/e2e tests never reach this
+  // main() — they bootstrap under PatrolBinding inside patrolTest — so the swap
+  // is invisible to them.
+  if (kDebugMode) {
+    MarionetteBinding.ensureInitialized();
+  } else {
+    WidgetsFlutterBinding.ensureInitialized();
+  }
 
   // The server URL is resolved from `--dart-define=SERVER_URL=...`, the
   // `assets/config.json` file, or defaults to `http://$localhost:8080/`.

@@ -628,27 +628,27 @@ for confirmation before the epilogue.
 
 #### Automated
 
-- [x] 4.1 `feed_persistence_test.dart` passes via patrol
-- [x] 4.2 `dart analyze` + `dart format` clean
+- [x] 4.1 `feed_persistence_test.dart` passes via patrol — e149dcd
+- [x] 4.2 `dart analyze` + `dart format` clean — e149dcd
 
 #### Manual
 
-- [x] 4.3 Five-anti-pattern review done
-- [x] 4.4 Deliberate-break turned the test red; break reverted (not committed)
-- [x] 4.5 Two consecutive runs are green (unique-id + teardown hold)
+- [x] 4.3 Five-anti-pattern review done — e149dcd
+- [x] 4.4 Deliberate-break turned the test red; break reverted (not committed) — e149dcd
+- [x] 4.5 Two consecutive runs are green (unique-id + teardown hold) — e149dcd
 
 ### Phase 5: Marionette exploration assist (built)
 
 #### Automated
 
-- [ ] 5.1 `flutter pub get` resolves with `marionette_flutter`
-- [ ] 5.2 `dart analyze` clean; release/e2e builds unaffected (kDebugMode-gated)
-- [ ] 5.3 `marionette_mcp` activates and is registered as an MCP server
+- [x] 5.1 `flutter pub get` resolves with `marionette_flutter`
+- [x] 5.2 `dart analyze` clean; release/e2e builds unaffected (kDebugMode-gated)
+- [x] 5.3 `marionette_mcp` activates and is registered as an MCP server
 
 #### Manual
 
-- [ ] 5.4 marionette drives a debug build (or web limitation documented)
-- [ ] 5.5 Non-debug patrol runs unaffected by the binding change
+- [x] 5.4 marionette drives a debug build (or web limitation documented)
+- [x] 5.5 Non-debug patrol runs unaffected by the binding change
 
 ### Phase 6: Foundation docs + cookbook
 

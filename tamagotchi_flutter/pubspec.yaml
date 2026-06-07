@@ -39,6 +39,16 @@ dependencies:
   riverpod_annotation: ^4.0.0
   go_router: ^17.0.0
   shadcn_ui: ^0.54.0
+  # AI exploration assist (playwright-for-flutter Phase 5). A runtime dependency,
+  # not dev: lib/main.dart imports it, and depend_on_referenced_packages requires
+  # lib/ imports to be runtime deps. Its binding loads only under kDebugMode, so
+  # release/e2e builds tree-shake it out. patrol is the supported e2e path;
+  # marionette only drives debug builds for AI-native exploration. KNOWN LIMIT:
+  # its connect path talks to the VM service (over DWDS on web), which is not
+  # exercisable in this headless devcontainer — no browser tab surfaces a VM
+  # service URI (`flutter run -d chrome` has no display; `-d web-server` needs a
+  # browser you connect by hand). See test-plan §6.7 (Phase 6) for the writeup.
+  marionette_flutter: ^0.5.0
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
