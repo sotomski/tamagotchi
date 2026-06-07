@@ -586,17 +586,17 @@ for confirmation before the epilogue.
 
 #### Automated
 
-- [ ] 1.1 Devcontainer rebuilds with patrol_cli + Chromium present
-- [ ] 1.2 `patrol doctor` reports web toolchain ready
-- [ ] 1.3 `dart analyze` clean after server.dart change
-- [ ] 1.4 e2e server boots `--mode e2e` against tamagotchi_test on :8080
-- [ ] 1.5 Smoke test passes (`patrol test … smoke_test.dart`)
+- [x] 1.1 Devcontainer rebuilds with patrol_cli + Chromium present
+- [x] 1.2 `patrol doctor` reports web toolchain ready
+- [x] 1.3 `dart analyze` clean after server.dart change
+- [x] 1.4 e2e server boots `--mode e2e` against tamagotchi_test on :8080
+- [x] 1.5 Smoke test passes (`patrol test … smoke_test.dart`)
 
 #### Manual
 
-- [ ] 1.6 Headless Chromium runs under container resources (no OOM/crash)
-- [ ] 1.7 No CORS error patrol origin → :8080 (or tweak noted)
-- [ ] 1.8 Stub LLM selected in e2e mode (no Mistral call); exit/artifact paths noted
+- [x] 1.6 Headless Chromium runs under container resources (no OOM/crash)
+- [x] 1.7 No CORS error patrol origin → :8080 (or tweak noted)
+- [x] 1.8 Stub LLM selected in e2e mode (no Mistral call); exit/artifact paths noted
 
 ### Phase 2: Widget Keys + quality levers
 

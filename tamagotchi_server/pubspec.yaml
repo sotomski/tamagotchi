@@ -28,6 +28,15 @@ serverpod:
     # Starts the server and applies migrations
     start: dart bin/main.dart --apply-migrations
 
+    # Starts the server in the `e2e` identity for the patrol browser tests:
+    # `serverpod run e2e`. Serverpod 3.x has no custom run mode, so this boots the
+    # `test` run mode (tamagotchi_test DB, hermetic `test:` passwords → stub LLM)
+    # and the TAMAGOTCHI_E2E flag makes server.dart's _e2eConfigOverride pin the
+    # API to :8080 and stamp runMode `e2e` (fixed verification code, log-only
+    # email). The Postgres sidecars are always up with the devcontainer — never
+    # `docker compose up` for e2e.
+    e2e: TAMAGOTCHI_E2E=true dart bin/main.dart --mode test --apply-migrations
+
     # Build the Flutter web app and copy it to the server's web directory.
     # Windows uses xcopy since flutter's --output flag doesn't work there.
     # See: https://github.com/flutter/flutter/issues/157886
