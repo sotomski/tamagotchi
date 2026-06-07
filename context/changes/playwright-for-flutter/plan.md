@@ -616,26 +616,26 @@ for confirmation before the epilogue.
 
 #### Automated
 
-- [x] 3.1 `e2e_seed.dart` seeds + tears down user + creature (re-runnable)
-- [x] 3.2 Patrol harness reaches authenticated home via login-once helper
+- [x] 3.1 `e2e_seed.dart` seeds + tears down user + creature (re-runnable) — 99196fd
+- [x] 3.2 Patrol harness reaches authenticated home via login-once helper — 99196fd
 
 #### Manual
 
-- [x] 3.3 Authenticated session survives a patrol-driven page reload
-- [x] 3.4 Primary vs fallback path used is recorded with rationale
+- [x] 3.3 Authenticated session survives a patrol-driven page reload — 99196fd
+- [x] 3.4 Primary vs fallback path used is recorded with rationale — 99196fd
 
 ### Phase 4: Persistence e2e test (the one risk)
 
 #### Automated
 
-- [ ] 4.1 `feed_persistence_test.dart` passes via patrol
-- [ ] 4.2 `dart analyze` + `dart format` clean
+- [x] 4.1 `feed_persistence_test.dart` passes via patrol
+- [x] 4.2 `dart analyze` + `dart format` clean
 
 #### Manual
 
-- [ ] 4.3 Five-anti-pattern review done
-- [ ] 4.4 Deliberate-break turned the test red; break reverted (not committed)
-- [ ] 4.5 Two consecutive runs are green (unique-id + teardown hold)
+- [x] 4.3 Five-anti-pattern review done
+- [x] 4.4 Deliberate-break turned the test red; break reverted (not committed)
+- [x] 4.5 Two consecutive runs are green (unique-id + teardown hold)
 
 ### Phase 5: Marionette exploration assist (built)
 
