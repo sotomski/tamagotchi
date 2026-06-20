@@ -1,8 +1,8 @@
 ### The kind of event a journal entry records. Only `hatched` is written at S-02;
-### feed/pet/cure arrive with the interaction slices (S-03+).
+### feed/play/cure arrive with the interaction slices (S-03+).
 enum: JournalEvent
 values:
   - hatched
   - feed
-  - pet
+  - play
   - cure

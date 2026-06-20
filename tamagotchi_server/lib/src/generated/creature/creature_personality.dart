@@ -15,8 +15,10 @@ import 'package:serverpod/serverpod.dart' as _i1;
 /// Per-stat decay/regen modifiers, randomized at hatch and inert until S-07.
 /// Stored 1:1 with the creature. Multipliers around a 1.0 baseline; the
 /// randomization range (0.5-1.5) is applied in creature_service.dart, not here.
-/// Interaction modifiers (picky/gluttonous, introvert/extravert) are out of
-/// scope and added additively in S-03/S-04.
+/// Love is a single-dial axis: `loveRegenMod` alone encodes the
+/// introvert↔extravert sociability axis (S-04 Play derives love gain + energy
+/// cost from it), so there is no `loveDecayMod`. The other three stats keep both
+/// decay and regen mods for S-07.
 abstract class CreaturePersonality
     implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   CreaturePersonality._({
@@ -26,7 +28,6 @@ abstract class CreaturePersonality
     required this.hungerRegenMod,
     required this.energyDecayMod,
     required this.energyRegenMod,
-    required this.loveDecayMod,
     required this.loveRegenMod,
     required this.illnessDecayMod,
     required this.illnessRegenMod,
@@ -39,7 +40,6 @@ abstract class CreaturePersonality
     required double hungerRegenMod,
     required double energyDecayMod,
     required double energyRegenMod,
-    required double loveDecayMod,
     required double loveRegenMod,
     required double illnessDecayMod,
     required double illnessRegenMod,
@@ -57,7 +57,6 @@ abstract class CreaturePersonality
       hungerRegenMod: (jsonSerialization['hungerRegenMod'] as num).toDouble(),
       energyDecayMod: (jsonSerialization['energyDecayMod'] as num).toDouble(),
       energyRegenMod: (jsonSerialization['energyRegenMod'] as num).toDouble(),
-      loveDecayMod: (jsonSerialization['loveDecayMod'] as num).toDouble(),
       loveRegenMod: (jsonSerialization['loveRegenMod'] as num).toDouble(),
       illnessDecayMod: (jsonSerialization['illnessDecayMod'] as num).toDouble(),
       illnessRegenMod: (jsonSerialization['illnessRegenMod'] as num).toDouble(),
@@ -82,8 +81,6 @@ abstract class CreaturePersonality
 
   double energyRegenMod;
 
-  double loveDecayMod;
-
   double loveRegenMod;
 
   double illnessDecayMod;
@@ -103,7 +100,6 @@ abstract class CreaturePersonality
     double? hungerRegenMod,
     double? energyDecayMod,
     double? energyRegenMod,
-    double? loveDecayMod,
     double? loveRegenMod,
     double? illnessDecayMod,
     double? illnessRegenMod,
@@ -118,7 +114,6 @@ abstract class CreaturePersonality
       'hungerRegenMod': hungerRegenMod,
       'energyDecayMod': energyDecayMod,
       'energyRegenMod': energyRegenMod,
-      'loveDecayMod': loveDecayMod,
       'loveRegenMod': loveRegenMod,
       'illnessDecayMod': illnessDecayMod,
       'illnessRegenMod': illnessRegenMod,
@@ -135,7 +130,6 @@ abstract class CreaturePersonality
       'hungerRegenMod': hungerRegenMod,
       'energyDecayMod': energyDecayMod,
       'energyRegenMod': energyRegenMod,
-      'loveDecayMod': loveDecayMod,
       'loveRegenMod': loveRegenMod,
       'illnessDecayMod': illnessDecayMod,
       'illnessRegenMod': illnessRegenMod,
@@ -182,7 +176,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
     required double hungerRegenMod,
     required double energyDecayMod,
     required double energyRegenMod,
-    required double loveDecayMod,
     required double loveRegenMod,
     required double illnessDecayMod,
     required double illnessRegenMod,
@@ -193,7 +186,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
          hungerRegenMod: hungerRegenMod,
          energyDecayMod: energyDecayMod,
          energyRegenMod: energyRegenMod,
-         loveDecayMod: loveDecayMod,
          loveRegenMod: loveRegenMod,
          illnessDecayMod: illnessDecayMod,
          illnessRegenMod: illnessRegenMod,
@@ -210,7 +202,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
     double? hungerRegenMod,
     double? energyDecayMod,
     double? energyRegenMod,
-    double? loveDecayMod,
     double? loveRegenMod,
     double? illnessDecayMod,
     double? illnessRegenMod,
@@ -222,7 +213,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
       hungerRegenMod: hungerRegenMod ?? this.hungerRegenMod,
       energyDecayMod: energyDecayMod ?? this.energyDecayMod,
       energyRegenMod: energyRegenMod ?? this.energyRegenMod,
-      loveDecayMod: loveDecayMod ?? this.loveDecayMod,
       loveRegenMod: loveRegenMod ?? this.loveRegenMod,
       illnessDecayMod: illnessDecayMod ?? this.illnessDecayMod,
       illnessRegenMod: illnessRegenMod ?? this.illnessRegenMod,
@@ -264,11 +254,6 @@ class CreaturePersonalityUpdateTable
         table.energyRegenMod,
         value,
       );
-
-  _i1.ColumnValue<double, double> loveDecayMod(double value) => _i1.ColumnValue(
-    table.loveDecayMod,
-    value,
-  );
 
   _i1.ColumnValue<double, double> loveRegenMod(double value) => _i1.ColumnValue(
     table.loveRegenMod,
@@ -312,10 +297,6 @@ class CreaturePersonalityTable extends _i1.Table<_i1.UuidValue?> {
       'energyRegenMod',
       this,
     );
-    loveDecayMod = _i1.ColumnDouble(
-      'loveDecayMod',
-      this,
-    );
     loveRegenMod = _i1.ColumnDouble(
       'loveRegenMod',
       this,
@@ -343,8 +324,6 @@ class CreaturePersonalityTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDouble energyRegenMod;
 
-  late final _i1.ColumnDouble loveDecayMod;
-
   late final _i1.ColumnDouble loveRegenMod;
 
   late final _i1.ColumnDouble illnessDecayMod;
@@ -359,7 +338,6 @@ class CreaturePersonalityTable extends _i1.Table<_i1.UuidValue?> {
     hungerRegenMod,
     energyDecayMod,
     energyRegenMod,
-    loveDecayMod,
     loveRegenMod,
     illnessDecayMod,
     illnessRegenMod,

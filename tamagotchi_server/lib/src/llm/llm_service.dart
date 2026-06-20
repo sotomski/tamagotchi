@@ -40,7 +40,7 @@ class InteractionRequest {
   final CreatureMood mood;
 
   /// Which interaction this is. Feed-only this slice (S-03), but typed for reuse
-  /// by Pet/Cure (S-04/S-05).
+  /// by Play/Cure (S-04/S-05).
   final JournalEvent interactionType;
 
   /// Whether the creature accepted the interaction. Drives accept- vs
