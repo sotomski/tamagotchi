@@ -1,0 +1,7 @@
+### Typed, client-visible failure for the only genuine Pet error path: petting
+### when the caller owns no creature. Pet never refuses (it is deterministic), so
+### this is the single failure surface. Mirrors CreatureFeedError so the Flutter
+### client switches on [reason] instead of parsing a message string.
+exception: CreaturePetError
+fields:
+  reason: CreaturePetErrorReason

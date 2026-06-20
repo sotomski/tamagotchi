@@ -6,6 +6,7 @@ import '../generated/protocol.dart';
 import '../llm/llm_service.dart';
 import 'creature_service.dart';
 import 'feed_service.dart';
+import 'pet_service.dart';
 
 /// The first first-party `requireLogin` endpoint: hatch a creature and view it.
 ///
@@ -234,6 +235,105 @@ class CreatureEndpoint extends Endpoint {
     return FeedResult(
       userResponse: reply.userResponse,
       accepted: decision.accepted,
+      status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
+    );
+  }
+
+  /// Pets the caller's creature once and returns the in-character outcome.
+  ///
+  /// Unlike [feed], Pet is **fully deterministic** (`prd.md:39`): no accept/refuse
+  /// gate and no max-love gate. The stat change ([petDelta] — love up, energy
+  /// down, scaled by the `loveRegenMod` sociability axis) is computed up front,
+  /// then the LLM is asked for a response + journal narrative (degrading to canned
+  /// pet copy on failure), and the stat change + journal entry are written as one
+  /// coherent pair. The creature is **always** updated (energy always changes) and
+  /// **always** gets exactly one `pet` entry.
+  ///
+  /// As in [feed], the LLM call sits **outside** the transaction so a degrade
+  /// still commits the stat+journal pair atomically.
+  Future<PetResult> pet(Session session) async {
+    final ownerUuid = UuidValue.fromString(
+      session.authenticated!.userIdentifier,
+    );
+
+    final creature = await Creature.db.findFirstRow(
+      session,
+      where: (t) => t.ownerUuid.equals(ownerUuid),
+    );
+    if (creature == null) {
+      throw CreaturePetError(reason: CreaturePetErrorReason.noCreature);
+    }
+
+    final personality = await CreaturePersonality.db.findFirstRow(
+      session,
+      where: (t) => t.creatureId.equals(creature.id!),
+    );
+    if (personality == null) {
+      // Personality is written 1:1 with the creature at hatch; its absence is a
+      // data-integrity bug, not a user-facing path — fail loudly (as in feed).
+      throw StateError('Creature ${creature.id} has no personality row');
+    }
+
+    // Deterministic — no rng. The delta encodes the 0-100 clamp.
+    final delta = petDelta(creature, personality);
+
+    // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
+    // first (the empty-prose hatched marker is dropped).
+    final recent = await JournalEntry.db.find(
+      session,
+      where: (t) => t.creatureId.equals(creature.id!),
+      orderBy: (t) => t.timestamp,
+      orderDescending: true,
+      limit: 10,
+    );
+    final recentEntries = recent
+        .map((e) => e.prose)
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    final reply = await petServiceFactory(session).interaction(
+      session,
+      InteractionRequest(
+        personality: personality,
+        hunger: creature.hunger,
+        energy: creature.energy,
+        love: creature.love,
+        illness: creature.illness,
+        mood: _moodOf(creature),
+        interactionType: JournalEvent.pet,
+        accepted: true,
+        // tastiness is feed-only; the pet prompt branch ignores it.
+        tastiness: 0,
+        recentEntries: recentEntries,
+      ),
+    );
+
+    // Coherent pair: the stat update (always — energy always changes) + the
+    // journal entry in one transaction.
+    final updated = await session.db.transaction((transaction) async {
+      final result = creature.copyWith(
+        love: creature.love + delta.loveDelta,
+        energy: creature.energy + delta.energyDelta,
+      );
+      await Creature.db.updateRow(session, result, transaction: transaction);
+
+      await JournalEntry.db.insertRow(
+        session,
+        JournalEntry(
+          creatureId: creature.id!,
+          ownerUuid: ownerUuid,
+          event: JournalEvent.pet,
+          prose: reply.journalNarrative,
+          statDelta: delta,
+        ),
+        transaction: transaction,
+      );
+
+      return result;
+    });
+
+    return PetResult(
+      userResponse: reply.userResponse,
       status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
     );
   }

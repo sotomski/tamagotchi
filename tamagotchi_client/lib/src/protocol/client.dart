@@ -20,8 +20,9 @@ import 'package:tamagotchi_client/src/protocol/creature/creature_status.dart'
     as _i5;
 import 'package:tamagotchi_client/src/protocol/creature/feed_result.dart'
     as _i6;
-import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i7;
-import 'protocol.dart' as _i8;
+import 'package:tamagotchi_client/src/protocol/creature/pet_result.dart' as _i7;
+import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i8;
+import 'protocol.dart' as _i9;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -293,6 +294,24 @@ class EndpointCreature extends _i2.EndpointRef {
         'feed',
         {},
       );
+
+  /// Pets the caller's creature once and returns the in-character outcome.
+  ///
+  /// Unlike [feed], Pet is **fully deterministic** (`prd.md:39`): no accept/refuse
+  /// gate and no max-love gate. The stat change ([petDelta] — love up, energy
+  /// down, scaled by the `loveRegenMod` sociability axis) is computed up front,
+  /// then the LLM is asked for a response + journal narrative (degrading to canned
+  /// pet copy on failure), and the stat change + journal entry are written as one
+  /// coherent pair. The creature is **always** updated (energy always changes) and
+  /// **always** gets exactly one `pet` entry.
+  ///
+  /// As in [feed], the LLM call sits **outside** the transaction so a degrade
+  /// still commits the stat+journal pair atomically.
+  _i3.Future<_i7.PetResult> pet() => caller.callServerEndpoint<_i7.PetResult>(
+    'creature',
+    'pet',
+    {},
+  );
 }
 
 /// This is an example endpoint that returns a greeting message through
@@ -305,8 +324,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i7.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i7.Greeting>(
+  _i3.Future<_i8.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i8.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -344,7 +363,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i8.Protocol(),
+         _i9.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

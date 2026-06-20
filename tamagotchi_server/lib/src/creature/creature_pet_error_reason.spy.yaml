@@ -1,0 +1,7 @@
+### Why a pet attempt failed outright. A single reason (typed for client switch
+### parity with CreatureFeedErrorReason); behind the UI this should never fire —
+### you can only Pet a creature you can see.
+enum: CreaturePetErrorReason
+values:
+  ### The caller owns no creature to pet.
+  - noCreature

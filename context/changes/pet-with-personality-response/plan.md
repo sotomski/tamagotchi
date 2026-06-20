@@ -424,20 +424,20 @@ One migration this slice: it **drops** the `love_decay_mod` column from `creatur
 ### Phase 2: Pet domain math + pet LLM surface + hermetic unit tests
 
 #### Automated
-- [x] 2.1 Unit tests pass (`dart test test/unit/pet_service_test.dart test/llm/creature_prompt_test.dart`)
-- [x] 2.2 `dart analyze` clean (excl. generated)
-- [x] 2.3 `dart format --set-exit-if-changed .` passes in `tamagotchi_server/`
+- [x] 2.1 Unit tests pass (`dart test test/unit/pet_service_test.dart test/llm/creature_prompt_test.dart`) — becb4cf
+- [x] 2.2 `dart analyze` clean (excl. generated) — becb4cf
+- [x] 2.3 `dart format --set-exit-if-changed .` passes in `tamagotchi_server/` — becb4cf
 
 #### Manual
-- [ ] 2.4 `petLoveGain`/`petEnergyCost` across `loveRegenMod` values match intuition
+- [x] 2.4 `petLoveGain`/`petEnergyCost` across `loveRegenMod` values match intuition — becb4cf
 
 ### Phase 3: Pet endpoint + PetResult + PetError + journal pair + integration tests
 
 #### Automated
-- [ ] 3.1 `serverpod generate` succeeds; `client.creature.pet()` + `PetResult` + `CreaturePetError` exist
-- [ ] 3.2 Integration tests pass (`dart test test/integration/pet_endpoint_test.dart`)
-- [ ] 3.3 Full server suite green (`dart test`)
-- [ ] 3.4 `dart analyze` clean (excl. generated); `dart format --set-exit-if-changed .` passes
+- [x] 3.1 `serverpod generate` succeeds; `client.creature.pet()` + `PetResult` + `CreaturePetError` exist
+- [x] 3.2 Integration tests pass (`dart test test/integration/pet_endpoint_test.dart`)
+- [x] 3.3 Full server suite green (`dart test`)
+- [x] 3.4 `dart analyze` clean (excl. generated); `dart format --set-exit-if-changed .` passes
 
 #### Manual
 - [ ] 3.5 Real `pet` call returns an in-character, sociability-coloured response + coherent journal entry
