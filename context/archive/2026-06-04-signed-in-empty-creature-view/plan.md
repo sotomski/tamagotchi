@@ -533,10 +533,10 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 #### Automated
 
 - [x] 7.1 `dig` confirms all 4 CNAMEs resolve to their `dkimbox.com` targets on both Cloudflare (1.1.1.1) and Google (8.8.8.8), 2026-06-20. DKIM (`default._domainkey.tamagotchi` → `c6cce8-8dc371.dkimbox.com`) chases to a valid `v=DKIM1; k=rsa; p=…` record; DMARC (`_dmarc.tamagotchi` → `354499-be9384.dkimbox.com`) chases to `v=DMARC1; p=none; pct=1; rua=mailto:dmarc@vercom.pl`. (Adapted for Option B: no own SPF TXT, no own DMARC TXT — both are EmailLabs-managed via CNAME.)
-- [ ] 7.2 EmailLabs panel shows the domain status = Accepted/verified
+- [x] 7.2 EmailLabs panel shows the domain status = Accepted/verified — prod acceptance passed 2026-06-20 (user-confirmed)
 
 #### Manual
 
-- [ ] 7.3 Prod register → real verification email from `tamagotchi.codecreations.eu` → code accepted → registration completes
-- [ ] 7.4 Prod login lands on the empty-creature home; log-out bounces to `/sign-in`
-- [ ] 7.5 On success, `change.md` → `status: complete`
+- [x] 7.3 Prod register → real verification email from `tamagotchi.codecreations.eu` → code accepted → registration completes — user-confirmed 2026-06-20
+- [x] 7.4 Prod login lands on the empty-creature home; log-out bounces to `/sign-in` — user-confirmed 2026-06-20
+- [x] 7.5 On success, `change.md` → `status: complete` — 2026-06-20

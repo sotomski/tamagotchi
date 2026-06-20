@@ -1,11 +1,11 @@
 ---
 change_id: signed-in-empty-creature-view
 title: Signed in empty creature view
-status: deferred
+status: archived
 created: 2026-06-04
-updated: 2026-06-05
-# status: `deferred` (2026-06-05) — Phases 1–6 committed; Phase 7 (EmailLabs sender-auth + DNS) is blocked on DNS control-panel access for the codecreations.eu zone (operator contacted, ETA unknown). Resume Phase 7 when DNS access is restored.
-archived_at: null
+updated: 2026-06-20
+# status: `complete` (2026-06-20) — all 7 phases done. Phase 7 DNS published + dig-verified; EmailLabs sender-auth Accepted and the prod acceptance flow (register → real email from tamagotchi.codecreations.eu → code → login → empty-creature home → logout) passed end-to-end (user-confirmed).
+archived_at: 2026-06-20T16:25:49Z
 ---
 
 ## Notes
@@ -25,3 +25,4 @@ archived_at: null
 
   **Blocker:** no access to the codecreations.eu DNS control panel; operator contacted (ETA unknown). **Resume steps when access returns:** publish the 4 CNAMEs → click **Check → Accepted** in the EmailLabs panel → ping the agent to `dig`-verify the CNAMEs resolve to their `dkimbox.com` targets (adapted 7.1/7.2 check — no SPF TXT / no own DMARC TXT under Option B) → run the prod acceptance test (register → real email from `tamagotchi.codecreations.eu` → code → login → empty-creature home → logout) → set `status: complete`. Note: the DKIM CNAME is the record that clears the 500.
 - **2026-06-20 — DNS published + dig-verified (Phase 7.1 done).** All 4 EmailLabs CNAMEs published in the Cloudflare `codecreations.eu` zone (DNS-only/grey cloud) and verified resolving on both Cloudflare (1.1.1.1) and Google (8.8.8.8): DKIM `default._domainkey.tamagotchi` → `c6cce8-8dc371.dkimbox.com` (chases to a valid `v=DKIM1; k=rsa; p=…`), `mailing.tamagotchi` → `d8b0d5-565945.dkimbox.com`, `tracking.tamagotchi` → `tracking.dkimbox.com`, `_dmarc.tamagotchi` → `354499-be9384.dkimbox.com` (chases to `v=DMARC1; p=none; pct=1; rua=mailto:dmarc@vercom.pl`). The DKIM CNAME (the record that clears the prod 500) is live. **Remaining for `status: complete`:** EmailLabs panel **Check → Accepted** (7.2) → prod acceptance flow register→email→code→login→home→logout (7.3–7.4).
+- **2026-06-20 — Phase 7 COMPLETE; change done (user-confirmed).** EmailLabs panel domain `tamagotchi.codecreations.eu` → **Accepted** (DKIM CNAME cleared the prior pre-auth 500). Production acceptance flow passed end-to-end: register a new account → real verification email delivered from `tamagotchi.codecreations.eu` → code accepted → registration completes → login lands on the empty-creature home → logout bounces to `/sign-in`. All of Phases 1–7 done. `status: complete`.

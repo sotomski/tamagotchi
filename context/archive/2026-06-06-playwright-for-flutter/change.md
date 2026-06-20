@@ -1,10 +1,10 @@
 ---
 change_id: playwright-for-flutter
 title: Add Playwright e2e tests for Flutter web (next lesson)
-status: impl_reviewed
+status: archived
 created: 2026-06-06
-updated: 2026-06-07
-archived_at: null
+updated: 2026-06-20
+archived_at: 2026-06-20T16:08:24Z
 ---
 
 ## Notes

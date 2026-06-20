@@ -1,10 +1,10 @@
 ---
 change_id: testing-feed-determinism-gate
 title: Feed determinism and accept/refuse gate tests
-status: complete
+status: archived
 created: 2026-06-06
-updated: 2026-06-06
-archived_at: null
+updated: 2026-06-20
+archived_at: 2026-06-20T16:08:24Z
 ---
 
 ## Notes
