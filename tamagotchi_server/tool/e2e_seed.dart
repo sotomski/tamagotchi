@@ -109,59 +109,76 @@ Future<void> _seed(
   // never trips the email-unique or one-creature-per-owner constraints.
   await _teardown(session, email: email, quiet: true);
 
-  // 1. A real auth user — its id IS the `userIdentifier` the JWT carries and the
-  //    value the creature/feed endpoints read as `ownerUuid`.
-  final authUser = await AuthUsers().create(session);
-  final ownerUuid = authUser.id;
+  // All inserts run in one transaction so a mid-seed failure commits nothing —
+  // no orphan rows (an auth user with no creature, etc.) left behind in
+  // `tamagotchi_test`. The in-process exemplar (feed_endpoint_test.dart) gets
+  // this atomicity for free via `withServerpod` rollback; out-of-process we
+  // wrap it explicitly. The auth-module writes and the ORM inserts all accept
+  // the same `Transaction`, so they enlist in one unit of work.
+  final (ownerUuid, creatureId) = await session.db.transaction((
+    transaction,
+  ) async {
+    // 1. A real auth user — its id IS the `userIdentifier` the JWT carries and
+    //    the value the creature/feed endpoints read as `ownerUuid`.
+    final authUser = await AuthUsers().create(
+      session,
+      transaction: transaction,
+    );
+    final ownerUuid = authUser.id;
 
-  // 2. An email/password login for that user. The admin path skips the
-  //    verification-code dance and writes an active account directly; the hash
-  //    uses the shared `emailSecretHashPepper`, so the e2e server's login check
-  //    (same pepper) verifies it.
-  final admin = EmailIdpAdmin(
-    utils: EmailIdpUtils(config: EmailIdpConfigFromPasswords()),
-  );
-  await admin.createEmailAuthentication(
-    session,
-    authUserId: ownerUuid,
-    email: email,
-    password: password,
-  );
+    // 2. An email/password login for that user. The admin path skips the
+    //    verification-code dance and writes an active account directly; the hash
+    //    uses the shared `emailSecretHashPepper`, so the e2e server's login check
+    //    (same pepper) verifies it.
+    final admin = EmailIdpAdmin(
+      utils: EmailIdpUtils(config: EmailIdpConfigFromPasswords()),
+    );
+    await admin.createEmailAuthentication(
+      session,
+      authUserId: ownerUuid,
+      email: email,
+      password: password,
+      transaction: transaction,
+    );
 
-  // 3. The hungry creature + its 1:1 personality, owned by that user (mirrors
-  //    feed_endpoint_test.dart's `_seedCreature`, but for a real out-of-process
-  //    DB and a real owner).
-  final creature = await Creature.db.insertRow(
-    session,
-    Creature(
-      ownerUuid: ownerUuid,
-      name: name,
-      hunger: hunger,
-      energy: 100,
-      love: 50,
-      illness: 0,
-    ),
-  );
-  await CreaturePersonality.db.insertRow(
-    session,
-    CreaturePersonality(
-      creatureId: creature.id!,
-      hungerDecayMod: 1.0,
-      hungerRegenMod: 1.0,
-      energyDecayMod: 1.0,
-      energyRegenMod: 1.0,
-      loveDecayMod: 1.0,
-      loveRegenMod: 1.0,
-      illnessDecayMod: 1.0,
-      illnessRegenMod: 1.0,
-    ),
-  );
+    // 3. The hungry creature + its 1:1 personality, owned by that user (mirrors
+    //    feed_endpoint_test.dart's `_seedCreature`, but for a real out-of-process
+    //    DB and a real owner).
+    final creature = await Creature.db.insertRow(
+      session,
+      Creature(
+        ownerUuid: ownerUuid,
+        name: name,
+        hunger: hunger,
+        energy: 100,
+        love: 50,
+        illness: 0,
+      ),
+      transaction: transaction,
+    );
+    await CreaturePersonality.db.insertRow(
+      session,
+      CreaturePersonality(
+        creatureId: creature.id!,
+        hungerDecayMod: 1.0,
+        hungerRegenMod: 1.0,
+        energyDecayMod: 1.0,
+        energyRegenMod: 1.0,
+        loveDecayMod: 1.0,
+        loveRegenMod: 1.0,
+        illnessDecayMod: 1.0,
+        illnessRegenMod: 1.0,
+      ),
+      transaction: transaction,
+    );
+    return (ownerUuid, creature.id!);
+  });
 
   // Machine-readable summary (a wrapper can grep this to thread the credentials
   // into `patrol test --dart-define=…`).
   stdout.writeln(
     'seeded email=$email password=$password '
-    'authUserId=$ownerUuid creatureId=${creature.id} '
+    'authUserId=$ownerUuid creatureId=$creatureId '
     'name=$name hunger=$hunger',
   );
 }

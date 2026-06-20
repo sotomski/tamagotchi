@@ -41,17 +41,25 @@ bool _isLocalDevMode(String runMode) =>
 /// Flutter web build expects (test.yaml uses a dynamic port 0), and (2) stamps
 /// `runMode` as `e2e` so [_isLocalDevMode] enables the no-mailer dev-auth
 /// conveniences. DB + peppers are inherited from `test`.
+///
+/// The overlay is gated on the booted base mode being `test`: stamping `e2e`
+/// onto staging/production would silently weaken auth (fixed code + no mailer)
+/// against real secrets, so a stray `TAMAGOTCHI_E2E=true` outside `--mode test`
+/// is a no-op rather than a footgun.
 ServerpodConfig Function(ServerpodConfig)? _e2eConfigOverride() {
   if (Platform.environment['TAMAGOTCHI_E2E'] != 'true') return null;
-  return (config) => config.copyWith(
-    runMode: 'e2e',
-    apiServer: ServerConfig(
-      port: 8080,
-      publicHost: 'localhost',
-      publicPort: 8080,
-      publicScheme: 'http',
-    ),
-  );
+  return (config) {
+    if (config.runMode != 'test') return config;
+    return config.copyWith(
+      runMode: 'e2e',
+      apiServer: ServerConfig(
+        port: 8080,
+        publicHost: 'localhost',
+        publicPort: 8080,
+        publicScheme: 'http',
+      ),
+    );
+  };
 }
 
 /// The starting point of the Serverpod server.
