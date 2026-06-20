@@ -27,12 +27,12 @@ The MVP exists to test whether AI-driven personality — coupled to a structured
 
 | ID   | Change ID                              | Outcome (user can …)                                                              | Prerequisites | PRD refs                       | Status   |
 | ---- | -------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ------------------------------ | -------- |
-| F-01 | `frontend-state-mgmt-routing-scaffold` | (foundation) Riverpod + router scaffold replaces the bootstrap counter UI         | —             | NFR-1                          | impl_reviewed |
+| F-01 | `frontend-state-mgmt-routing-scaffold` | (foundation) Riverpod + router scaffold replaces the bootstrap counter UI         | —             | NFR-1                          | done |
 | F-02 | `llm-client-prompt-surface`            | (foundation) Server-side LLM client + prompt with last-10 journal entries (FR-009) | —             | FR-009                         | folded → S-03 |
-| S-01 | `signed-in-empty-creature-view`        | sign in (email+password) and land on a "no creature yet" home                     | F-01          | FR-001                         | deferred |
-| S-02 | `hatch-creature-and-view-stats`        | hatch a creature with randomized traits and see its current stats + mood          | S-01          | US-01, FR-002, FR-003          | implemented |
-| S-03 | `feed-with-personality-response`       | Feed the creature once and receive a personality-driven response + journal entry  | S-02 (+F-02 folded in) | US-01, FR-004, FR-009, FR-011  | impl_reviewed |
-| S-04 | `pet-with-personality-response`        | Pet the creature and receive a personality-driven response + journal entry        | S-03          | FR-005                         | proposed |
+| S-01 | `signed-in-empty-creature-view`        | sign in (email+password) and land on a "no creature yet" home                     | F-01          | FR-001                         | done |
+| S-02 | `hatch-creature-and-view-stats`        | hatch a creature with randomized traits and see its current stats + mood          | S-01          | US-01, FR-002, FR-003          | done |
+| S-03 | `feed-with-personality-response`       | Feed the creature once and receive a personality-driven response + journal entry  | S-02 (+F-02 folded in) | US-01, FR-004, FR-009, FR-011  | done |
+| S-04 | `pet-with-personality-response`        | Pet the creature and receive a personality-driven response + journal entry        | S-03          | FR-005                         | done |
 | S-05 | `cure-the-creature`                    | Cure the creature when sick, regardless of energy                                 | S-03          | FR-006                         | proposed |
 | S-06 | `empty-energy-gate`                    | hit the empty-energy gate and receive a pre-written exhausted line (no AI call)   | S-03          | FR-007                         | proposed |
 | S-07 | `real-time-stat-decay`                 | leave and return to see stats decayed (with a floor) and energy regenerated       | S-02          | FR-008                         | proposed |
@@ -74,7 +74,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** introducing state management plus routing upfront costs one slice with no user-visible outcome; the payoff is consistent state and navigation across every later slice. The alternative (let each slice grow its own pattern) is the failure mode this foundation exists to prevent.
-- **Status:** impl_reviewed (change folder `frontend-state-mgmt-routing-scaffold`; implemented + reviewed, not yet archived)
+- **Status:** done
 
 ### F-02: LLM client + prompt-rendering surface
 
@@ -102,7 +102,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** the auth scaffold already exists (`emailIdp.*` endpoints, `serverpod_auth_idp_flutter` wired) and `SignInScreen` is commented out in `main.dart:70–76`. The slice is mostly wiring + a route guard + an empty-state home — the lowest-cost first vertical slice on the way to the north star.
-- **Status:** deferred (change folder `signed-in-empty-creature-view`; Phases 1–6 committed, Phase 7 EmailLabs sender-auth + DNS blocked on `codecreations.eu` DNS access, ETA unknown)
+- **Status:** done
 
 ### S-02: Hatch a creature and view its stats
 
@@ -115,7 +115,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Trait constraint guardrails — should personality randomization have constraints to prevent degenerate combos (all-max, all-min)? Owner: user. Block: no. (PRD §Open Questions #1; acknowledged risk for MVP, tune if play-testing surfaces unplayable creatures.)
 - **Risk:** this slice fixes the data model for creature + journal. Now that ORQ-1 has resolved to "last-10 narrative entries, semantic search as a future AI tool", the journal model is a plain timestamp + narrative-prose + state-change record — no vector column needed at hatch time. A future post-MVP slice can add a vector column + ANN index without disturbing the data this slice produces.
-- **Status:** implemented (change folder `hatch-creature-and-view-stats`; merged as commit `0c8b910` / #8)
+- **Status:** done
 
 ### S-03: Feed the creature once and get a personality-driven response (NORTH STAR)
 
@@ -130,7 +130,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - ~~Streaming vs single-block response~~ — **Resolved: single-block structured response + a loading animation** (NFR-1 satisfied for a two-field payload; full-refusals make no LLM call). Token streaming deferred.
   - ~~Pickiness probability function `P(reject) = f(picky, hunger)`~~ — **Resolved: `P(reject) = pickyFactor · (1 − hunger/100) · (1 − tastiness)`** where `pickyFactor = 1.5 − hungerDecayMod` (derived, no new trait) and `tastiness` is a per-feed `rng.nextDouble()`. Drawn under a seeded `Random` in fixed order (tastiness, then the reject roll) for reproducible tests.
 - **Risk:** north star — the slice that validates the entire product hypothesis. The *riskiest assumption* (that AI responses feel uniquely in-character given the chosen prompt + model + memory window) is tested here. Folding F-02 in raises the slice's surface area (LLM wiring + Feed + random gate in one change), mitigated by the `LlmService` interface + seeded-RNG seam so the deterministic layer is testable against stubs without a live model. Mitigation: scope to one interaction (Feed) only; defer Pet / Cure to follow-on slices so the prompt + response shape can iterate without coupling.
-- **Status:** impl_reviewed (change folder `feed-with-personality-response`; all 4 phases implemented, then `/10x-impl-review` run 2026-06-05 — review fix F3 applied, findings F1 (no Mistral HTTP timeout) and F2 (raw upstream body in logs) consciously deferred as follow-ups). Local PR-check parity green (analyze / format / 54 server tests / flutter analyze+format+15 tests); **PR #9 merged to `main` 2026-06-05** (merge commit `0617265`; not yet `/10x-archive`d). Decisions realized: Mistral `mistral-small-2603` via REST behind `LlmService`; pickiness *derived* from `hungerDecayMod` (no schema change / no new `picky` field); accept/refuse gate driven by a seeded `Random`; LLM + RNG injected through one production-default `feedServiceFactory` seam (not `@visibleForTesting`); single-block response + loading animation (streaming deferred). `mistralApiKey` provisioned on scloud as `SERVERPOD_PASSWORD_mistralApiKey`.)
+- **Status:** done
 
 ### S-04: Pet the creature and get a personality-driven response
 
@@ -142,7 +142,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** depends on S-03's LLM-call shape being right; if S-03's prompt schema needs rework, S-04 inherits the cost. Mitigation: ship S-03 first, iterate to a working prompt, then S-04 reuses the validated surface.
-- **Status:** proposed
+- **Status:** done
 
 ### S-05: Cure the creature when sick
 
@@ -213,7 +213,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | ---------- | -------------------------------------- | -------------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------- |
 | F-01       | `frontend-state-mgmt-routing-scaffold` | Frontend state management + routing scaffold                   | yes                   | No prereqs, no blocking unknowns. Run `/10x-plan frontend-state-mgmt-routing-scaffold`. |
 | F-02       | `llm-client-prompt-surface`            | LLM client + prompt-rendering surface (FR-009)                 | n/a                   | Folded into S-03 (2026-06-05) — no standalone change. Mistral `mistral-small-2603` client + prompt surface built inside `feed-with-personality-response`. |
-| S-01       | `signed-in-empty-creature-view`        | Signed-in empty-creature view (FR-001)                         | n/a                   | Past planning — Phases 1–6 committed; **deferred**, Phase 7 EmailLabs sender-auth blocked on `codecreations.eu` DNS access (ETA unknown). |
+| S-01       | `signed-in-empty-creature-view`        | Signed-in empty-creature view (FR-001)                         | done                  | **Shipped & archived 2026-06-20.** All 7 phases done; prod register→email→login→home→logout acceptance passed (EmailLabs over 443, DNS verified). |
 | S-02       | `hatch-creature-and-view-stats`        | Hatch creature + view stats (US-01 partial, FR-002, FR-003)    | done                  | **Shipped: merged commit `0c8b910` / #8.** Journal schema landed (ORQ-1 resolved to last-10). |
 | S-03       | `feed-with-personality-response`       | Feed + personality response + journal (US-01, FR-004, FR-009)  | done                  | NORTH STAR — **shipped: PR #9 merged to `main` 2026-06-05** (impl + impl-reviewed; awaiting `/10x-archive`). F-02 folded in (LLM surface built here). Follow-ups: F1 (Mistral HTTP timeout), F2 (truncate upstream body in logs). |
 | S-04       | `pet-with-personality-response`        | Pet + personality response (FR-005)                            | yes                   | S-03 shipped (#9) — prereq met. Run `/10x-plan pet-with-personality-response`. Reuses S-03's `LlmService` + prompt surface. |
@@ -244,3 +244,9 @@ _None currently open._
 ## Done
 
 (Empty on first generation. `/10x-archive` appends entries here — and flips that item's `Status` to `done` — when a change whose `Change ID` matches a roadmap item is archived.)
+
+- **S-03: user Feeds the creature; receives a personality-shaped, in-character AI response; the journal gains a narrative prose entry produced in the same call; stats update per FR-004's energy-cost + personality-modifier rules.** — Archived 2026-06-20 → `context/archive/2026-06-05-feed-with-personality-response/`. Lesson: —.
+- **F-01: (foundation) Riverpod (or equivalent) plus GoRouter (or equivalent) scaffold replaces the bootstrap counter UI in `main.dart`; subsequent feature slices can each ship a screen + state container without re-arguing the framework.** — Archived 2026-06-20 → `context/archive/2026-05-30-frontend-state-mgmt-routing-scaffold/`. Lesson: —.
+- **S-02: user can hatch one creature (randomized personality traits as continuous values) and see hunger / energy / love / illness plus a derived mood. Stats are mechanical at this point — no AI involved yet.** — Archived 2026-06-20 → `context/archive/2026-06-05-hatch-creature-and-view-stats/`. Lesson: —.
+- **S-04: user Pets the creature; receives a personality-shaped response (introvert / extravert modifier per FR-005); love stat increases; journal gains an entry.** — Archived 2026-06-20 → `context/archive/2026-06-20-pet-with-personality-response/`. Lesson: —.
+- **S-01: user can sign in with email+password and land on a "no creature yet — hatch one" home screen.** — Archived 2026-06-20 → `context/archive/2026-06-04-signed-in-empty-creature-view/`. Lesson: —.

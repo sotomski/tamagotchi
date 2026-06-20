@@ -1,10 +1,10 @@
 ---
 change_id: pet-with-personality-response
 title: Pet the creature and receive a personality-driven response + journal entry
-status: implemented
+status: archived
 created: 2026-06-20
 updated: 2026-06-20
-archived_at: null
+archived_at: 2026-06-20T16:08:24Z
 ---
 
 ## Notes

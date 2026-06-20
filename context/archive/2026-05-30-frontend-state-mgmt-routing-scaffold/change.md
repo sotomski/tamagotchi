@@ -1,10 +1,10 @@
 ---
 change_id: frontend-state-mgmt-routing-scaffold
 title: Frontend state management + routing scaffold (Riverpod codegen + go_router)
-status: impl_reviewed
+status: archived
 created: 2026-05-30
-updated: 2026-05-30
-archived_at: null
+updated: 2026-06-20
+archived_at: 2026-06-20T16:08:24Z
 ---
 
 ## Notes

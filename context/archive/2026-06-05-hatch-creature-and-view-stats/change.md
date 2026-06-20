@@ -1,10 +1,10 @@
 ---
 change_id: hatch-creature-and-view-stats
 title: Hatch a creature and view its stats
-status: implemented
+status: archived
 created: 2026-06-05
-updated: 2026-06-05
-archived_at: null
+updated: 2026-06-20
+archived_at: 2026-06-20T16:08:24Z
 ---
 
 ## Notes
