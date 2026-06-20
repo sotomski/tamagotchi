@@ -1,8 +1,10 @@
 ### Per-stat decay/regen modifiers, randomized at hatch and inert until S-07.
 ### Stored 1:1 with the creature. Multipliers around a 1.0 baseline; the
 ### randomization range (0.5-1.5) is applied in creature_service.dart, not here.
-### Interaction modifiers (picky/gluttonous, introvert/extravert) are out of
-### scope and added additively in S-03/S-04.
+### Love is a single-dial axis: `loveRegenMod` alone encodes the
+### introvert↔extravert sociability axis (S-04 Play derives love gain + energy
+### cost from it), so there is no `loveDecayMod`. The other three stats keep both
+### decay and regen mods for S-07.
 class: CreaturePersonality
 table: creature_personality
 fields:
@@ -14,7 +16,6 @@ fields:
   hungerRegenMod: double
   energyDecayMod: double
   energyRegenMod: double
-  loveDecayMod: double
   loveRegenMod: double
   illnessDecayMod: double
   illnessRegenMod: double

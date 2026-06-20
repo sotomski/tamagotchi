@@ -144,19 +144,18 @@ void main() {
   });
 
   group('randomPersonalityModifiers', () {
-    test('returns eight modifiers all within the 0.5-1.5 range', () {
+    test('returns seven modifiers all within the 0.5-1.5 range', () {
       final mods = randomPersonalityModifiers(Random(1));
       final values = [
         mods.hungerDecayMod,
         mods.hungerRegenMod,
         mods.energyDecayMod,
         mods.energyRegenMod,
-        mods.loveDecayMod,
         mods.loveRegenMod,
         mods.illnessDecayMod,
         mods.illnessRegenMod,
       ];
-      expect(values, hasLength(8));
+      expect(values, hasLength(7));
       for (final v in values) {
         expect(v, inInclusiveRange(0.5, 1.5));
       }

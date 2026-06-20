@@ -1,0 +1,48 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "creature_personality",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "loveDecayMod"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"loveDecayMod\" of table \"creature_personality\" will be dropped.",
+            "table": "creature_personality",
+            "columns": [
+              "loveDecayMod"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"loveDecayMod\" of table \"creature_personality\" will be dropped.",
+      "table": "creature_personality",
+      "columns": [
+        "loveDecayMod"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

@@ -1,0 +1,8 @@
+### Typed, client-visible failure for the only genuine Play error path: playing
+### when the caller owns no creature. Playing never refuses (it is
+### deterministic), so this is the single failure surface. Mirrors
+### CreatureFeedError so the Flutter client switches on [reason] instead of
+### parsing a message string.
+exception: CreaturePlayError
+fields:
+  reason: CreaturePlayErrorReason
