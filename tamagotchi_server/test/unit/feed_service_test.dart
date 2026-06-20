@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:serverpod/serverpod.dart';
+import 'package:tamagotchi_server/src/creature/creature_service.dart'
+    show clampStat;
 import 'package:tamagotchi_server/src/creature/feed_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:test/test.dart';

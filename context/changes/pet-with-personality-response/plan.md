@@ -411,22 +411,22 @@ One migration this slice: it **drops** the `love_decay_mod` column from `creatur
 ### Phase 1: Unify the love personality axis (remove `loveDecayMod`)
 
 #### Automated
-- [x] 1.1 `dart analyze` clean (excl. generated)
-- [x] 1.2 `serverpod generate` succeeds; `loveDecayMod` absent from generated `CreaturePersonality`
-- [x] 1.3 Migration created dropping `love_decay_mod`; `serverpod run start` applies it cleanly
-- [x] 1.4 Existing server tests pass (`dart test`, unit + integration)
-- [x] 1.5 `dart format --set-exit-if-changed .` passes in `tamagotchi_server/`
+- [x] 1.1 `dart analyze` clean (excl. generated) — 90410bf
+- [x] 1.2 `serverpod generate` succeeds; `loveDecayMod` absent from generated `CreaturePersonality` — 90410bf
+- [x] 1.3 Migration created dropping `love_decay_mod`; `serverpod run start` applies it cleanly — 90410bf
+- [x] 1.4 Existing server tests pass (`dart test`, unit + integration) — 90410bf
+- [x] 1.5 `dart format --set-exit-if-changed .` passes in `tamagotchi_server/` — 90410bf
 
 #### Manual
-- [x] 1.6 Hatch still persists/renders (seven mods, no `loveDecayMod`)
-- [x] 1.7 No stray `loveDecayMod` reference remains (grep, excl. generated)
+- [x] 1.6 Hatch still persists/renders (seven mods, no `loveDecayMod`) — 90410bf
+- [x] 1.7 No stray `loveDecayMod` reference remains (grep, excl. generated) — 90410bf
 
 ### Phase 2: Pet domain math + pet LLM surface + hermetic unit tests
 
 #### Automated
-- [ ] 2.1 Unit tests pass (`dart test test/unit/pet_service_test.dart test/llm/creature_prompt_test.dart`)
-- [ ] 2.2 `dart analyze` clean (excl. generated)
-- [ ] 2.3 `dart format --set-exit-if-changed .` passes in `tamagotchi_server/`
+- [x] 2.1 Unit tests pass (`dart test test/unit/pet_service_test.dart test/llm/creature_prompt_test.dart`)
+- [x] 2.2 `dart analyze` clean (excl. generated)
+- [x] 2.3 `dart format --set-exit-if-changed .` passes in `tamagotchi_server/`
 
 #### Manual
 - [ ] 2.4 `petLoveGain`/`petEnergyCost` across `loveRegenMod` values match intuition

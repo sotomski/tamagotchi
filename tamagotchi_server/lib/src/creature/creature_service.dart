@@ -13,6 +13,12 @@ const _uniqueViolationCode = '23505';
 /// a newborn reads as `content` — bonded over time, not instantly.
 const baselineCreatureStats = (hunger: 0, energy: 100, love: 50, illness: 0);
 
+/// Clamps a raw stat onto the 0-100 scale every creature stat lives on. Shared
+/// by the Feed and Pet domain math (both encode their deltas through it), so it
+/// lives here in the common pure-domain home rather than either interaction's
+/// service.
+int clampStat(int v) => v.clamp(0, 100);
+
 /// The seven per-stat decay/regen multipliers produced at hatch. A plain record
 /// so this logic stays database-free; the endpoint assembles the
 /// [CreaturePersonality] row from it. Love has a single dial (`loveRegenMod`,
