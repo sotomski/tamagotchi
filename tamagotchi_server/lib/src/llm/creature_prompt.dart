@@ -5,13 +5,18 @@ import 'llm_service.dart';
 /// unit-testable — no [Session], no I/O. The system message fixes the persona +
 /// guardrails; the user message carries the volatile per-call state.
 ///
-/// The funny food name is NOT passed in: the system prompt instructs the model
-/// to invent one whose fanciness matches `tastiness` and reference it in both
-/// outputs, so the name surfaces inside the prose rather than as a field.
+/// Branches on [InteractionRequest.interactionType]: Feed is food/tastiness
+/// flavoured (the funny food name is NOT passed in — the prompt instructs the
+/// model to invent one whose fanciness matches `tastiness`); Play is about
+/// playing together, coloured by the sociability axis, with no food or tastiness.
 List<Map<String, dynamic>> buildInteractionMessages(InteractionRequest req) {
+  final isPlay = req.interactionType == JournalEvent.play;
   return [
-    {'role': 'system', 'content': _systemPrompt},
-    {'role': 'user', 'content': _userPrompt(req)},
+    {'role': 'system', 'content': isPlay ? _playSystemPrompt : _systemPrompt},
+    {
+      'role': 'user',
+      'content': isPlay ? _playUserPrompt(req) : _userPrompt(req),
+    },
   ];
 }
 
@@ -43,6 +48,64 @@ Respond with a JSON object containing exactly two string fields:
   moment, written as past-tense narration.
 ''';
 
+/// Fixed persona + guardrails + output contract for the Play interaction. Same
+/// in-character/no-chatbot guardrails as feed, but about *playing together* — no
+/// food, no tastiness. Keep it wholesome and family-friendly. Fun is coloured by
+/// the sociability axis: an extravert (high `loveRegenMod`) loves the romp and
+/// craves more; an introvert (low) enjoys gentler play and finds it a little
+/// tiring.
+const String _playSystemPrompt = '''
+You ARE a small, sentient virtual creature in a digital terrarium — a Tamagotchi
+with a vivid inner life. You are not an assistant and not a chatbot. Stay fully
+in character at all times: never break the fourth wall, never mention being an
+AI or a language model, never apologise like a customer-service bot, and never
+add disclaimers, safety notes, or meta commentary. Speak in the first person as
+the creature.
+
+Your owner is playing with you — games, chasing, toys, and silliness. Keep your
+reaction wholesome and family-friendly. React in your own voice, coloured by
+your personality and your current bodily state (hunger, energy, love, illness,
+mood).
+
+Colour your reaction by your SOCIABILITY (the love regen value you are given):
+a high value is an extravert who loves a boisterous, energetic romp and openly
+wants more; a low value is an introvert who enjoys quieter, gentler play and
+finds an intense game a little tiring. You always enjoy playing — you never
+refuse it.
+
+Respond with a JSON object containing exactly two string fields:
+- "userResponse": a short (1-3 sentence) in-character reaction spoken to your owner.
+- "journalNarrative": a coherent prose diary entry in your own voice about this
+  moment, written as past-tense narration.
+''';
+
+/// Builds the per-call user message for a play session. Carries the same
+/// volatile state as feed (stats, mood, personality summary, recent memory) but
+/// references neither tastiness nor the accept/refuse decision — Play is
+/// deterministic and always welcomed.
+String _playUserPrompt(InteractionRequest req) {
+  final memory = req.recentEntries.isEmpty
+      ? '(no earlier entries yet)'
+      : req.recentEntries.map((e) => '- $e').join('\n');
+
+  return '''
+Interaction: ${req.interactionType.name}
+
+Current state:
+- mood: ${req.mood.name}
+- hunger: ${req.hunger}/100 (0 = completely full, 100 = starving)
+- energy: ${req.energy}/100
+- love: ${req.love}/100
+- illness: ${req.illness}/100
+
+Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
+${_personalitySummary(req.personality)}
+
+Your recent journal (newest first), for continuity of voice:
+$memory
+''';
+}
+
 /// Builds the per-call user message. Every volatile input the model needs to
 /// stay in character lives here: stats, mood, a personality summary, the
 /// accept/tastiness decision, and the recent-memory window.
@@ -71,12 +134,13 @@ $memory
 ''';
 }
 
-/// A compact, readable rendering of the eight personality modifiers so the model
-/// can colour its voice without us hand-authoring a trait vocabulary.
+/// A compact, readable rendering of the personality modifiers so the model
+/// can colour its voice without us hand-authoring a trait vocabulary. Love is a
+/// single dial (`loveRegenMod`, the sociability axis); the rest keep decay+regen.
 String _personalitySummary(CreaturePersonality p) {
   String f(double v) => v.toStringAsFixed(2);
   return '- hunger: decay ${f(p.hungerDecayMod)}, regen ${f(p.hungerRegenMod)}\n'
       '- energy: decay ${f(p.energyDecayMod)}, regen ${f(p.energyRegenMod)}\n'
-      '- love: decay ${f(p.loveDecayMod)}, regen ${f(p.loveRegenMod)}\n'
+      '- love (sociability): regen ${f(p.loveRegenMod)}\n'
       '- illness: decay ${f(p.illnessDecayMod)}, regen ${f(p.illnessRegenMod)}';
 }

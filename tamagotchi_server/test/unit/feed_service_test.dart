@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:serverpod/serverpod.dart';
+import 'package:tamagotchi_server/src/creature/creature_service.dart'
+    show clampStat;
 import 'package:tamagotchi_server/src/creature/feed_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:test/test.dart';
@@ -35,7 +37,6 @@ CreaturePersonality _personality(double hungerDecayMod) => CreaturePersonality(
   hungerRegenMod: 1.0,
   energyDecayMod: 1.0,
   energyRegenMod: 1.0,
-  loveDecayMod: 1.0,
   loveRegenMod: 1.0,
   illnessDecayMod: 1.0,
   illnessRegenMod: 1.0,

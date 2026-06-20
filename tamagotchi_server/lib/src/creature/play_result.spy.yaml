@@ -1,0 +1,16 @@
+### The Play interaction outcome returned to the client: the in-character user
+### response plus the post-play creature+mood so the client renders without a
+### second fetch. Non-table — computed per call, never persisted (like
+### CreatureStatus / StatDelta / FeedResult).
+###
+### No `accepted` field: playing is deterministic and always succeeds
+### (`prd.md:39`). The shared two-interaction UI supplies `accepted: true` for
+### Play itself.
+class: PlayResult
+fields:
+  ### The user-facing, in-character response (LLM-generated, or canned play copy
+  ### on a model-failure degrade).
+  userResponse: String
+  ### The creature's post-play status: updated stats (love up, energy down) plus
+  ### a freshly re-derived mood.
+  status: CreatureStatus

@@ -3,6 +3,7 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 
 import '../app/client_provider.dart';
 import 'creature_provider.dart';
+import 'last_interaction.dart';
 
 part 'feed_controller.g.dart';
 
@@ -26,6 +27,9 @@ class FeedController extends _$FeedController {
     state = await AsyncValue.guard(() async {
       final result = await ref.read(serverpodClientProvider).creature.feed();
       ref.invalidate(creatureProvider);
+      ref
+          .read(lastInteractionProvider.notifier)
+          .set(userResponse: result.userResponse, accepted: result.accepted);
       return result;
     });
   }

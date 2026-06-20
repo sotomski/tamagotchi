@@ -10,6 +10,8 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'package:tamagotchi_flutter/creature/creature_provider.dart';
 import 'package:tamagotchi_flutter/creature/feed_controller.dart';
 import 'package:tamagotchi_flutter/creature/hatch_controller.dart';
+import 'package:tamagotchi_flutter/creature/last_interaction.dart';
+import 'package:tamagotchi_flutter/creature/play_controller.dart';
 import 'package:tamagotchi_flutter/home/home_screen.dart';
 
 /// A canned creature status for the "present" states. Stats default to a
@@ -74,9 +76,10 @@ FeedResult _feedResult({
 );
 
 /// A [FeedController] that records calls and, instead of an RPC, publishes a
-/// canned [FeedResult] from [_feedResultSeam] and (if set) flips [_creatureSeam]
-/// to the post-feed status — exercising the real button/loading/response UI
-/// without a server (lesson #2).
+/// canned [FeedResult] from [_feedResultSeam], writes the shared
+/// [lastInteractionProvider] (mirroring the real controller), and (if set) flips
+/// [_creatureSeam] to the post-feed status — exercising the real
+/// button/loading/response UI without a server (lesson #2).
 class _FakeFeedController extends FeedController {
   int calls = 0;
 
@@ -85,7 +88,13 @@ class _FakeFeedController extends FeedController {
     calls++;
     final post = ref.read(_postFeedSeam);
     if (post != null) ref.read(_creatureSeam.notifier).state = post;
-    state = AsyncData(ref.read(_feedResultSeam));
+    final result = ref.read(_feedResultSeam);
+    if (result != null) {
+      ref
+          .read(lastInteractionProvider.notifier)
+          .set(userResponse: result.userResponse, accepted: result.accepted);
+    }
+    state = AsyncData(result);
   }
 }
 
@@ -94,6 +103,49 @@ class _FakeFeedController extends FeedController {
 class _LoadingFeedController extends FeedController {
   @override
   Future<void> feed() async {
+    state = const AsyncLoading();
+    await Completer<void>().future;
+  }
+}
+
+/// What [_FakePlayController.play] publishes: the canned outcome it sets as its own
+/// state, and (optionally) a post-play status to flip [_creatureSeam] to.
+final _playResultSeam = StateProvider<PlayResult?>((ref) => null);
+final _postPlaySeam = StateProvider<CreatureStatus?>((ref) => null);
+
+PlayResult _playResult({
+  required String userResponse,
+  CreatureStatus? status,
+}) => PlayResult(userResponse: userResponse, status: status ?? _status());
+
+/// A [PlayController] that records calls and, instead of an RPC, publishes a
+/// canned [PlayResult] from [_playResultSeam], writes the shared
+/// [lastInteractionProvider] (`accepted: true` — Play never refuses), and (if
+/// set) flips [_creatureSeam] to the post-play status — the Play analogue of
+/// [_FakeFeedController] (lesson #2).
+class _FakePlayController extends PlayController {
+  int calls = 0;
+
+  @override
+  Future<void> play() async {
+    calls++;
+    final post = ref.read(_postPlaySeam);
+    if (post != null) ref.read(_creatureSeam.notifier).state = post;
+    final result = ref.read(_playResultSeam);
+    if (result != null) {
+      ref
+          .read(lastInteractionProvider.notifier)
+          .set(userResponse: result.userResponse, accepted: true);
+    }
+    state = AsyncData(result);
+  }
+}
+
+/// A [PlayController] stuck in flight: `play()` enters loading and never resolves,
+/// so the playing animation stays up under a single `pump()`.
+class _LoadingPlayController extends PlayController {
+  @override
+  Future<void> play() async {
     state = const AsyncLoading();
     await Completer<void>().future;
   }
@@ -213,21 +265,27 @@ void main() {
     expect(fake.calls, 0);
   });
 
-  testWidgets('a present creature shows a Feed button (no response yet)', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [creatureProvider.overrideWith((ref) => _status())],
-        child: const MaterialApp(home: HomeScreen()),
-      ),
-    );
-    await tester.pumpAndSettle();
+  testWidgets(
+    'a present creature shows Feed and Play buttons (no response yet)',
+    (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [creatureProvider.overrideWith((ref) => _status())],
+          child: const MaterialApp(home: HomeScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(ElevatedButton, 'Feed'), findsOneWidget);
-    // No feed attempted yet → no loading, no response bubble.
-    expect(find.text('Feeding…'), findsNothing);
-  });
+      expect(find.widgetWithText(ElevatedButton, 'Feed'), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Play with'), findsOneWidget);
+      // No interaction attempted yet → no loading, no response bubble.
+      expect(find.text('Feeding…'), findsNothing);
+      expect(find.text('Playing…'), findsNothing);
+      expect(find.byKey(const Key('interactionResponse')), findsNothing);
+    },
+  );
 
   testWidgets('tapping Feed calls the controller and renders the accepted '
       'response', (tester) async {
@@ -343,5 +401,136 @@ void main() {
     // Post-feed hunger replaced it.
     expect(find.text('50'), findsOneWidget);
     expect(find.text('80'), findsNothing);
+  });
+
+  testWidgets('tapping Play calls the controller and renders the response in '
+      'the shared area', (tester) async {
+    final fake = _FakePlayController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status()),
+          playControllerProvider.overrideWith(() => fake),
+          _playResultSeam.overrideWith(
+            (ref) => _playResult(
+              userResponse: 'Wheee! Chase me again, that was the best game!',
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Nothing rendered before the tap.
+    expect(find.textContaining('best game'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Play with'));
+    await tester.pumpAndSettle();
+
+    expect(fake.calls, 1);
+    // Play is always accepted → normal styling, rendered in the shared area.
+    final response = find.textContaining('best game');
+    expect(response, findsOneWidget);
+    expect(
+      tester.widget<Text>(response).style?.fontStyle,
+      isNot(FontStyle.italic),
+    );
+    expect(find.byKey(const Key('interactionResponse')), findsOneWidget);
+    // Both buttons stay for another interaction.
+    expect(find.widgetWithText(ElevatedButton, 'Play with'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Feed'), findsOneWidget);
+  });
+
+  testWidgets('a play in flight shows the playing animation in place of the '
+      'buttons', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status()),
+          playControllerProvider.overrideWith(_LoadingPlayController.new),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Play with'));
+    // Single pump — the play never completes; loading must already be visible.
+    await tester.pump();
+
+    expect(find.text('Playing…'), findsOneWidget);
+    expect(find.byKey(const Key('playingIndicator')), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Play with'), findsNothing);
+    expect(find.widgetWithText(ElevatedButton, 'Feed'), findsNothing);
+  });
+
+  testWidgets('the most-recent interaction wins the shared response area', (
+    tester,
+  ) async {
+    final feedFake = _FakeFeedController();
+    final playFake = _FakePlayController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status()),
+          feedControllerProvider.overrideWith(() => feedFake),
+          playControllerProvider.overrideWith(() => playFake),
+          _feedResultSeam.overrideWith(
+            (ref) => _feedResult(accepted: true, userResponse: 'Nom nom!'),
+          ),
+          _playResultSeam.overrideWith(
+            (ref) => _playResult(userResponse: 'Wheee, again!'),
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Play first → its response shows.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Play with'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Wheee'), findsOneWidget);
+    expect(find.textContaining('Nom nom'), findsNothing);
+
+    // Then Feed → the feed response replaces it (most-recent wins).
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Feed'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Nom nom'), findsOneWidget);
+    expect(find.textContaining('Wheee'), findsNothing);
+  });
+
+  testWidgets('stats refresh after a successful play', (tester) async {
+    final fake = _FakePlayController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => ref.watch(_creatureSeam)),
+          _creatureSeam.overrideWith((ref) => _status(love: 40, energy: 90)),
+          playControllerProvider.overrideWith(() => fake),
+          _playResultSeam.overrideWith(
+            (ref) => _playResult(userResponse: 'Wheee, again!'),
+          ),
+          // The fake flips _creatureSeam to this post-play status, mirroring the
+          // real invalidate(creatureProvider): love up, energy down.
+          _postPlaySeam.overrideWith((ref) => _status(love: 55, energy: 86)),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Pre-play love/energy.
+    expect(find.text('40'), findsOneWidget);
+    expect(find.text('90'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Play with'));
+    await tester.pumpAndSettle();
+
+    // Post-play love/energy replaced them.
+    expect(find.text('55'), findsOneWidget);
+    expect(find.text('86'), findsOneWidget);
+    expect(find.text('40'), findsNothing);
   });
 }
