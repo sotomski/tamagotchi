@@ -5,13 +5,15 @@
     "workspaceFolder": "/workspaces/nabrudno",
     "remoteUser": "vscode",
     "features": {
-        "ghcr.io/devcontainers/features/node:1": {},
+        "ghcr.io/devcontainers/features/node:1": { "version": "24.15.0" },
         "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
         "ghcr.io/devcontainers/features/github-cli:1": {}
     },
     "remoteEnv": {
-        "PATH": "/home/vscode/flutter/bin:/home/vscode/flutter/bin/cache/dart-sdk/bin:/home/vscode/.pub-cache/bin:${containerEnv:PATH}"
+        "PATH": "/home/vscode/flutter/bin:/home/vscode/flutter/bin/cache/dart-sdk/bin:/home/vscode/.pub-cache/bin:${containerEnv:PATH}",
+        "CHROME_EXECUTABLE": "/home/vscode/.cache/flutter-chrome",
+        "PATROL_WEB_LOCALE": "en-US"
     },
     "forwardPorts": [8080, 8081, 8082, 8090],
-    "postCreateCommand": "flutter doctor || true && lefthook install"
+    "postCreateCommand": "git config --global --add safe.directory /workspaces/nabrudno && export PATH=/home/vscode/flutter/bin:/home/vscode/.pub-cache/bin:/usr/local/share/nvm/current/bin:$PATH && flutter pub get && flutter doctor || true && lefthook install && npx --yes playwright install --with-deps chromium && mkdir -p /home/vscode/.cache && ln -sf \"$(ls -d /home/vscode/.cache/ms-playwright/chromium-*/chrome-linux*/chrome | sort -V | tail -1)\" /home/vscode/.cache/flutter-chrome"
 }

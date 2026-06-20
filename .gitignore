@@ -36,3 +36,5 @@ lefthook-local.yml
 !/.claude/skills/10x-*/
 # Dart skills CLI registry clone cache (regenerated on `skills get`).
 /.dart_skills/repos/
+# Per-session scheduler lock — machine/session-local runtime state, not source.
+/.claude/scheduled_tasks.lock
