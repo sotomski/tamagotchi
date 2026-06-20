@@ -33,6 +33,11 @@
 
 # Web related
 
+# patrol web e2e — generated test entrypoint + run artifacts (never committed)
+/test_bundle.dart
+/playwright-report/
+/test-results/
+
 # Symbolization related
 app.*.symbols
 

@@ -43,3 +43,17 @@ Background stat decay (FR-008) fits Serverpod's future-call API; no Redis is
 needed under the single-instance topology. Bootstrapper confidence is best-effort
 because no Serverpod card exists in the registry, but the project is already
 scaffolded so the bootstrapper does not run.
+
+## Test layer
+
+The classic test base is documented in `test-plan.md §4`. Browser-level e2e was
+added by the `playwright-for-flutter` change to harden the shipped S-03 Feed
+slice; raw Playwright was rejected because patrol drives the **Flutter widget
+tree**, sidestepping CanvasKit's opaque shadow DOM.
+
+| Tool | Role | Version | checked |
+|------|------|---------|---------|
+| `patrol` | e2e runner — builds + serves the Flutter web app and drives headless Chromium via its bundled Playwright. One risk-tied test (a Feed mutation survives a page reload). Local-only; CI deferred. | patrol ^4.6.1, patrol_cli 4.4.0 | 2026-06-07 |
+| `marionette_flutter` + `marionette_mcp` | AI exploration assist — an MCP agent drives a *debug* build to inspect/tap/screenshot for authoring. Not the supported e2e path; binding wired under `kDebugMode`, and its VM-service-over-DWDS connect isn't exercisable in the headless devcontainer. | 0.5.0 | 2026-06-07 |
+
+Full recipe: `test-plan.md §6.7`.

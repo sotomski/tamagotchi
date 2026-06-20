@@ -57,6 +57,7 @@ class _HatchFormState extends ConsumerState<HatchForm> {
             ),
             const SizedBox(height: 16),
             TextField(
+              key: const Key('hatchNameField'),
               controller: _nameController,
               enabled: !isLoading,
               decoration: InputDecoration(
@@ -69,9 +70,10 @@ class _HatchFormState extends ConsumerState<HatchForm> {
             ),
             const SizedBox(height: 16),
             if (isLoading)
-              const CircularProgressIndicator()
+              const CircularProgressIndicator(key: Key('hatchingIndicator'))
             else
               ElevatedButton(
+                key: const Key('hatchButton'),
                 onPressed: _submit,
                 child: const Text('Hatch'),
               ),

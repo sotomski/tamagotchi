@@ -17,21 +17,74 @@ import 'src/web/routes/root.dart';
 /// uses that random default and delivers it by email.
 const _devRegistrationVerificationCode = '12345678';
 
+/// Run modes that behave like local development for the no-mailer conveniences:
+/// the fixed registration verification code and the log-only email send-callbacks.
+///
+/// `development` is the everyday local mode; `e2e` is the identity the patrol
+/// browser tests boot under — a `test`-mode overlay (see [_e2eConfigOverride]).
+/// e2e sign-up must complete without a real mailer, so it gets the same fixed
+/// code + log-only callbacks. Every other run mode (test/staging/production)
+/// keeps the secure random code delivered over EmailLabs.
+bool _isLocalDevMode(String runMode) =>
+    runMode == 'development' || runMode == 'e2e';
+
+/// When the `TAMAGOTCHI_E2E` env flag is set, returns a config transform that
+/// turns the booted `test` run mode into the `e2e` identity the patrol browser
+/// tests need; otherwise null, so the normal config is used unchanged.
+///
+/// Serverpod 3.x has no first-class custom run mode — the CLI `--mode` enum is
+/// development/test/staging/production — so `e2e` is realised as a thin overlay
+/// on `test`. The patrol tests boot `--mode test`, which loads the hermetic
+/// `test:` passwords (no `mistralApiKey`, so `llmServiceFor` returns the
+/// deterministic StubLlmService) and points at the `tamagotchi_test` database.
+/// This override then (1) pins the apiServer to the fixed :8080 the patrol-served
+/// Flutter web build expects (test.yaml uses a dynamic port 0), and (2) stamps
+/// `runMode` as `e2e` so [_isLocalDevMode] enables the no-mailer dev-auth
+/// conveniences. DB + peppers are inherited from `test`.
+///
+/// The overlay is gated on the booted base mode being `test`: stamping `e2e`
+/// onto staging/production would silently weaken auth (fixed code + no mailer)
+/// against real secrets, so a stray `TAMAGOTCHI_E2E=true` outside `--mode test`
+/// is a no-op rather than a footgun.
+ServerpodConfig Function(ServerpodConfig)? _e2eConfigOverride() {
+  if (Platform.environment['TAMAGOTCHI_E2E'] != 'true') return null;
+  return (config) {
+    if (config.runMode != 'test') return config;
+    return config.copyWith(
+      runMode: 'e2e',
+      apiServer: ServerConfig(
+        port: 8080,
+        publicHost: 'localhost',
+        publicPort: 8080,
+        publicScheme: 'http',
+      ),
+    );
+  };
+}
+
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
-  // Initialize Serverpod and connect it with your generated code.
-  final pod = Serverpod(args, Protocol(), Endpoints());
+  // Initialize Serverpod and connect it with your generated code. The
+  // `configOverride` is the seam for the `e2e` run mode (patrol browser tests) —
+  // null in every normal boot. See [_e2eConfigOverride].
+  final pod = Serverpod(
+    args,
+    Protocol(),
+    Endpoints(),
+    configOverride: _e2eConfigOverride(),
+  );
 
   // Initialize authentication services for the server.
   // Token managers will be used to validate and issue authentication keys,
   // and the identity providers will be the authentication options available for users.
   //
-  // In `development` run mode we override the registration verification code with a
-  // fixed value (`_devRegistrationVerificationCode`) so sign-up can be completed in
-  // the UI without a real mailer — `_sendRegistrationCode` just logs the code. Every
-  // other run mode omits the override and keeps the package default (a secure random
-  // 8-character code), which the registration send-callback delivers to the user.
-  final emailIdpConfig = pod.runMode == 'development'
+  // In local-dev run modes (`development` + `e2e`) we override the registration
+  // verification code with a fixed value (`_devRegistrationVerificationCode`) so
+  // sign-up can be completed in the UI / browser tests without a real mailer —
+  // `_sendRegistrationCode` just logs the code. Every other run mode omits the
+  // override and keeps the package default (a secure random 8-character code),
+  // which the registration send-callback delivers to the user.
+  final emailIdpConfig = _isLocalDevMode(pod.runMode)
       ? EmailIdpConfigFromPasswords(
           sendRegistrationVerificationCode: _sendRegistrationCode,
           sendPasswordResetVerificationCode: _sendPasswordResetCode,
@@ -107,10 +160,11 @@ Future<void> _sendRegistrationCode(
   required String verificationCode,
   required Transaction? transaction,
 }) async {
-  // In `development` no email is sent: just log the (static) code so it can be
-  // entered manually in the UI. Every other run mode delivers the random default
-  // code over EmailLabs (new_sendmail REST over 443).
-  if (session.serverpod.runMode == 'development') {
+  // In local-dev run modes (`development` + `e2e`) no email is sent: just log the
+  // (static) code so it can be entered manually in the UI / by browser tests.
+  // Every other run mode delivers the random default code over EmailLabs
+  // (new_sendmail REST over 443).
+  if (_isLocalDevMode(session.serverpod.runMode)) {
     session.log('[EmailIdp] Registration code ($email): $verificationCode');
     return;
   }
@@ -132,9 +186,10 @@ Future<void> _sendPasswordResetCode(
   required String verificationCode,
   required Transaction? transaction,
 }) async {
-  // Same run-mode gate as registration: log-only in `development`, real delivery
-  // via EmailLabs (new_sendmail REST over 443) otherwise.
-  if (session.serverpod.runMode == 'development') {
+  // Same run-mode gate as registration: log-only in local-dev modes
+  // (`development` + `e2e`), real delivery via EmailLabs (new_sendmail REST over
+  // 443) otherwise.
+  if (_isLocalDevMode(session.serverpod.runMode)) {
     session.log('[EmailIdp] Password reset code ($email): $verificationCode');
     return;
   }

@@ -24,10 +24,13 @@
       "Bash(gh issue *)",
       "Bash(~/.pub-cache/bin/skills help *)",
       "mcp__context7__query-docs",
-      "mcp__context7__resolve-library-id"
+      "mcp__context7__resolve-library-id",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:blog.flutter.dev)"
     ]
   },
   "enabledMcpjsonServers": [
-    "context7"
+    "context7",
+    "marionette"
   ]
 }

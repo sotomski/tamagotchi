@@ -40,6 +40,13 @@
 - **Bonus**: Pass `-f md -o mutation_out` to get a markdown report instead of the default HTML tree; add `mutation_out/` to `.gitignore`.
 - **Applies to**: implement, plan
 
+## Patrol web e2e on Linux: pin Node 24.15.0, set a browser locale, point CHROME_EXECUTABLE
+
+- **Context**: Any phase that runs `patrol test … -d chrome --web-headless` for the Flutter web app in this devcontainer (the `playwright-for-flutter` e2e layer — smoke, seed, and the persistence test, Phases 1–6). patrol 4.6.1 bundles playwright-core 1.56.0.
+- **Problem**: Three independent toolchain gaps each silently break `patrol test` on web, with misleading symptoms: (1) Node 24.16.0 carries upstream bug nodejs/node#63487, which hangs the bundled playwright's `playwright install` forever after the first browser (microsoft/playwright#40998, fixed in pw 1.60.0 — not yet shipped by patrol) — `patrol test` stalls at "Installing Playwright dependencies…" with no output; (2) headless Chromium reports empty `navigator.languages`, so Flutter's CanvasKit `parseBrowserLanguages` throws "Incorrect locale information provided" during engine bootstrap and the app never exposes `window.__patrol__getTests`, so patrol reports `Total: 0` and exits 1 (reads as a discovery failure, not a render crash); (3) without `CHROME_EXECUTABLE`, `flutter devices` doesn't list Chrome so patrol's `-d chrome` won't resolve (patrol then runs `flutter run -d web-server`, but validates the chrome device first).
+- **Rule**: For patrol web on this container keep three things wired in `.devcontainer/`: pin the node feature to `"24.15.0"`; set `PATROL_WEB_LOCALE=en-US` (remoteEnv) or pass `--web-locale en-US`; set `CHROME_EXECUTABLE` to the stable `/home/vscode/.cache/flutter-chrome` symlink that `postCreate` points at the newest `ms-playwright` chromium. Boot the API with `serverpod run e2e` (sidecars are always up — never `docker compose up`) and run `patrol test --target integration_test/<t>.dart -d chrome --web-headless true --web-port 7357`. Two operational gotchas: a container rebuild wipes `~/.pub-cache` so `postCreate` must `flutter pub get` (else the server won't compile); a killed patrol run can orphan the flutter web-server holding `--web-port` (7357) — free that port before re-running.
+- **Applies to**: implement, e2e, plan, research
+
 ## Run `dart format` before committing — the Format CI gate is `--set-exit-if-changed`
 
 - **Context**: Any phase that lands Dart in `tamagotchi_server/` or `tamagotchi_flutter/` (lib or test). Both packages have a Format workflow (`.github/workflows/format.yml`, `flutter.yml`) that runs `dart format --set-exit-if-changed .`.
