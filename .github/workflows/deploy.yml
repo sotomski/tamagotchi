@@ -26,9 +26,12 @@ jobs:
           cache: true
 
       - name: Install Serverpod CLIs
+        # serverpod_cli is pinned to the project's Serverpod package version (codegen compatibility).
+        # serverpod_cloud_cli is intentionally unpinned: Serverpod Cloud can force-require the latest
+        # CLI server-side, which fails any pinned version (see deploy run 27868760944). Always grab latest.
         run: |
           dart pub global activate serverpod_cli 3.4.8
-          dart pub global activate serverpod_cloud_cli 0.30.0
+          dart pub global activate serverpod_cloud_cli
 
       - name: Build Flutter web bundle into server's web/app/
         working-directory: tamagotchi_server
