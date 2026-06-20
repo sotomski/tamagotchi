@@ -456,3 +456,38 @@ One migration this slice: it **drops** the `love_decay_mod` column from `creatur
 - [x] 4.6 Feed and Pet share one response area (most-recent wins); swaps cleanly
 - [x] 4.7 Extravert gains more love / spends less energy per pet than an introvert
 - [x] 4.8 No overflow when a long response renders with two buttons in the Row
+
+---
+
+## Addendum: Pet → Play rename (Phase 4, commit 2220350)
+
+This plan was written and executed under the name **Pet**; during Phase 4 the
+whole slice was renamed **Pet → Play** per review feedback (PG-friendly,
+family-friendly copy; button label "Play with" + icon). The rename is purely
+nominal — all behaviour, math (FR-005 sociability axis via `loveRegenMod`),
+determinism (`prd.md:39`), and the atomic stat+journal pair are exactly as
+planned above. Read every "Pet"/`pet`/`petServiceFactory` reference in this
+plan as its "Play"/`play`/`playServiceFactory` equivalent.
+
+What actually shipped, vs. what the plan text says:
+
+- **Endpoint / models / seam**: `pet()` → `play()`; `PetResult` → `PlayResult`;
+  `CreaturePetError`/`CreaturePetErrorReason` → `CreaturePlayError`/
+  `CreaturePlayErrorReason`; `pet_service.dart` → `play_service.dart` (consts
+  `basePlayLove`/`basePlayEnergy`, fns `playLoveGain`/`playEnergyCost`/
+  `playDelta`, seam `playServiceFactory`/`playServiceFor`); `pet_copy.dart` →
+  `play_copy.dart`; Flutter `PetController` → `PlayController`. UI Keys are
+  `playButton`/`playingIndicator`.
+- **JournalEvent enum changed** — supersedes the "no enum change" claim in
+  *Current State Analysis* / *Key Discoveries*. `JournalEvent.pet` was renamed
+  to `JournalEvent.play`. Because Serverpod serializes enums **by name** (stored
+  as text), this required a **second, hand-authored data migration** beyond the
+  single `loveDecayMod`-drop migration the plan predicted:
+  `migrations/20260620134428667` runs
+  `UPDATE "journal_entry" SET "event" = 'play' WHERE "event" = 'pet'`
+  (idempotent / no-op on a fresh DB). See lesson
+  *"Serverpod enums serialize by name → renaming a value needs a data
+  migration"*. So this slice landed **two** migrations, not one.
+- **S-07 hand-off** (per *Critical Implementation Details*): love decay must
+  still be derived from `loveRegenMod` — the single sociability axis — to keep
+  one coherent dial. The rename does not change that guidance.

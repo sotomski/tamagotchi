@@ -4,7 +4,7 @@ part 'last_interaction.g.dart';
 
 /// The most-recent interaction outcome the shared response area renders: the
 /// in-character `userResponse` plus whether the creature `accepted` (Feed can
-/// refuse — styled distinctly; Pet always accepts). Feed and Play are different
+/// refuse — styled distinctly; Play always accepts). Feed and Play are different
 /// result types, so this common record is the seam that lets one response
 /// widget show whichever ran most recently.
 typedef InteractionOutcome = ({String userResponse, bool accepted});
