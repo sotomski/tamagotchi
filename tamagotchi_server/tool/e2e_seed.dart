@@ -164,7 +164,6 @@ Future<void> _seed(
         hungerRegenMod: 1.0,
         energyDecayMod: 1.0,
         energyRegenMod: 1.0,
-        loveDecayMod: 1.0,
         loveRegenMod: 1.0,
         illnessDecayMod: 1.0,
         illnessRegenMod: 1.0,

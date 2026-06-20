@@ -12,7 +12,6 @@ CreaturePersonality _personality() => CreaturePersonality(
   hungerRegenMod: 1.10,
   energyDecayMod: 0.90,
   energyRegenMod: 1.20,
-  loveDecayMod: 0.70,
   loveRegenMod: 1.30,
   illnessDecayMod: 0.80,
   illnessRegenMod: 1.40,

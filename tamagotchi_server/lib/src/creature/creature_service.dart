@@ -13,15 +13,15 @@ const _uniqueViolationCode = '23505';
 /// a newborn reads as `content` — bonded over time, not instantly.
 const baselineCreatureStats = (hunger: 0, energy: 100, love: 50, illness: 0);
 
-/// The eight per-stat decay/regen multipliers produced at hatch. A plain record
+/// The seven per-stat decay/regen multipliers produced at hatch. A plain record
 /// so this logic stays database-free; the endpoint assembles the
-/// [CreaturePersonality] row from it.
+/// [CreaturePersonality] row from it. Love has a single dial (`loveRegenMod`,
+/// the introvert↔extravert axis), so there is no `loveDecayMod`.
 typedef PersonalityModifiers = ({
   double hungerDecayMod,
   double hungerRegenMod,
   double energyDecayMod,
   double energyRegenMod,
-  double loveDecayMod,
   double loveRegenMod,
   double illnessDecayMod,
   double illnessRegenMod,
@@ -44,7 +44,7 @@ CreatureMood deriveMood(int hunger, int energy, int love, int illness) {
   return CreatureMood.sad;
 }
 
-/// Rolls the eight personality modifiers, each a multiplier in `[0.5, 1.5)`
+/// Rolls the seven personality modifiers, each a multiplier in `[0.5, 1.5)`
 /// around the `1.0` baseline. The [rng] seam keeps every other piece of hatch
 /// logic deterministically testable.
 PersonalityModifiers randomPersonalityModifiers(Random rng) {
@@ -54,7 +54,6 @@ PersonalityModifiers randomPersonalityModifiers(Random rng) {
     hungerRegenMod: roll(),
     energyDecayMod: roll(),
     energyRegenMod: roll(),
-    loveDecayMod: roll(),
     loveRegenMod: roll(),
     illnessDecayMod: roll(),
     illnessRegenMod: roll(),

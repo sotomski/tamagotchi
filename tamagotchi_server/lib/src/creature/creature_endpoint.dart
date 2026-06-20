@@ -65,7 +65,6 @@ class CreatureEndpoint extends Endpoint {
             hungerRegenMod: mods.hungerRegenMod,
             energyDecayMod: mods.energyDecayMod,
             energyRegenMod: mods.energyRegenMod,
-            loveDecayMod: mods.loveDecayMod,
             loveRegenMod: mods.loveRegenMod,
             illnessDecayMod: mods.illnessDecayMod,
             illnessRegenMod: mods.illnessRegenMod,

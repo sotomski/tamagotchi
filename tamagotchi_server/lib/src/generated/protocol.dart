@@ -183,12 +183,6 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'double',
         ),
         _i2.ColumnDefinition(
-          name: 'loveDecayMod',
-          columnType: _i2.ColumnType.doublePrecision,
-          isNullable: false,
-          dartType: 'double',
-        ),
-        _i2.ColumnDefinition(
           name: 'loveRegenMod',
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: false,

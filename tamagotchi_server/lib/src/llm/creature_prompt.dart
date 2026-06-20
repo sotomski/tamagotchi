@@ -71,12 +71,13 @@ $memory
 ''';
 }
 
-/// A compact, readable rendering of the eight personality modifiers so the model
-/// can colour its voice without us hand-authoring a trait vocabulary.
+/// A compact, readable rendering of the personality modifiers so the model
+/// can colour its voice without us hand-authoring a trait vocabulary. Love is a
+/// single dial (`loveRegenMod`, the sociability axis); the rest keep decay+regen.
 String _personalitySummary(CreaturePersonality p) {
   String f(double v) => v.toStringAsFixed(2);
   return '- hunger: decay ${f(p.hungerDecayMod)}, regen ${f(p.hungerRegenMod)}\n'
       '- energy: decay ${f(p.energyDecayMod)}, regen ${f(p.energyRegenMod)}\n'
-      '- love: decay ${f(p.loveDecayMod)}, regen ${f(p.loveRegenMod)}\n'
+      '- love (sociability): regen ${f(p.loveRegenMod)}\n'
       '- illness: decay ${f(p.illnessDecayMod)}, regen ${f(p.illnessRegenMod)}';
 }
