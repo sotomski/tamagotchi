@@ -440,19 +440,19 @@ One migration this slice: it **drops** the `love_decay_mod` column from `creatur
 - [x] 3.4 `dart analyze` clean (excl. generated); `dart format --set-exit-if-changed .` passes — 4295cd3
 
 #### Manual
-- [ ] 3.5 Real `pet` call returns an in-character, sociability-coloured response + coherent journal entry
-- [ ] 3.6 Extravert vs introvert love/energy magnitudes differ in the expected direction
+- [x] 3.5 Real `pet` call returns an in-character, sociability-coloured response + coherent journal entry
+- [x] 3.6 Extravert vs introvert love/energy magnitudes differ in the expected direction
 
 ### Phase 4: Flutter wiring + widget tests
 
 #### Automated
-- [x] 4.1 `build_runner build` succeeds (pet controller + last-interaction `.g.dart`)
-- [x] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`)
-- [x] 4.3 `flutter analyze` clean; `dart format --set-exit-if-changed .` passes in `tamagotchi_flutter/`
-- [x] 4.4 `serverpod run flutter_build` builds the web app
+- [x] 4.1 `build_runner build` succeeds (pet controller + last-interaction `.g.dart`) — 2220350
+- [x] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`) — 2220350
+- [x] 4.3 `flutter analyze` clean; `dart format --set-exit-if-changed .` passes in `tamagotchi_flutter/` — 2220350
+- [x] 4.4 `serverpod run flutter_build` builds the web app — 2220350
 
 #### Manual
-- [ ] 4.5 Pet shows loading animation then response within ~5s; love + energy + journal update
-- [ ] 4.6 Feed and Pet share one response area (most-recent wins); swaps cleanly
-- [ ] 4.7 Extravert gains more love / spends less energy per pet than an introvert
-- [ ] 4.8 No overflow when a long response renders with two buttons in the Row
+- [x] 4.5 Pet shows loading animation then response within ~5s; love + energy + journal update
+- [x] 4.6 Feed and Pet share one response area (most-recent wins); swaps cleanly
+- [x] 4.7 Extravert gains more love / spends less energy per pet than an introvert
+- [x] 4.8 No overflow when a long response renders with two buttons in the Row
