@@ -3,11 +3,11 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import 'feed_copy.dart';
 import 'llm_service.dart';
-import 'pet_copy.dart' as pet;
+import 'play_copy.dart' as play;
 
 /// A no-network [LlmService] for key-less environments (test run mode, CI) and
 /// as the default in widget/integration tests. Returns deterministic copy:
-/// pet-flavoured strings for a pet interaction, otherwise the feed copy varying
+/// play-flavoured strings for a play interaction, otherwise the feed copy varying
 /// by [InteractionRequest.accepted] so accept-vs-refuse paths are
 /// distinguishable in assertions. Never throws.
 class StubLlmService implements LlmService {
@@ -18,10 +18,10 @@ class StubLlmService implements LlmService {
     Session session,
     InteractionRequest request,
   ) async {
-    if (request.interactionType == JournalEvent.pet) {
+    if (request.interactionType == JournalEvent.play) {
       return (
-        userResponse: pet.stubUserResponse,
-        journalNarrative: pet.stubJournalNarrative,
+        userResponse: play.stubUserResponse,
+        journalNarrative: play.stubJournalNarrative,
       );
     }
     if (request.accepted) {

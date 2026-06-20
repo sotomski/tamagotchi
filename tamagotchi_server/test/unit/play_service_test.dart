@@ -1,15 +1,15 @@
 import 'package:serverpod/serverpod.dart';
-import 'package:tamagotchi_server/src/creature/pet_service.dart';
+import 'package:tamagotchi_server/src/creature/play_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:tamagotchi_server/src/llm/feed_copy.dart' as feed;
-import 'package:tamagotchi_server/src/llm/pet_copy.dart' as pet;
+import 'package:tamagotchi_server/src/llm/play_copy.dart' as play;
 import 'package:test/test.dart';
 
 const _ownerUuid = '00000000-0000-0000-0000-000000000001';
 const _creatureId = '00000000-0000-0000-0000-000000000002';
 
 /// A creature with the given volatile stats; the rest are fixed placeholders the
-/// pet math never reads.
+/// play math never reads.
 Creature _creature({
   int hunger = 20,
   int energy = 100,
@@ -25,7 +25,7 @@ Creature _creature({
   illness: illness,
 );
 
-/// A personality with the given `loveRegenMod` (the only field pet math reads,
+/// A personality with the given `loveRegenMod` (the only field play math reads,
 /// the introvert↔extravert axis); the other six mods are inert here.
 CreaturePersonality _personality(double loveRegenMod) => CreaturePersonality(
   creatureId: UuidValue.fromString(_creatureId),
@@ -39,49 +39,49 @@ CreaturePersonality _personality(double loveRegenMod) => CreaturePersonality(
 );
 
 void main() {
-  group('petLoveGain', () {
-    // Oracle = the plan's contract: round(basePetLove * loveRegenMod), with
-    // basePetLove = 15, over the personality range loveRegenMod∈[0.5,1.5).
+  group('playLoveGain', () {
+    // Oracle = the plan's contract: round(basePlayLove * loveRegenMod), with
+    // basePlayLove = 15, over the personality range loveRegenMod∈[0.5,1.5).
     // Monotone ↑: an extravert (high mod) gains more love than an introvert.
     test('introvert (mod 0.5) gains 8', () {
-      expect(petLoveGain(0.5), 8);
+      expect(playLoveGain(0.5), 8);
     });
     test('baseline (mod 1.0) gains 15', () {
-      expect(petLoveGain(1.0), 15);
+      expect(playLoveGain(1.0), 15);
     });
     test('extravert (mod ~1.49) gains 22', () {
-      expect(petLoveGain(1.49), 22);
+      expect(playLoveGain(1.49), 22);
     });
     test('extravert strictly gains more love than introvert', () {
-      expect(petLoveGain(1.49), greaterThan(petLoveGain(0.5)));
+      expect(playLoveGain(1.49), greaterThan(playLoveGain(0.5)));
     });
   });
 
-  group('petEnergyCost', () {
-    // Oracle = the plan's contract: round(basePetEnergy * (2 - loveRegenMod)),
-    // with basePetEnergy = 4. Monotone ↓: an introvert (low mod) tires more, so
+  group('playEnergyCost', () {
+    // Oracle = the plan's contract: round(basePlayEnergy * (2 - loveRegenMod)),
+    // with basePlayEnergy = 4. Monotone ↓: an introvert (low mod) tires more, so
     // it pays MORE energy than an extravert.
     test('introvert (mod 0.5) costs 6', () {
-      expect(petEnergyCost(0.5), 6);
+      expect(playEnergyCost(0.5), 6);
     });
     test('baseline (mod 1.0) costs 4', () {
-      expect(petEnergyCost(1.0), 4);
+      expect(playEnergyCost(1.0), 4);
     });
     test('extravert (mod ~1.49) costs 2', () {
-      expect(petEnergyCost(1.49), 2);
+      expect(playEnergyCost(1.49), 2);
     });
     test('introvert strictly costs more energy than extravert', () {
-      expect(petEnergyCost(0.5), greaterThan(petEnergyCost(1.49)));
+      expect(playEnergyCost(0.5), greaterThan(playEnergyCost(1.49)));
     });
   });
 
-  group('petDelta', () {
-    // Oracle = the plan's contract: love rises by petLoveGain, energy falls by
-    // petEnergyCost, both clamp-encoded; hunger and illness never move.
+  group('playDelta', () {
+    // Oracle = the plan's contract: love rises by playLoveGain, energy falls by
+    // playEnergyCost, both clamp-encoded; hunger and illness never move.
     test(
-      'baseline pet raises love and lowers energy, leaves hunger/illness',
+      'baseline play raises love and lowers energy, leaves hunger/illness',
       () {
-        final delta = petDelta(
+        final delta = playDelta(
           _creature(love: 50, energy: 100, hunger: 20, illness: 0),
           _personality(1.0),
         );
@@ -93,7 +93,7 @@ void main() {
     );
 
     test('love clamps at 100: a fully-loved creature gains zero love', () {
-      final delta = petDelta(_creature(love: 100), _personality(1.0));
+      final delta = playDelta(_creature(love: 100), _personality(1.0));
       // clampStat(100 + 15) - 100 = 100 - 100 = 0.
       expect(delta.loveDelta, 0);
       // energy still costs (no gate).
@@ -102,25 +102,25 @@ void main() {
 
     test('love clamps at 100 from just-below too', () {
       // love 90 + 15 = 105 -> clamps to 100, so the delta is only +10.
-      final delta = petDelta(_creature(love: 90), _personality(1.0));
+      final delta = playDelta(_creature(love: 90), _personality(1.0));
       expect(delta.loveDelta, 10);
     });
 
     test('energy clamps at 0: a near-exhausted creature never goes negative', () {
       // energy 3 - 6 = -3 -> clamps to 0, so the delta is the clamped distance -3.
-      final delta = petDelta(
+      final delta = playDelta(
         _creature(energy: 3),
-        _personality(0.5), // introvert: petEnergyCost = 6
+        _personality(0.5), // introvert: playEnergyCost = 6
       );
       expect(delta.energyDelta, -3);
     });
 
     test('extravert gains more love and spends less energy than introvert', () {
-      final extravert = petDelta(
+      final extravert = playDelta(
         _creature(love: 50, energy: 100),
         _personality(1.49),
       );
-      final introvert = petDelta(
+      final introvert = playDelta(
         _creature(love: 50, energy: 100),
         _personality(0.5),
       );
@@ -130,29 +130,29 @@ void main() {
     });
   });
 
-  group('pet_copy', () {
-    // Oracle = the plan's Phase 2 contract: four pet strings (degrade pair +
+  group('play_copy', () {
+    // Oracle = the plan's Phase 2 contract: four play strings (degrade pair +
     // stub pair), all non-empty, and distinct from feed's stub strings so
-    // integration assertions can tell the pet path from the feed path.
+    // integration assertions can tell the play path from the feed path.
     test('all four strings are non-empty', () {
-      expect(pet.degradeUserResponse.trim(), isNotEmpty);
-      expect(pet.degradeJournalNarrative.trim(), isNotEmpty);
-      expect(pet.stubUserResponse.trim(), isNotEmpty);
-      expect(pet.stubJournalNarrative.trim(), isNotEmpty);
+      expect(play.degradeUserResponse.trim(), isNotEmpty);
+      expect(play.degradeJournalNarrative.trim(), isNotEmpty);
+      expect(play.stubUserResponse.trim(), isNotEmpty);
+      expect(play.stubJournalNarrative.trim(), isNotEmpty);
     });
 
-    test('pet stub strings are distinct from feed stub strings', () {
-      expect(pet.stubUserResponse, isNot(feed.stubAcceptUserResponse));
-      expect(pet.stubUserResponse, isNot(feed.stubRefuseUserResponse));
-      expect(pet.stubJournalNarrative, isNot(feed.stubAcceptJournalNarrative));
-      expect(pet.stubJournalNarrative, isNot(feed.stubRefuseJournalNarrative));
+    test('play stub strings are distinct from feed stub strings', () {
+      expect(play.stubUserResponse, isNot(feed.stubAcceptUserResponse));
+      expect(play.stubUserResponse, isNot(feed.stubRefuseUserResponse));
+      expect(play.stubJournalNarrative, isNot(feed.stubAcceptJournalNarrative));
+      expect(play.stubJournalNarrative, isNot(feed.stubRefuseJournalNarrative));
     });
 
-    test('pet degrade and stub strings are distinguishable', () {
+    test('play degrade and stub strings are distinguishable', () {
       // The degrade path and the stub path must not collide, so a test can tell
       // a real-stub run from an LLM-failure run.
-      expect(pet.stubUserResponse, isNot(pet.degradeUserResponse));
-      expect(pet.stubJournalNarrative, isNot(pet.degradeJournalNarrative));
+      expect(play.stubUserResponse, isNot(play.degradeUserResponse));
+      expect(play.stubJournalNarrative, isNot(play.degradeJournalNarrative));
     });
   });
 }

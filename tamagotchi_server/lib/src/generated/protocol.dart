@@ -23,13 +23,13 @@ import 'creature/creature_feed_error_reason.dart' as _i8;
 import 'creature/creature_hatch_error_reason.dart' as _i9;
 import 'creature/creature_mood.dart' as _i10;
 import 'creature/creature_personality.dart' as _i11;
-import 'creature/creature_pet_error.dart' as _i12;
-import 'creature/creature_pet_error_reason.dart' as _i13;
+import 'creature/creature_play_error.dart' as _i12;
+import 'creature/creature_play_error_reason.dart' as _i13;
 import 'creature/creature_status.dart' as _i14;
 import 'creature/feed_result.dart' as _i15;
 import 'creature/journal_entry.dart' as _i16;
 import 'creature/journal_event.dart' as _i17;
-import 'creature/pet_result.dart' as _i18;
+import 'creature/play_result.dart' as _i18;
 import 'creature/stat_delta.dart' as _i19;
 import 'greetings/greeting.dart' as _i20;
 export 'creature/creature.dart';
@@ -39,13 +39,13 @@ export 'creature/creature_feed_error_reason.dart';
 export 'creature/creature_hatch_error_reason.dart';
 export 'creature/creature_mood.dart';
 export 'creature/creature_personality.dart';
-export 'creature/creature_pet_error.dart';
-export 'creature/creature_pet_error_reason.dart';
+export 'creature/creature_play_error.dart';
+export 'creature/creature_play_error_reason.dart';
 export 'creature/creature_status.dart';
 export 'creature/feed_result.dart';
 export 'creature/journal_entry.dart';
 export 'creature/journal_event.dart';
-export 'creature/pet_result.dart';
+export 'creature/play_result.dart';
 export 'creature/stat_delta.dart';
 export 'greetings/greeting.dart';
 
@@ -385,11 +385,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i11.CreaturePersonality) {
       return _i11.CreaturePersonality.fromJson(data) as T;
     }
-    if (t == _i12.CreaturePetError) {
-      return _i12.CreaturePetError.fromJson(data) as T;
+    if (t == _i12.CreaturePlayError) {
+      return _i12.CreaturePlayError.fromJson(data) as T;
     }
-    if (t == _i13.CreaturePetErrorReason) {
-      return _i13.CreaturePetErrorReason.fromJson(data) as T;
+    if (t == _i13.CreaturePlayErrorReason) {
+      return _i13.CreaturePlayErrorReason.fromJson(data) as T;
     }
     if (t == _i14.CreatureStatus) {
       return _i14.CreatureStatus.fromJson(data) as T;
@@ -403,8 +403,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i17.JournalEvent) {
       return _i17.JournalEvent.fromJson(data) as T;
     }
-    if (t == _i18.PetResult) {
-      return _i18.PetResult.fromJson(data) as T;
+    if (t == _i18.PlayResult) {
+      return _i18.PlayResult.fromJson(data) as T;
     }
     if (t == _i19.StatDelta) {
       return _i19.StatDelta.fromJson(data) as T;
@@ -436,11 +436,11 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i11.CreaturePersonality.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i12.CreaturePetError?>()) {
-      return (data != null ? _i12.CreaturePetError.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.CreaturePlayError?>()) {
+      return (data != null ? _i12.CreaturePlayError.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.CreaturePetErrorReason?>()) {
-      return (data != null ? _i13.CreaturePetErrorReason.fromJson(data) : null)
+    if (t == _i1.getType<_i13.CreaturePlayErrorReason?>()) {
+      return (data != null ? _i13.CreaturePlayErrorReason.fromJson(data) : null)
           as T;
     }
     if (t == _i1.getType<_i14.CreatureStatus?>()) {
@@ -455,8 +455,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i17.JournalEvent?>()) {
       return (data != null ? _i17.JournalEvent.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i18.PetResult?>()) {
-      return (data != null ? _i18.PetResult.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i18.PlayResult?>()) {
+      return (data != null ? _i18.PlayResult.fromJson(data) : null) as T;
     }
     if (t == _i1.getType<_i19.StatDelta?>()) {
       return (data != null ? _i19.StatDelta.fromJson(data) : null) as T;
@@ -485,13 +485,13 @@ class Protocol extends _i1.SerializationManagerServer {
       _i9.CreatureHatchErrorReason => 'CreatureHatchErrorReason',
       _i10.CreatureMood => 'CreatureMood',
       _i11.CreaturePersonality => 'CreaturePersonality',
-      _i12.CreaturePetError => 'CreaturePetError',
-      _i13.CreaturePetErrorReason => 'CreaturePetErrorReason',
+      _i12.CreaturePlayError => 'CreaturePlayError',
+      _i13.CreaturePlayErrorReason => 'CreaturePlayErrorReason',
       _i14.CreatureStatus => 'CreatureStatus',
       _i15.FeedResult => 'FeedResult',
       _i16.JournalEntry => 'JournalEntry',
       _i17.JournalEvent => 'JournalEvent',
-      _i18.PetResult => 'PetResult',
+      _i18.PlayResult => 'PlayResult',
       _i19.StatDelta => 'StatDelta',
       _i20.Greeting => 'Greeting',
       _ => null,
@@ -522,10 +522,10 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'CreatureMood';
       case _i11.CreaturePersonality():
         return 'CreaturePersonality';
-      case _i12.CreaturePetError():
-        return 'CreaturePetError';
-      case _i13.CreaturePetErrorReason():
-        return 'CreaturePetErrorReason';
+      case _i12.CreaturePlayError():
+        return 'CreaturePlayError';
+      case _i13.CreaturePlayErrorReason():
+        return 'CreaturePlayErrorReason';
       case _i14.CreatureStatus():
         return 'CreatureStatus';
       case _i15.FeedResult():
@@ -534,8 +534,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'JournalEntry';
       case _i17.JournalEvent():
         return 'JournalEvent';
-      case _i18.PetResult():
-        return 'PetResult';
+      case _i18.PlayResult():
+        return 'PlayResult';
       case _i19.StatDelta():
         return 'StatDelta';
       case _i20.Greeting():
@@ -583,11 +583,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'CreaturePersonality') {
       return deserialize<_i11.CreaturePersonality>(data['data']);
     }
-    if (dataClassName == 'CreaturePetError') {
-      return deserialize<_i12.CreaturePetError>(data['data']);
+    if (dataClassName == 'CreaturePlayError') {
+      return deserialize<_i12.CreaturePlayError>(data['data']);
     }
-    if (dataClassName == 'CreaturePetErrorReason') {
-      return deserialize<_i13.CreaturePetErrorReason>(data['data']);
+    if (dataClassName == 'CreaturePlayErrorReason') {
+      return deserialize<_i13.CreaturePlayErrorReason>(data['data']);
     }
     if (dataClassName == 'CreatureStatus') {
       return deserialize<_i14.CreatureStatus>(data['data']);
@@ -601,8 +601,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'JournalEvent') {
       return deserialize<_i17.JournalEvent>(data['data']);
     }
-    if (dataClassName == 'PetResult') {
-      return deserialize<_i18.PetResult>(data['data']);
+    if (dataClassName == 'PlayResult') {
+      return deserialize<_i18.PlayResult>(data['data']);
     }
     if (dataClassName == 'StatDelta') {
       return deserialize<_i19.StatDelta>(data['data']);

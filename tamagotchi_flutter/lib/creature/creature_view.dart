@@ -3,17 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
 import 'feed_controller.dart';
+import 'last_interaction.dart';
+import 'play_controller.dart';
 
 /// The present-creature state: the creature's name, its derived [mood] label,
 /// the four raw stat numbers (0–100, raw per MVP — no icons/bars), and the
-/// Feed interaction.
+/// Feed + Play interactions.
 ///
-/// A [ConsumerWidget] (was a `StatelessWidget`) so it can host the Feed button
-/// and watch [feedControllerProvider]: while a feed is in flight the button is
-/// replaced by a continuous loading animation (NFR-1); on success the
-/// in-character `userResponse` renders below — styled distinctly when the
-/// creature *refused* (`accepted == false`). The four [_StatRow]s re-render once
-/// the controller invalidates `creatureProvider` after a feed.
+/// A [ConsumerWidget] (was a `StatelessWidget`) so it can host both interaction
+/// buttons and watch [feedControllerProvider] / [playControllerProvider]: while
+/// *either* interaction is in flight the buttons are replaced by a continuous
+/// loading animation (NFR-1). The most-recent outcome (Feed *or* Play) renders
+/// below in one shared area — read from [lastInteractionProvider] — styled
+/// distinctly when the creature *refused* a feed (`accepted == false`); Play
+/// always accepts. The four [_StatRow]s re-render once a controller invalidates
+/// `creatureProvider` after an interaction.
 class CreatureView extends ConsumerWidget {
   const CreatureView({required this.status, super.key});
 
@@ -24,9 +28,15 @@ class CreatureView extends ConsumerWidget {
     final theme = Theme.of(context);
     final creature = status.creature;
     final feedState = ref.watch(feedControllerProvider);
-    // The outcome of the most recent feed, if any (null before the first feed,
-    // and while loading/errored).
-    final feedResult = feedState.asData?.value;
+    final playState = ref.watch(playControllerProvider);
+    // The most-recent interaction outcome, if any (null before the first
+    // interaction). Shared by Feed and Play — whichever ran most recently wins.
+    final lastInteraction = ref.watch(lastInteractionProvider);
+
+    final isLoading = feedState.isLoading || playState.isLoading;
+    final hasError =
+        (feedState.hasError && !feedState.isLoading) ||
+        (playState.hasError && !playState.isLoading);
 
     return Center(
       child: Padding(
@@ -46,33 +56,55 @@ class CreatureView extends ConsumerWidget {
             _StatRow(label: 'Love', value: creature.love),
             _StatRow(label: 'Illness', value: creature.illness),
             const SizedBox(height: 24),
-            // In-flight: a continuous animation in place of the button. On
-            // success: the response below + the button stays for another feed.
+            // In-flight: a continuous animation in place of the buttons. On
+            // success: the response below + the buttons stay for another go.
             if (feedState.isLoading)
-              const _FeedingIndicator()
+              const _InteractionIndicator(
+                label: 'Feeding…',
+                indicatorKey: Key('feedingIndicator'),
+              )
+            else if (playState.isLoading)
+              const _InteractionIndicator(
+                label: 'Playing…',
+                indicatorKey: Key('playingIndicator'),
+              )
             else
-              ElevatedButton.icon(
-                key: const Key('feedButton'),
-                onPressed: () =>
-                    ref.read(feedControllerProvider.notifier).feed(),
-                icon: const Icon(Icons.restaurant),
-                label: const Text('Feed'),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton.icon(
+                    key: const Key('feedButton'),
+                    onPressed: () =>
+                        ref.read(feedControllerProvider.notifier).feed(),
+                    icon: const Icon(Icons.restaurant),
+                    label: const Text('Feed'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    key: const Key('playButton'),
+                    onPressed: () =>
+                        ref.read(playControllerProvider.notifier).play(),
+                    icon: const Icon(Icons.sports_esports),
+                    label: const Text('Play with'),
+                  ),
+                ],
               ),
-            // RPC/network failure only — refusals are data, rendered below.
-            if (feedState.hasError && !feedState.isLoading) ...[
+            // RPC/network failure on either interaction — refusals are data,
+            // rendered below.
+            if (hasError) ...[
               const SizedBox(height: 16),
               Text(
-                'Something went wrong feeding — please try again.',
+                'Something went wrong — please try again.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.error,
                 ),
               ),
             ],
-            // The in-character outcome of the most recent feed, if any.
-            if (feedResult != null) ...[
+            // The in-character outcome of the most recent interaction, if any.
+            if (lastInteraction != null && !isLoading) ...[
               const SizedBox(height: 16),
-              _FeedResponse(result: feedResult),
+              _InteractionResponse(outcome: lastInteraction),
             ],
           ],
         ),
@@ -81,36 +113,44 @@ class CreatureView extends ConsumerWidget {
   }
 }
 
-/// The continuous "feeding…" progress shown during the model round-trip.
-class _FeedingIndicator extends StatelessWidget {
-  const _FeedingIndicator();
+/// The continuous progress shown during a model round-trip, labelled for the
+/// active interaction ("Feeding…" / "Playing…").
+class _InteractionIndicator extends StatelessWidget {
+  const _InteractionIndicator({
+    required this.label,
+    required this.indicatorKey,
+  });
+
+  final String label;
+  final Key indicatorKey;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircularProgressIndicator(key: Key('feedingIndicator')),
-        SizedBox(height: 8),
-        Text('Feeding…'),
+        CircularProgressIndicator(key: indicatorKey),
+        const SizedBox(height: 8),
+        Text(label),
       ],
     );
   }
 }
 
-/// Renders a [FeedResult]'s in-character `userResponse`. An accepted feed reads
-/// as the creature's happy reaction; a refusal (`accepted == false`) is styled
-/// distinctly — italic, muted — so a "no" never looks like an error.
-class _FeedResponse extends StatelessWidget {
-  const _FeedResponse({required this.result});
+/// Renders the most-recent interaction's in-character `userResponse`. An
+/// accepted interaction (every Play, an accepted Feed) reads as the creature's
+/// happy reaction; a Feed *refusal* (`accepted == false`) is styled distinctly —
+/// italic, muted — so a "no" never looks like an error.
+class _InteractionResponse extends StatelessWidget {
+  const _InteractionResponse({required this.outcome});
 
-  final FeedResult result;
+  final InteractionOutcome outcome;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final base = theme.textTheme.bodyLarge;
-    final style = result.accepted
+    final style = outcome.accepted
         ? base
         : base?.copyWith(
             fontStyle: FontStyle.italic,
@@ -118,17 +158,17 @@ class _FeedResponse extends StatelessWidget {
           );
 
     return Container(
-      key: const Key('feedResponse'),
+      key: const Key('interactionResponse'),
       constraints: const BoxConstraints(maxWidth: 420),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: result.accepted
+        color: outcome.accepted
             ? theme.colorScheme.primaryContainer
             : theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        result.userResponse,
+        outcome.userResponse,
         textAlign: TextAlign.center,
         style: style,
       ),

@@ -14,27 +14,28 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../creature/creature_status.dart' as _i2;
 import 'package:tamagotchi_server/src/generated/protocol.dart' as _i3;
 
-/// The Pet interaction outcome returned to the client: the in-character user
-/// response plus the post-pet creature+mood so the client renders without a
+/// The Play interaction outcome returned to the client: the in-character user
+/// response plus the post-play creature+mood so the client renders without a
 /// second fetch. Non-table — computed per call, never persisted (like
 /// CreatureStatus / StatDelta / FeedResult).
 ///
-/// No `accepted` field: Pet is deterministic and always succeeds (`prd.md:39`).
-/// The shared two-interaction UI supplies `accepted: true` for Pet itself.
-abstract class PetResult
+/// No `accepted` field: playing is deterministic and always succeeds
+/// (`prd.md:39`). The shared two-interaction UI supplies `accepted: true` for
+/// Play itself.
+abstract class PlayResult
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
-  PetResult._({
+  PlayResult._({
     required this.userResponse,
     required this.status,
   });
 
-  factory PetResult({
+  factory PlayResult({
     required String userResponse,
     required _i2.CreatureStatus status,
-  }) = _PetResultImpl;
+  }) = _PlayResultImpl;
 
-  factory PetResult.fromJson(Map<String, dynamic> jsonSerialization) {
-    return PetResult(
+  factory PlayResult.fromJson(Map<String, dynamic> jsonSerialization) {
+    return PlayResult(
       userResponse: jsonSerialization['userResponse'] as String,
       status: _i3.Protocol().deserialize<_i2.CreatureStatus>(
         jsonSerialization['status'],
@@ -42,25 +43,25 @@ abstract class PetResult
     );
   }
 
-  /// The user-facing, in-character response (LLM-generated, or canned pet copy
+  /// The user-facing, in-character response (LLM-generated, or canned play copy
   /// on a model-failure degrade).
   String userResponse;
 
-  /// The creature's post-pet status: updated stats (love up, energy down) plus a
-  /// freshly re-derived mood.
+  /// The creature's post-play status: updated stats (love up, energy down) plus
+  /// a freshly re-derived mood.
   _i2.CreatureStatus status;
 
-  /// Returns a shallow copy of this [PetResult]
+  /// Returns a shallow copy of this [PlayResult]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
-  PetResult copyWith({
+  PlayResult copyWith({
     String? userResponse,
     _i2.CreatureStatus? status,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
-      '__className__': 'PetResult',
+      '__className__': 'PlayResult',
       'userResponse': userResponse,
       'status': status.toJson(),
     };
@@ -69,7 +70,7 @@ abstract class PetResult
   @override
   Map<String, dynamic> toJsonForProtocol() {
     return {
-      '__className__': 'PetResult',
+      '__className__': 'PlayResult',
       'userResponse': userResponse,
       'status': status.toJsonForProtocol(),
     };
@@ -81,8 +82,8 @@ abstract class PetResult
   }
 }
 
-class _PetResultImpl extends PetResult {
-  _PetResultImpl({
+class _PlayResultImpl extends PlayResult {
+  _PlayResultImpl({
     required String userResponse,
     required _i2.CreatureStatus status,
   }) : super._(
@@ -90,15 +91,15 @@ class _PetResultImpl extends PetResult {
          status: status,
        );
 
-  /// Returns a shallow copy of this [PetResult]
+  /// Returns a shallow copy of this [PlayResult]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   @override
-  PetResult copyWith({
+  PlayResult copyWith({
     String? userResponse,
     _i2.CreatureStatus? status,
   }) {
-    return PetResult(
+    return PlayResult(
       userResponse: userResponse ?? this.userResponse,
       status: status ?? this.status.copyWith(),
     );

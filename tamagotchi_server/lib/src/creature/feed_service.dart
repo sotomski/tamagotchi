@@ -11,7 +11,7 @@ import 'creature_service.dart';
 /// the deterministic stat math behind an accepted feed. Pure and DB-free —
 /// extends `creature_service.dart`'s style (small functions, an injectable
 /// `Random` seam) so every rule is unit-testable in isolation. `clampStat` now
-/// lives in `creature_service.dart` (shared with Pet).
+/// lives in `creature_service.dart` (shared with Play).
 
 /// Hunger lost on an accepted feed (0-100 scale; higher hunger = hungrier, so a
 /// feed *lowers* it). PRD oracle — fixed magnitude, never tastiness-scaled.

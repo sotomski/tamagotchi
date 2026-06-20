@@ -20,7 +20,7 @@ import 'package:tamagotchi_server/src/generated/creature/creature_status.dart'
     as _i5;
 import 'package:tamagotchi_server/src/generated/creature/feed_result.dart'
     as _i6;
-import 'package:tamagotchi_server/src/generated/creature/pet_result.dart'
+import 'package:tamagotchi_server/src/generated/creature/play_result.dart'
     as _i7;
 import 'package:tamagotchi_server/src/generated/greetings/greeting.dart' as _i8;
 import 'package:tamagotchi_server/src/generated/protocol.dart';
@@ -589,18 +589,18 @@ class _CreatureEndpoint {
     });
   }
 
-  _i3.Future<_i7.PetResult> pet(_i1.TestSessionBuilder sessionBuilder) async {
+  _i3.Future<_i7.PlayResult> play(_i1.TestSessionBuilder sessionBuilder) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'creature',
-            method: 'pet',
+            method: 'play',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'creature',
-          methodName: 'pet',
+          methodName: 'play',
           parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
@@ -609,7 +609,7 @@ class _CreatureEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.PetResult>);
+                as _i3.Future<_i7.PlayResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

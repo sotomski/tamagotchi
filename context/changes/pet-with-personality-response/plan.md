@@ -434,10 +434,10 @@ One migration this slice: it **drops** the `love_decay_mod` column from `creatur
 ### Phase 3: Pet endpoint + PetResult + PetError + journal pair + integration tests
 
 #### Automated
-- [x] 3.1 `serverpod generate` succeeds; `client.creature.pet()` + `PetResult` + `CreaturePetError` exist
-- [x] 3.2 Integration tests pass (`dart test test/integration/pet_endpoint_test.dart`)
-- [x] 3.3 Full server suite green (`dart test`)
-- [x] 3.4 `dart analyze` clean (excl. generated); `dart format --set-exit-if-changed .` passes
+- [x] 3.1 `serverpod generate` succeeds; `client.creature.pet()` + `PetResult` + `CreaturePetError` exist — 4295cd3
+- [x] 3.2 Integration tests pass (`dart test test/integration/pet_endpoint_test.dart`) — 4295cd3
+- [x] 3.3 Full server suite green (`dart test`) — 4295cd3
+- [x] 3.4 `dart analyze` clean (excl. generated); `dart format --set-exit-if-changed .` passes — 4295cd3
 
 #### Manual
 - [ ] 3.5 Real `pet` call returns an in-character, sociability-coloured response + coherent journal entry
@@ -446,10 +446,10 @@ One migration this slice: it **drops** the `love_decay_mod` column from `creatur
 ### Phase 4: Flutter wiring + widget tests
 
 #### Automated
-- [ ] 4.1 `build_runner build` succeeds (pet controller + last-interaction `.g.dart`)
-- [ ] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`)
-- [ ] 4.3 `flutter analyze` clean; `dart format --set-exit-if-changed .` passes in `tamagotchi_flutter/`
-- [ ] 4.4 `serverpod run flutter_build` builds the web app
+- [x] 4.1 `build_runner build` succeeds (pet controller + last-interaction `.g.dart`)
+- [x] 4.2 Widget tests pass (`flutter test test/creature/creature_view_test.dart`)
+- [x] 4.3 `flutter analyze` clean; `dart format --set-exit-if-changed .` passes in `tamagotchi_flutter/`
+- [x] 4.4 `serverpod run flutter_build` builds the web app
 
 #### Manual
 - [ ] 4.5 Pet shows loading animation then response within ~5s; love + energy + journal update

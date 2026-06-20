@@ -13,11 +13,11 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
 /// The kind of event a journal entry records. Only `hatched` is written at S-02;
-/// feed/pet/cure arrive with the interaction slices (S-03+).
+/// feed/play/cure arrive with the interaction slices (S-03+).
 enum JournalEvent implements _i1.SerializableModel {
   hatched,
   feed,
-  pet,
+  play,
   cure;
 
   static JournalEvent fromJson(String name) {
@@ -26,8 +26,8 @@ enum JournalEvent implements _i1.SerializableModel {
         return JournalEvent.hatched;
       case 'feed':
         return JournalEvent.feed;
-      case 'pet':
-        return JournalEvent.pet;
+      case 'play':
+        return JournalEvent.play;
       case 'cure':
         return JournalEvent.cure;
       default:

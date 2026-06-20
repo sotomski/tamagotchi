@@ -13,6 +13,6 @@ creature:
   - hatch:
   - myCreature:
   - feed:
-  - pet:
+  - play:
 greeting:
   - hello:

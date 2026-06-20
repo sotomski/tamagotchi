@@ -6,7 +6,7 @@ import '../generated/protocol.dart';
 import '../llm/llm_service.dart';
 import 'creature_service.dart';
 import 'feed_service.dart';
-import 'pet_service.dart';
+import 'play_service.dart';
 
 /// The first first-party `requireLogin` endpoint: hatch a creature and view it.
 ///
@@ -239,19 +239,19 @@ class CreatureEndpoint extends Endpoint {
     );
   }
 
-  /// Pets the caller's creature once and returns the in-character outcome.
+  /// Plays with the caller's creature once and returns the in-character outcome.
   ///
-  /// Unlike [feed], Pet is **fully deterministic** (`prd.md:39`): no accept/refuse
-  /// gate and no max-love gate. The stat change ([petDelta] — love up, energy
-  /// down, scaled by the `loveRegenMod` sociability axis) is computed up front,
-  /// then the LLM is asked for a response + journal narrative (degrading to canned
-  /// pet copy on failure), and the stat change + journal entry are written as one
-  /// coherent pair. The creature is **always** updated (energy always changes) and
-  /// **always** gets exactly one `pet` entry.
+  /// Unlike [feed], Play is **fully deterministic** (`prd.md:39`): no
+  /// accept/refuse gate and no max-love gate. The stat change ([playDelta] — love
+  /// up, energy down, scaled by the `loveRegenMod` sociability axis) is computed
+  /// up front, then the LLM is asked for a response + journal narrative (degrading
+  /// to canned play copy on failure), and the stat change + journal entry are
+  /// written as one coherent pair. The creature is **always** updated (energy
+  /// always changes) and **always** gets exactly one `play` entry.
   ///
   /// As in [feed], the LLM call sits **outside** the transaction so a degrade
   /// still commits the stat+journal pair atomically.
-  Future<PetResult> pet(Session session) async {
+  Future<PlayResult> play(Session session) async {
     final ownerUuid = UuidValue.fromString(
       session.authenticated!.userIdentifier,
     );
@@ -261,7 +261,7 @@ class CreatureEndpoint extends Endpoint {
       where: (t) => t.ownerUuid.equals(ownerUuid),
     );
     if (creature == null) {
-      throw CreaturePetError(reason: CreaturePetErrorReason.noCreature);
+      throw CreaturePlayError(reason: CreaturePlayErrorReason.noCreature);
     }
 
     final personality = await CreaturePersonality.db.findFirstRow(
@@ -275,7 +275,7 @@ class CreatureEndpoint extends Endpoint {
     }
 
     // Deterministic — no rng. The delta encodes the 0-100 clamp.
-    final delta = petDelta(creature, personality);
+    final delta = playDelta(creature, personality);
 
     // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
     // first (the empty-prose hatched marker is dropped).
@@ -291,7 +291,7 @@ class CreatureEndpoint extends Endpoint {
         .where((p) => p.isNotEmpty)
         .toList();
 
-    final reply = await petServiceFactory(session).interaction(
+    final reply = await playServiceFactory(session).interaction(
       session,
       InteractionRequest(
         personality: personality,
@@ -300,9 +300,9 @@ class CreatureEndpoint extends Endpoint {
         love: creature.love,
         illness: creature.illness,
         mood: _moodOf(creature),
-        interactionType: JournalEvent.pet,
+        interactionType: JournalEvent.play,
         accepted: true,
-        // tastiness is feed-only; the pet prompt branch ignores it.
+        // tastiness is feed-only; the play prompt branch ignores it.
         tastiness: 0,
         recentEntries: recentEntries,
       ),
@@ -322,7 +322,7 @@ class CreatureEndpoint extends Endpoint {
         JournalEntry(
           creatureId: creature.id!,
           ownerUuid: ownerUuid,
-          event: JournalEvent.pet,
+          event: JournalEvent.play,
           prose: reply.journalNarrative,
           statDelta: delta,
         ),
@@ -332,7 +332,7 @@ class CreatureEndpoint extends Endpoint {
       return result;
     });
 
-    return PetResult(
+    return PlayResult(
       userResponse: reply.userResponse,
       status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
     );

@@ -10,22 +10,22 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-/// Why a pet attempt failed outright. A single reason (typed for client switch
+/// Why a play attempt failed outright. A single reason (typed for client switch
 /// parity with CreatureFeedErrorReason); behind the UI this should never fire —
-/// you can only Pet a creature you can see.
-enum CreaturePetErrorReason implements _i1.SerializableModel {
-  /// The caller owns no creature to pet.
+/// you can only play with a creature you can see.
+enum CreaturePlayErrorReason implements _i1.SerializableModel {
+  /// The caller owns no creature to play with.
   noCreature;
 
-  static CreaturePetErrorReason fromJson(String name) {
+  static CreaturePlayErrorReason fromJson(String name) {
     switch (name) {
       case 'noCreature':
-        return CreaturePetErrorReason.noCreature;
+        return CreaturePlayErrorReason.noCreature;
       default:
         throw ArgumentError(
-          'Value "$name" cannot be converted to "CreaturePetErrorReason"',
+          'Value "$name" cannot be converted to "CreaturePlayErrorReason"',
         );
     }
   }

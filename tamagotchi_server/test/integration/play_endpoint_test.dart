@@ -1,15 +1,15 @@
 import 'package:serverpod/serverpod.dart';
-import 'package:tamagotchi_server/src/creature/pet_service.dart';
+import 'package:tamagotchi_server/src/creature/play_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:tamagotchi_server/src/llm/llm_service.dart';
-import 'package:tamagotchi_server/src/llm/pet_copy.dart';
+import 'package:tamagotchi_server/src/llm/play_copy.dart';
 import 'package:tamagotchi_server/src/llm/stub_llm_service.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
 /// An [LlmService] that always throws, to drive the degrade path: the endpoint
-/// must catch this, substitute canned pet copy, and still commit the
+/// must catch this, substitute canned play copy, and still commit the
 /// stat+journal pair.
 class _ThrowingLlmService implements LlmService {
   const _ThrowingLlmService();
@@ -21,14 +21,14 @@ class _ThrowingLlmService implements LlmService {
   ) async => throw Exception('model unreachable');
 }
 
-/// Reassigns the production [petServiceFactory] seam to inject a [PetService]
-/// with (by default) the hermetic [StubLlmService]. Pet has no rng seam — it is
+/// Reassigns the production [playServiceFactory] seam to inject a [PlayService]
+/// with (by default) the hermetic [StubLlmService]. Play has no rng seam — it is
 /// deterministic — so the only injected collaborator is the LLM.
-void _injectPetService({LlmService llm = const StubLlmService()}) {
-  petServiceFactory = (_) => PetService(llm: llm);
+void _injectPlayService({LlmService llm = const StubLlmService()}) {
+  playServiceFactory = (_) => PlayService(llm: llm);
   // Self-cleaning: restore production wiring when this test ends, even on
   // failure, so a fake never leaks into the next sequential test.
-  addTearDown(() => petServiceFactory = petServiceFor);
+  addTearDown(() => playServiceFactory = playServiceFor);
 }
 
 TestSessionBuilder _authedAs(TestSessionBuilder builder, String userUuid) =>
@@ -40,7 +40,7 @@ TestSessionBuilder _authedAs(TestSessionBuilder builder, String userUuid) =>
     );
 
 /// Seeds a creature + its 1:1 personality directly (bypassing hatch so the test
-/// controls `love`, `energy`, and `loveRegenMod` — the inputs the pet math
+/// controls `love`, `energy`, and `loveRegenMod` — the inputs the play math
 /// reads).
 Future<Creature> _seedCreature(
   Session session,
@@ -78,23 +78,23 @@ Future<Creature> _seedCreature(
   return creature;
 }
 
-Future<List<JournalEntry>> _petEntries(
+Future<List<JournalEntry>> _playEntries(
   Session session,
   UuidValue creatureId,
 ) => JournalEntry.db.find(
   session,
   where: (t) =>
-      t.creatureId.equals(creatureId) & t.event.equals(JournalEvent.pet),
+      t.creatureId.equals(creatureId) & t.event.equals(JournalEvent.play),
 );
 
 void main() {
-  withServerpod('Given CreatureEndpoint.pet', (sessionBuilder, endpoints) {
+  withServerpod('Given CreatureEndpoint.play', (sessionBuilder, endpoints) {
     test(
-      'an accepted pet raises love +15 / lowers energy -4 (baseline), leaves '
-      'hunger+illness, writes exactly one pet entry with the matching delta + '
+      'an accepted play raises love +15 / lowers energy -4 (baseline), leaves '
+      'hunger+illness, writes exactly one play entry with the matching delta + '
       'prose, and re-derives mood',
       () async {
-        _injectPetService();
+        _injectPlayService();
         final userUuid = const Uuid().v4();
         final authed = _authedAs(sessionBuilder, userUuid);
         final session = authed.build();
@@ -106,9 +106,9 @@ void main() {
           hunger: 20,
         );
 
-        final result = await endpoints.creature.pet(authed);
+        final result = await endpoints.creature.play(authed);
 
-        // Returned outcome: stub pet copy + post-pet stats + mood.
+        // Returned outcome: stub play copy + post-play stats + mood.
         expect(result.userResponse, stubUserResponse);
         expect(result.status.creature.love, 65); // +15
         expect(result.status.creature.energy, 96); // -4
@@ -122,8 +122,8 @@ void main() {
         expect(stored!.love, 65);
         expect(stored.energy, 96);
 
-        // Exactly one pet entry, matching delta, non-empty prose.
-        final entries = await _petEntries(session, creature.id!);
+        // Exactly one play entry, matching delta, non-empty prose.
+        final entries = await _playEntries(session, creature.id!);
         expect(entries, hasLength(1));
         final entry = entries.single;
         expect(entry.prose, stubJournalNarrative);
@@ -139,7 +139,7 @@ void main() {
       'an introvert gains less love and loses more energy than an extravert '
       '(FR-005 sociability axis)',
       () async {
-        _injectPetService();
+        _injectPlayService();
         final introUuid = const Uuid().v4();
         final extraUuid = const Uuid().v4();
         final session = sessionBuilder.build();
@@ -158,8 +158,8 @@ void main() {
           loveRegenMod: 1.49, // extravert
         );
 
-        await endpoints.creature.pet(_authedAs(sessionBuilder, introUuid));
-        await endpoints.creature.pet(_authedAs(sessionBuilder, extraUuid));
+        await endpoints.creature.play(_authedAs(sessionBuilder, introUuid));
+        await endpoints.creature.play(_authedAs(sessionBuilder, extraUuid));
 
         final storedIntro = await Creature.db.findById(session, intro.id!);
         final storedExtra = await Creature.db.findById(session, extra.id!);
@@ -175,10 +175,10 @@ void main() {
     );
 
     test(
-      'max-love (love==100): love delta is zero, energy still costs, a pet entry '
+      'max-love (love==100): love delta is zero, energy still costs, a play entry '
       'is still written, and the LLM is still called (no gate)',
       () async {
-        _injectPetService();
+        _injectPlayService();
         final userUuid = const Uuid().v4();
         final authed = _authedAs(sessionBuilder, userUuid);
         final session = authed.build();
@@ -189,7 +189,7 @@ void main() {
           energy: 100,
         );
 
-        final result = await endpoints.creature.pet(authed);
+        final result = await endpoints.creature.play(authed);
 
         // Love holds at 100; energy still costs.
         expect(result.status.creature.love, 100);
@@ -201,8 +201,8 @@ void main() {
         expect(stored!.love, 100);
         expect(stored.energy, 96);
 
-        // A pet entry is still written, with a zero love delta.
-        final entries = await _petEntries(session, creature.id!);
+        // A play entry is still written, with a zero love delta.
+        final entries = await _playEntries(session, creature.id!);
         expect(entries, hasLength(1));
         expect(entries.single.statDelta!.loveDelta, 0);
         expect(entries.single.statDelta!.energyDelta, -4);
@@ -211,10 +211,10 @@ void main() {
     );
 
     test(
-      'when the model call fails the pet degrades: stats still change, a pet '
-      'entry lands with the degrade prose, and pet() does not throw',
+      'when the model call fails the play degrades: stats still change, a play '
+      'entry lands with the degrade prose, and play() does not throw',
       () async {
-        _injectPetService(llm: const _ThrowingLlmService());
+        _injectPlayService(llm: const _ThrowingLlmService());
         final userUuid = const Uuid().v4();
         final authed = _authedAs(sessionBuilder, userUuid);
         final session = authed.build();
@@ -225,7 +225,7 @@ void main() {
           energy: 100,
         );
 
-        final result = await endpoints.creature.pet(authed);
+        final result = await endpoints.creature.play(authed);
 
         expect(result.userResponse, degradeUserResponse);
         // Stats still change despite the model failure.
@@ -236,7 +236,7 @@ void main() {
         expect(stored!.love, 65);
         expect(stored.energy, 96);
 
-        final entries = await _petEntries(session, creature.id!);
+        final entries = await _playEntries(session, creature.id!);
         expect(entries, hasLength(1));
         expect(entries.single.prose, degradeJournalNarrative);
         expect(entries.single.statDelta!.loveDelta, 15);
@@ -245,18 +245,18 @@ void main() {
     );
 
     test(
-      'petting with no creature throws CreaturePetError(noCreature)',
+      'playing with no creature throws CreaturePlayError(noCreature)',
       () async {
-        _injectPetService();
+        _injectPlayService();
         final authed = _authedAs(sessionBuilder, const Uuid().v4());
 
         await expectLater(
-          () => endpoints.creature.pet(authed),
+          () => endpoints.creature.play(authed),
           throwsA(
-            isA<CreaturePetError>().having(
+            isA<CreaturePlayError>().having(
               (e) => e.reason,
               'reason',
-              CreaturePetErrorReason.noCreature,
+              CreaturePlayErrorReason.noCreature,
             ),
           ),
         );
@@ -264,25 +264,25 @@ void main() {
     );
 
     test(
-      "pet is owner-scoped: petting as user B never touches user A's creature",
+      "play is owner-scoped: playing as user B never touches user A's creature",
       () async {
-        _injectPetService();
+        _injectPlayService();
         final userA = const Uuid().v4();
         final userB = const Uuid().v4();
         final session = sessionBuilder.build();
         final creatureA = await _seedCreature(session, userA, love: 50);
         final creatureB = await _seedCreature(session, userB, love: 50);
 
-        // B pets — only B's creature should change.
-        await endpoints.creature.pet(_authedAs(sessionBuilder, userB));
+        // B plays — only B's creature should change.
+        await endpoints.creature.play(_authedAs(sessionBuilder, userB));
 
         final storedA = await Creature.db.findById(session, creatureA.id!);
         final storedB = await Creature.db.findById(session, creatureB.id!);
         expect(storedA!.love, 50, reason: "A's creature must be untouched");
-        expect(storedB!.love, 65, reason: "B's creature was petted");
+        expect(storedB!.love, 65, reason: "B's creature was playted");
 
-        expect(await _petEntries(session, creatureA.id!), isEmpty);
-        expect(await _petEntries(session, creatureB.id!), hasLength(1));
+        expect(await _playEntries(session, creatureA.id!), isEmpty);
+        expect(await _playEntries(session, creatureB.id!), hasLength(1));
       },
     );
   });

@@ -132,13 +132,13 @@ void main() {
     );
   });
 
-  group('buildInteractionMessages — pet branch', () {
-    // Oracle = the plan's Phase 2 contract: when interactionType == pet, the
+  group('buildInteractionMessages — play branch', () {
+    // Oracle = the plan's Phase 2 contract: when interactionType == play, the
     // system prompt keeps the in-character/no-chatbot guardrails but is about
-    // being PETTED (no food, no tastiness), coloured by sociability; the user
+    // PLAYING TOGETHER (no food, no tastiness), coloured by sociability; the user
     // message carries stats/mood/personality/memory and references neither
     // tastiness nor accepted. We assert presence/structure, never exact prose.
-    InteractionRequest petRequest({
+    InteractionRequest playRequest({
       List<String> recentEntries = const [],
       CreatureMood mood = CreatureMood.content,
     }) => InteractionRequest(
@@ -148,16 +148,16 @@ void main() {
       love: 64,
       illness: 5,
       mood: mood,
-      interactionType: JournalEvent.pet,
+      interactionType: JournalEvent.play,
       accepted: true,
       tastiness: 0,
       recentEntries: recentEntries,
     );
 
     test(
-      'emits a pet persona message with guardrails and sociability framing',
+      'emits a play persona message with guardrails and sociability framing',
       () {
-        final messages = buildInteractionMessages(petRequest());
+        final messages = buildInteractionMessages(playRequest());
 
         expect(messages, hasLength(2));
         expect(messages[0]['role'], 'system');
@@ -167,24 +167,24 @@ void main() {
         // Same in-character / no-chatbot guardrails as feed.
         expect(system, contains('in character'));
         expect(system, contains('language model'));
-        // Pet-specific: about being petted, coloured by sociability.
-        expect(system, contains('pet'));
+        // Play-specific: about playing together, coloured by sociability.
+        expect(system, contains('play'));
         expect(system, contains('sociab'));
         // Two output fields unchanged.
         expect(messages[0]['content'] as String, contains('userResponse'));
         expect(messages[0]['content'] as String, contains('journalNarrative'));
-        // No food / tastiness wording leaks into the pet persona.
+        // No food / tastiness wording leaks into the play persona.
         expect(system, isNot(contains('food')));
         expect(system, isNot(contains('tastiness')));
       },
     );
 
     test(
-      'pet user message carries stats, mood, and personality; no tastiness',
+      'play user message carries stats, mood, and personality; no tastiness',
       () {
         final user =
             buildInteractionMessages(
-                  petRequest(mood: CreatureMood.sad),
+                  playRequest(mood: CreatureMood.sad),
                 )[1]['content']
                 as String;
 
@@ -196,16 +196,16 @@ void main() {
         expect(user, contains('sad'));
         // Personality summary present (a distinctive modifier value).
         expect(user, contains('1.40'));
-        // Pet does not reference tastiness or the accept/refuse decision.
+        // Play does not reference tastiness or the accept/refuse decision.
         expect(user.toLowerCase(), isNot(contains('tastiness')));
         expect(user.toLowerCase(), isNot(contains('accepted')));
       },
     );
 
-    test('pet user message includes the recent-memory window', () {
+    test('play user message includes the recent-memory window', () {
       final withMemory =
           buildInteractionMessages(
-                petRequest(
+                playRequest(
                   recentEntries: const [
                     'Basked in a long afternoon of scritches.',
                     'Sulked alone by the water bowl.',

@@ -16,7 +16,7 @@ import 'package:serverpod/serverpod.dart' as _i1;
 /// Stored 1:1 with the creature. Multipliers around a 1.0 baseline; the
 /// randomization range (0.5-1.5) is applied in creature_service.dart, not here.
 /// Love is a single-dial axis: `loveRegenMod` alone encodes the
-/// introvert↔extravert sociability axis (S-04 Pet derives love gain + energy
+/// introvert↔extravert sociability axis (S-04 Play derives love gain + energy
 /// cost from it), so there is no `loveDecayMod`. The other three stats keep both
 /// decay and regen mods for S-07.
 abstract class CreaturePersonality
