@@ -528,11 +528,11 @@ No schema changes — auth tables are already migrated (`migrations/202605211634
 
 ### Phase 7: EmailLabs sender authorization + DNS + production acceptance (FINAL)
 
-> **DEFERRED (2026-06-05)** — blocked on DNS control-panel access for the codecreations.eu zone (operator contacted). Credentials are fixed (prod `new_sendmail` now returns the expected pre-auth `500 "SMTP account is not authorized to send from no-reply@tamagotchi.codecreations.eu"`, not the old 401). The 4 EmailLabs CNAMEs to publish + the resume runbook are recorded in `change.md` Notes (Option B, panel-exact). Resume here when DNS access is restored.
+> **RESUMED (2026-06-20)** — DNS access restored; the 4 EmailLabs CNAMEs (Option B, panel-exact) were published in the Cloudflare `codecreations.eu` zone and **dig-verified** (see 7.1). Remaining: EmailLabs panel Check→Accepted (7.2) + the prod acceptance flow (7.3–7.4). Prior block (2026-06-05): no DNS control-panel access; credentials already fixed (prod `new_sendmail` returned the expected pre-auth `500 "SMTP account is not authorized to send from no-reply@tamagotchi.codecreations.eu"`).
 
 #### Automated
 
-- [ ] 7.1 `dig` shows the EmailLabs SPF include + DKIM record + `_dmarc` `p=none` for `tamagotchi.codecreations.eu`
+- [x] 7.1 `dig` confirms all 4 CNAMEs resolve to their `dkimbox.com` targets on both Cloudflare (1.1.1.1) and Google (8.8.8.8), 2026-06-20. DKIM (`default._domainkey.tamagotchi` → `c6cce8-8dc371.dkimbox.com`) chases to a valid `v=DKIM1; k=rsa; p=…` record; DMARC (`_dmarc.tamagotchi` → `354499-be9384.dkimbox.com`) chases to `v=DMARC1; p=none; pct=1; rua=mailto:dmarc@vercom.pl`. (Adapted for Option B: no own SPF TXT, no own DMARC TXT — both are EmailLabs-managed via CNAME.)
 - [ ] 7.2 EmailLabs panel shows the domain status = Accepted/verified
 
 #### Manual
