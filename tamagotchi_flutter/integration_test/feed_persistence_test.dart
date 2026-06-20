@@ -86,9 +86,10 @@ void main() {
 
     // ── action ─────────────────────────────────────────────────────────────
     // Feed once, then wait for the in-character response container (state, not a
-    // fixed delay). #feedResponse renders only after the feed RPC resolves.
+    // fixed delay). #interactionResponse renders only after the feed RPC
+    // resolves (the shared Feed/Play response area).
     await $(#feedButton).tap();
-    await $(#feedResponse).waitUntilVisible();
+    await $(#interactionResponse).waitUntilVisible();
 
     // The mutation is applied in the LIVE view (pre-reload): hunger 100→70,
     // energy 100→90. This is the accept path — the one that writes the stat
@@ -107,10 +108,10 @@ void main() {
     // ── assertion (THE risk) ─────────────────────────────────────────────────
     // The post-feed stats are STILL the fed values after the reload — re-read
     // from the DB across auth → routing → API → DB, not held in client memory
-    // (the feed controller resets on the fresh client, so #feedResponse is gone
-    // here by design). If the feed mutation had not persisted, the reload would
-    // show the seeded 100/100 and these would fail — this is the business
-    // outcome, not a decorative title.
+    // (the feed controller resets on the fresh client, so #interactionResponse
+    // is gone here by design). If the feed mutation had not persisted, the
+    // reload would show the seeded 100/100 and these would fail — this is the
+    // business outcome, not a decorative title.
     expect(
       $(const Key('statRow-Hunger')).$('$_fedHunger'),
       findsOneWidget,

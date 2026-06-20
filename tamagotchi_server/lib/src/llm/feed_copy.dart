@@ -3,7 +3,7 @@
 /// the LLM-failure degrade fallback, and the deterministic strings the stub
 /// returns in key-less environments.
 ///
-/// Keep these in-character and pet-flavoured; they are user-facing.
+/// Keep these in-character and food-flavoured; they are user-facing.
 library;
 
 /// Funny in-character lines for a creature that is already full (`hunger == 0`)

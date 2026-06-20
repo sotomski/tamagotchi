@@ -5,14 +5,13 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../llm/feed_copy.dart';
 import '../llm/llm_service.dart';
+import 'creature_service.dart';
 
 /// The picky/tastiness gate that decides whether a creature accepts a feed, plus
 /// the deterministic stat math behind an accepted feed. Pure and DB-free —
 /// extends `creature_service.dart`'s style (small functions, an injectable
-/// `Random` seam) so every rule is unit-testable in isolation.
-
-/// Clamps a raw stat onto the 0-100 scale every creature stat lives on.
-int clampStat(int v) => v.clamp(0, 100);
+/// `Random` seam) so every rule is unit-testable in isolation. `clampStat` now
+/// lives in `creature_service.dart` (shared with Play).
 
 /// Hunger lost on an accepted feed (0-100 scale; higher hunger = hungrier, so a
 /// feed *lowers* it). PRD oracle — fixed magnitude, never tastiness-scaled.

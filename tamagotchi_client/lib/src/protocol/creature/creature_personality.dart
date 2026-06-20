@@ -15,8 +15,10 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 /// Per-stat decay/regen modifiers, randomized at hatch and inert until S-07.
 /// Stored 1:1 with the creature. Multipliers around a 1.0 baseline; the
 /// randomization range (0.5-1.5) is applied in creature_service.dart, not here.
-/// Interaction modifiers (picky/gluttonous, introvert/extravert) are out of
-/// scope and added additively in S-03/S-04.
+/// Love is a single-dial axis: `loveRegenMod` alone encodes the
+/// introvert↔extravert sociability axis (S-04 Play derives love gain + energy
+/// cost from it), so there is no `loveDecayMod`. The other three stats keep both
+/// decay and regen mods for S-07.
 abstract class CreaturePersonality implements _i1.SerializableModel {
   CreaturePersonality._({
     this.id,
@@ -25,7 +27,6 @@ abstract class CreaturePersonality implements _i1.SerializableModel {
     required this.hungerRegenMod,
     required this.energyDecayMod,
     required this.energyRegenMod,
-    required this.loveDecayMod,
     required this.loveRegenMod,
     required this.illnessDecayMod,
     required this.illnessRegenMod,
@@ -38,7 +39,6 @@ abstract class CreaturePersonality implements _i1.SerializableModel {
     required double hungerRegenMod,
     required double energyDecayMod,
     required double energyRegenMod,
-    required double loveDecayMod,
     required double loveRegenMod,
     required double illnessDecayMod,
     required double illnessRegenMod,
@@ -56,7 +56,6 @@ abstract class CreaturePersonality implements _i1.SerializableModel {
       hungerRegenMod: (jsonSerialization['hungerRegenMod'] as num).toDouble(),
       energyDecayMod: (jsonSerialization['energyDecayMod'] as num).toDouble(),
       energyRegenMod: (jsonSerialization['energyRegenMod'] as num).toDouble(),
-      loveDecayMod: (jsonSerialization['loveDecayMod'] as num).toDouble(),
       loveRegenMod: (jsonSerialization['loveRegenMod'] as num).toDouble(),
       illnessDecayMod: (jsonSerialization['illnessDecayMod'] as num).toDouble(),
       illnessRegenMod: (jsonSerialization['illnessRegenMod'] as num).toDouble(),
@@ -77,8 +76,6 @@ abstract class CreaturePersonality implements _i1.SerializableModel {
 
   double energyRegenMod;
 
-  double loveDecayMod;
-
   double loveRegenMod;
 
   double illnessDecayMod;
@@ -95,7 +92,6 @@ abstract class CreaturePersonality implements _i1.SerializableModel {
     double? hungerRegenMod,
     double? energyDecayMod,
     double? energyRegenMod,
-    double? loveDecayMod,
     double? loveRegenMod,
     double? illnessDecayMod,
     double? illnessRegenMod,
@@ -110,7 +106,6 @@ abstract class CreaturePersonality implements _i1.SerializableModel {
       'hungerRegenMod': hungerRegenMod,
       'energyDecayMod': energyDecayMod,
       'energyRegenMod': energyRegenMod,
-      'loveDecayMod': loveDecayMod,
       'loveRegenMod': loveRegenMod,
       'illnessDecayMod': illnessDecayMod,
       'illnessRegenMod': illnessRegenMod,
@@ -133,7 +128,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
     required double hungerRegenMod,
     required double energyDecayMod,
     required double energyRegenMod,
-    required double loveDecayMod,
     required double loveRegenMod,
     required double illnessDecayMod,
     required double illnessRegenMod,
@@ -144,7 +138,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
          hungerRegenMod: hungerRegenMod,
          energyDecayMod: energyDecayMod,
          energyRegenMod: energyRegenMod,
-         loveDecayMod: loveDecayMod,
          loveRegenMod: loveRegenMod,
          illnessDecayMod: illnessDecayMod,
          illnessRegenMod: illnessRegenMod,
@@ -161,7 +154,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
     double? hungerRegenMod,
     double? energyDecayMod,
     double? energyRegenMod,
-    double? loveDecayMod,
     double? loveRegenMod,
     double? illnessDecayMod,
     double? illnessRegenMod,
@@ -173,7 +165,6 @@ class _CreaturePersonalityImpl extends CreaturePersonality {
       hungerRegenMod: hungerRegenMod ?? this.hungerRegenMod,
       energyDecayMod: energyDecayMod ?? this.energyDecayMod,
       energyRegenMod: energyRegenMod ?? this.energyRegenMod,
-      loveDecayMod: loveDecayMod ?? this.loveDecayMod,
       loveRegenMod: loveRegenMod ?? this.loveRegenMod,
       illnessDecayMod: illnessDecayMod ?? this.illnessDecayMod,
       illnessRegenMod: illnessRegenMod ?? this.illnessRegenMod,
