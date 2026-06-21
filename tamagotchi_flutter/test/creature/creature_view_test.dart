@@ -310,7 +310,7 @@ void main() {
   });
 
   testWidgets(
-    'a present creature shows Feed and Play buttons (no response yet)',
+    'a present creature shows Feed, Play and Cure buttons (no response yet)',
     (
       tester,
     ) async {
@@ -324,9 +324,11 @@ void main() {
 
       expect(find.widgetWithText(ElevatedButton, 'Feed'), findsOneWidget);
       expect(find.widgetWithText(ElevatedButton, 'Play with'), findsOneWidget);
+      expect(find.byKey(const Key('cureButton')), findsOneWidget);
       // No interaction attempted yet → no loading, no response bubble.
       expect(find.text('Feeding…'), findsNothing);
       expect(find.text('Playing…'), findsNothing);
+      expect(find.text('Curing…'), findsNothing);
       expect(find.byKey(const Key('interactionResponse')), findsNothing);
     },
   );

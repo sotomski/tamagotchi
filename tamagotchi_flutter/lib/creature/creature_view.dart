@@ -114,7 +114,7 @@ class CreatureView extends ConsumerWidget {
                   ),
                 ],
               ),
-            // RPC/network failure on either interaction — refusals are data,
+            // RPC/network failure on any interaction — refusals are data,
             // rendered below.
             if (hasError) ...[
               const SizedBox(height: 16),
@@ -163,8 +163,9 @@ class _InteractionIndicator extends StatelessWidget {
 }
 
 /// Renders the most-recent interaction's in-character `userResponse`. An
-/// accepted interaction (every Play, an accepted Feed) reads as the creature's
-/// happy reaction; a Feed *refusal* (`accepted == false`) is styled distinctly —
+/// accepted interaction (every Play and Cure, an accepted Feed) reads as the
+/// creature's happy reaction; a Feed *refusal* (`accepted == false`) is styled
+/// distinctly —
 /// italic, muted — so a "no" never looks like an error.
 class _InteractionResponse extends StatelessWidget {
   const _InteractionResponse({required this.outcome});
