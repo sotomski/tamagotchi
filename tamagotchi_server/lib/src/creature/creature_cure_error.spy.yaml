@@ -1,0 +1,8 @@
+### Typed, client-visible failure for the only genuine Cure error path: curing
+### when the caller owns no creature. Curing never refuses (it is deterministic
+### and always available regardless of energy, FR-006), so this is the single
+### failure surface. Mirrors CreaturePlayError so the Flutter client switches on
+### [reason] instead of parsing a message string.
+exception: CreatureCureError
+fields:
+  reason: CreatureCureErrorReason

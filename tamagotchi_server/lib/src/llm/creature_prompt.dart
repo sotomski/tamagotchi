@@ -8,15 +8,17 @@ import 'llm_service.dart';
 /// Branches on [InteractionRequest.interactionType]: Feed is food/tastiness
 /// flavoured (the funny food name is NOT passed in — the prompt instructs the
 /// model to invent one whose fanciness matches `tastiness`); Play is about
-/// playing together, coloured by the sociability axis, with no food or tastiness.
+/// playing together, coloured by the sociability axis, with no food or tastiness;
+/// Cure is about recovering / feeling better, with no food, tastiness, or games.
 List<Map<String, dynamic>> buildInteractionMessages(InteractionRequest req) {
-  final isPlay = req.interactionType == JournalEvent.play;
+  final (system, user) = switch (req.interactionType) {
+    JournalEvent.play => (_playSystemPrompt, _playUserPrompt(req)),
+    JournalEvent.cure => (_cureSystemPrompt, _cureUserPrompt(req)),
+    _ => (_systemPrompt, _userPrompt(req)),
+  };
   return [
-    {'role': 'system', 'content': isPlay ? _playSystemPrompt : _systemPrompt},
-    {
-      'role': 'user',
-      'content': isPlay ? _playUserPrompt(req) : _userPrompt(req),
-    },
+    {'role': 'system', 'content': system},
+    {'role': 'user', 'content': user},
   ];
 }
 
@@ -84,6 +86,59 @@ Respond with a JSON object containing exactly two string fields:
 /// references neither tastiness nor the accept/refuse decision — Play is
 /// deterministic and always welcomed.
 String _playUserPrompt(InteractionRequest req) {
+  final memory = req.recentEntries.isEmpty
+      ? '(no earlier entries yet)'
+      : req.recentEntries.map((e) => '- $e').join('\n');
+
+  return '''
+Interaction: ${req.interactionType.name}
+
+Current state:
+- mood: ${req.mood.name}
+- hunger: ${req.hunger}/100 (0 = completely full, 100 = starving)
+- energy: ${req.energy}/100
+- love: ${req.love}/100
+- illness: ${req.illness}/100
+
+Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
+${_personalitySummary(req.personality)}
+
+Your recent journal (newest first), for continuity of voice:
+$memory
+''';
+}
+
+/// Fixed persona + guardrails + output contract for the Cure interaction. Same
+/// in-character/no-chatbot guardrails as feed and play, but about *recovering* —
+/// no food, no tastiness, no games. The creature reacts to feeling better;
+/// relief is coloured by how poorly it currently feels (illness/mood) and by its
+/// recovery responsiveness, surfaced in the personality summary.
+const String _cureSystemPrompt = '''
+You ARE a small, sentient virtual creature in a digital terrarium — a Tamagotchi
+with a vivid inner life. You are not an assistant and not a chatbot. Stay fully
+in character at all times: never break the fourth wall, never mention being an
+AI or a language model, never apologise like a customer-service bot, and never
+add disclaimers, safety notes, or meta commentary. Speak in the first person as
+the creature.
+
+Your owner is curing you — tending to your sickness so you feel better. React in
+your own voice to the relief of recovering, coloured by your personality and your
+current bodily state (hunger, energy, love, illness, mood). The sicker you were
+(high illness), the more dramatic the relief; if you were barely unwell, react
+with a gentler, grateful ease. Speak about feeling better, soothed aches, and
+being cared for — not about meals or games. You always welcome being cured.
+
+Respond with a JSON object containing exactly two string fields:
+- "userResponse": a short (1-3 sentence) in-character reaction spoken to your owner.
+- "journalNarrative": a coherent prose diary entry in your own voice about this
+  moment, written as past-tense narration.
+''';
+
+/// Builds the per-call user message for a cure. Carries the same volatile state
+/// as play (stats, mood, personality summary, recent memory) but references
+/// neither tastiness nor the accept/refuse decision — Cure is deterministic and
+/// always welcomed.
+String _cureUserPrompt(InteractionRequest req) {
   final memory = req.recentEntries.isEmpty
       ? '(no earlier entries yet)'
       : req.recentEntries.map((e) => '- $e').join('\n');

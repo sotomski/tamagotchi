@@ -1,0 +1,16 @@
+### The Cure interaction outcome returned to the client: the in-character user
+### response plus the post-cure creature+mood so the client renders without a
+### second fetch. Non-table — computed per call, never persisted (like
+### CreatureStatus / StatDelta / PlayResult).
+###
+### No `accepted` field: curing is deterministic and always succeeds
+### (`prd.md:39`, FR-006). The shared three-interaction UI supplies
+### `accepted: true` for Cure itself.
+class: CureResult
+fields:
+  ### The user-facing, in-character response (LLM-generated, or canned cure copy
+  ### on a model-failure degrade).
+  userResponse: String
+  ### The creature's post-cure status: updated stats (illness down) plus a
+  ### freshly re-derived mood.
+  status: CreatureStatus
