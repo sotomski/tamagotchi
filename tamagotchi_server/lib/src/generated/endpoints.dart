@@ -296,33 +296,57 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
         'feed': _i1.MethodConnector(
           name: 'feed',
-          params: {},
+          params: {
+            'timeScale': _i1.ParameterDescription(
+              name: 'timeScale',
+              type: _i1.getType<double?>(),
+              nullable: true,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['creature'] as _i4.CreatureEndpoint).feed(session),
+              ) async => (endpoints['creature'] as _i4.CreatureEndpoint).feed(
+                session,
+                timeScale: params['timeScale'],
+              ),
         ),
         'play': _i1.MethodConnector(
           name: 'play',
-          params: {},
+          params: {
+            'timeScale': _i1.ParameterDescription(
+              name: 'timeScale',
+              type: _i1.getType<double?>(),
+              nullable: true,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['creature'] as _i4.CreatureEndpoint).play(session),
+              ) async => (endpoints['creature'] as _i4.CreatureEndpoint).play(
+                session,
+                timeScale: params['timeScale'],
+              ),
         ),
         'cure': _i1.MethodConnector(
           name: 'cure',
-          params: {},
+          params: {
+            'timeScale': _i1.ParameterDescription(
+              name: 'timeScale',
+              type: _i1.getType<double?>(),
+              nullable: true,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['creature'] as _i4.CreatureEndpoint).cure(session),
+              ) async => (endpoints['creature'] as _i4.CreatureEndpoint).cure(
+                session,
+                timeScale: params['timeScale'],
+              ),
         ),
       },
     );

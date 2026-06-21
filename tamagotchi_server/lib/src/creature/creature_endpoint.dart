@@ -173,7 +173,7 @@ class CreatureEndpoint extends Endpoint {
   ///
   /// The LLM call sits **outside** the transaction so a degrade still commits the
   /// stat+journal pair atomically — a stat change never lands without its entry.
-  Future<FeedResult> feed(Session session) async {
+  Future<FeedResult> feed(Session session, {double? timeScale}) async {
     final ownerUuid = UuidValue.fromString(
       session.authenticated!.userIdentifier,
     );
@@ -196,16 +196,28 @@ class CreatureEndpoint extends Endpoint {
       throw StateError('Creature ${creature.id} has no personality row');
     }
 
+    // Decay-before-interaction: fold in any elapsed-time decay first so the gate
+    // and the feed delta act on up-to-date stats. `base` carries the decayed
+    // stats + advanced `lastDecayedAt`; both land in the one transaction below.
+    final decayed = decayCreature(
+      creature: creature,
+      personality: personality,
+      now: clockFactory(session)(),
+      timeScale: clampTimeScale(timeScale ?? 1.0),
+    );
+    final base = decayed.creature;
+
     final feedService = feedServiceFactory(session);
-    final decision = feedService.decide(creature, personality);
+    final decision = feedService.decide(base, personality);
 
     // Already full: a cheap canned line — no LLM call, no journal entry, no stat
-    // change.
+    // change. (Decay can never leave a creature full: a fired tick raises hunger
+    // above 0, so `base` is full only when no tick fired and nothing to persist.)
     if (decision.full) {
       return FeedResult(
         userResponse: feedService.fullRefusalLine(),
         accepted: false,
-        status: CreatureStatus(creature: creature, mood: _moodOf(creature)),
+        status: CreatureStatus(creature: base, mood: _moodOf(base)),
       );
     }
 
@@ -227,11 +239,11 @@ class CreatureEndpoint extends Endpoint {
       session,
       InteractionRequest(
         personality: personality,
-        hunger: creature.hunger,
-        energy: creature.energy,
-        love: creature.love,
-        illness: creature.illness,
-        mood: _moodOf(creature),
+        hunger: base.hunger,
+        energy: base.energy,
+        love: base.love,
+        illness: base.illness,
+        mood: _moodOf(base),
         interactionType: JournalEvent.feed,
         accepted: decision.accepted,
         tastiness: decision.tastiness,
@@ -239,16 +251,20 @@ class CreatureEndpoint extends Endpoint {
       ),
     );
 
-    // Coherent pair: stat update (accepted only) + journal entry in one
-    // transaction. The delta already encodes the 0-100 clamp, so adding it to the
-    // current stat lands the clamped target directly.
+    // Coherent pair: stat update + journal entry in one transaction, applied to
+    // the decayed `base`. The delta already encodes the 0-100 clamp, so adding it
+    // to the decayed stat lands the clamped target directly. Persist whenever the
+    // feed was accepted OR decay advanced the creature (a picky refusal still
+    // commits the decayed stats + advanced anchor); decay itself adds no entry.
     final updated = await session.db.transaction((transaction) async {
-      var result = creature;
+      var result = base;
       if (decision.accepted) {
-        result = creature.copyWith(
-          hunger: creature.hunger + decision.delta.hungerDelta,
-          energy: creature.energy + decision.delta.energyDelta,
+        result = base.copyWith(
+          hunger: base.hunger + decision.delta.hungerDelta,
+          energy: base.energy + decision.delta.energyDelta,
         );
+      }
+      if (decision.accepted || decayed.changed) {
         await Creature.db.updateRow(session, result, transaction: transaction);
       }
 
@@ -287,7 +303,7 @@ class CreatureEndpoint extends Endpoint {
   ///
   /// As in [feed], the LLM call sits **outside** the transaction so a degrade
   /// still commits the stat+journal pair atomically.
-  Future<PlayResult> play(Session session) async {
+  Future<PlayResult> play(Session session, {double? timeScale}) async {
     final ownerUuid = UuidValue.fromString(
       session.authenticated!.userIdentifier,
     );
@@ -310,8 +326,19 @@ class CreatureEndpoint extends Endpoint {
       throw StateError('Creature ${creature.id} has no personality row');
     }
 
+    // Decay-before-interaction: fold in elapsed-time decay first; `base` carries
+    // the decayed stats + advanced `lastDecayedAt`, both persisted in the one
+    // transaction below alongside the play delta.
+    final decayed = decayCreature(
+      creature: creature,
+      personality: personality,
+      now: clockFactory(session)(),
+      timeScale: clampTimeScale(timeScale ?? 1.0),
+    );
+    final base = decayed.creature;
+
     // Deterministic — no rng. The delta encodes the 0-100 clamp.
-    final delta = playDelta(creature, personality);
+    final delta = playDelta(base, personality);
 
     // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
     // first (the empty-prose hatched marker is dropped).
@@ -331,11 +358,11 @@ class CreatureEndpoint extends Endpoint {
       session,
       InteractionRequest(
         personality: personality,
-        hunger: creature.hunger,
-        energy: creature.energy,
-        love: creature.love,
-        illness: creature.illness,
-        mood: _moodOf(creature),
+        hunger: base.hunger,
+        energy: base.energy,
+        love: base.love,
+        illness: base.illness,
+        mood: _moodOf(base),
         interactionType: JournalEvent.play,
         accepted: true,
         // tastiness is feed-only; the play prompt branch ignores it.
@@ -344,12 +371,13 @@ class CreatureEndpoint extends Endpoint {
       ),
     );
 
-    // Coherent pair: the stat update (always — energy always changes) + the
-    // journal entry in one transaction.
+    // Coherent pair: the stat update (always — energy always changes, and decay
+    // is always folded in) + the journal entry in one transaction, applied to the
+    // decayed `base`.
     final updated = await session.db.transaction((transaction) async {
-      final result = creature.copyWith(
-        love: creature.love + delta.loveDelta,
-        energy: creature.energy + delta.energyDelta,
+      final result = base.copyWith(
+        love: base.love + delta.loveDelta,
+        energy: base.energy + delta.energyDelta,
       );
       await Creature.db.updateRow(session, result, transaction: transaction);
 
@@ -395,7 +423,7 @@ class CreatureEndpoint extends Endpoint {
   ///
   /// As in [play], the LLM call sits **outside** the transaction so a degrade
   /// still commits the stat+journal pair atomically.
-  Future<CureResult> cure(Session session) async {
+  Future<CureResult> cure(Session session, {double? timeScale}) async {
     final ownerUuid = UuidValue.fromString(
       session.authenticated!.userIdentifier,
     );
@@ -418,9 +446,21 @@ class CreatureEndpoint extends Endpoint {
       throw StateError('Creature ${creature.id} has no personality row');
     }
 
+    // Decay-before-interaction: fold in elapsed-time decay first; `base` carries
+    // the decayed stats + advanced `lastDecayedAt`, both persisted in the one
+    // transaction below alongside the cure delta. Illness itself never decays, so
+    // only hunger/energy/love move here — but the advanced anchor still lands.
+    final decayed = decayCreature(
+      creature: creature,
+      personality: personality,
+      now: clockFactory(session)(),
+      timeScale: clampTimeScale(timeScale ?? 1.0),
+    );
+    final base = decayed.creature;
+
     // Deterministic — no rng. The delta encodes the 0-100 clamp (illness floors
     // at 0).
-    final delta = cureDelta(creature, personality);
+    final delta = cureDelta(base, personality);
 
     // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
     // first (the empty-prose hatched marker is dropped).
@@ -440,11 +480,11 @@ class CreatureEndpoint extends Endpoint {
       session,
       InteractionRequest(
         personality: personality,
-        hunger: creature.hunger,
-        energy: creature.energy,
-        love: creature.love,
-        illness: creature.illness,
-        mood: _moodOf(creature),
+        hunger: base.hunger,
+        energy: base.energy,
+        love: base.love,
+        illness: base.illness,
+        mood: _moodOf(base),
         interactionType: JournalEvent.cure,
         accepted: true,
         // tastiness is feed-only; the cure prompt branch ignores it.
@@ -453,11 +493,12 @@ class CreatureEndpoint extends Endpoint {
       ),
     );
 
-    // Coherent pair: the stat update (illness only — energy never moves) + the
-    // journal entry in one transaction.
+    // Coherent pair: the stat update (illness from the cure, plus the decayed
+    // hunger/energy/love and advanced anchor) + the journal entry in one
+    // transaction, applied to the decayed `base`.
     final updated = await session.db.transaction((transaction) async {
-      final result = creature.copyWith(
-        illness: creature.illness + delta.illnessDelta,
+      final result = base.copyWith(
+        illness: base.illness + delta.illnessDelta,
       );
       await Creature.db.updateRow(session, result, transaction: transaction);
 

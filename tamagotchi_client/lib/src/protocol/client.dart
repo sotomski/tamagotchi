@@ -299,11 +299,11 @@ class EndpointCreature extends _i2.EndpointRef {
   ///
   /// The LLM call sits **outside** the transaction so a degrade still commits the
   /// stat+journal pair atomically — a stat change never lands without its entry.
-  _i3.Future<_i6.FeedResult> feed() =>
+  _i3.Future<_i6.FeedResult> feed({double? timeScale}) =>
       caller.callServerEndpoint<_i6.FeedResult>(
         'creature',
         'feed',
-        {},
+        {'timeScale': timeScale},
       );
 
   /// Plays with the caller's creature once and returns the in-character outcome.
@@ -318,11 +318,11 @@ class EndpointCreature extends _i2.EndpointRef {
   ///
   /// As in [feed], the LLM call sits **outside** the transaction so a degrade
   /// still commits the stat+journal pair atomically.
-  _i3.Future<_i7.PlayResult> play() =>
+  _i3.Future<_i7.PlayResult> play({double? timeScale}) =>
       caller.callServerEndpoint<_i7.PlayResult>(
         'creature',
         'play',
-        {},
+        {'timeScale': timeScale},
       );
 
   /// Cures the caller's creature once and returns the in-character outcome.
@@ -346,11 +346,11 @@ class EndpointCreature extends _i2.EndpointRef {
   ///
   /// As in [play], the LLM call sits **outside** the transaction so a degrade
   /// still commits the stat+journal pair atomically.
-  _i3.Future<_i8.CureResult> cure() =>
+  _i3.Future<_i8.CureResult> cure({double? timeScale}) =>
       caller.callServerEndpoint<_i8.CureResult>(
         'creature',
         'cure',
-        {},
+        {'timeScale': timeScale},
       );
 }
 

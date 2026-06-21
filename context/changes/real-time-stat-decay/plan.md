@@ -492,27 +492,27 @@ existing rows backfill to migration time. Apply via `serverpod run start`
 
 #### Automated
 
-- [x] 2.1 Unit tests pass for the pure decay fn (elapsed cases, floor, cap, illness, scaling, determinism)
-- [x] 2.2 Integration test: `myCreature` decays + advances anchor; immediate re-call is a no-op
-- [x] 2.3 `serverpod generate` clean; `dart analyze` passes
-- [x] 2.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/`
+- [x] 2.1 Unit tests pass for the pure decay fn (elapsed cases, floor, cap, illness, scaling, determinism) — 78c52e0
+- [x] 2.2 Integration test: `myCreature` decays + advances anchor; immediate re-call is a no-op — 78c52e0
+- [x] 2.3 `serverpod generate` clean; `dart analyze` passes — 78c52e0
+- [x] 2.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/` — 78c52e0
 
 #### Manual
 
-- [x] 2.5 Idle creature reflects decay on next `myCreature`; higher `timeScale` increases decay
+- [x] 2.5 Idle creature reflects decay on next `myCreature`; higher `timeScale` increases decay — 78c52e0
 
 ### Phase 3: Decay-Before-Interaction
 
 #### Automated
 
-- [ ] 3.1 Integration tests: feed/play/cure decay-before-interaction, anchor advanced, single journal entry
-- [ ] 3.2 Existing feed/play/cure tests still pass (feed RNG draw-order intact)
-- [ ] 3.3 `serverpod generate` clean; `dart analyze` passes
-- [ ] 3.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/`
+- [x] 3.1 Integration tests: feed/play/cure decay-before-interaction, anchor advanced, single journal entry
+- [x] 3.2 Existing feed/play/cure tests still pass (feed RNG draw-order intact)
+- [x] 3.3 `serverpod generate` clean; `dart analyze` passes
+- [x] 3.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/`
 
 #### Manual
 
-- [ ] 3.5 Interacting after idle reflects decay-then-interaction
+- [x] 3.5 Interacting after idle reflects decay-then-interaction
 
 ### Phase 4: Frontend Slider + Scaled Polling
 
