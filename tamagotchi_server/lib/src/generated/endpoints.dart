@@ -277,13 +277,22 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
         'myCreature': _i1.MethodConnector(
           name: 'myCreature',
-          params: {},
+          params: {
+            'timeScale': _i1.ParameterDescription(
+              name: 'timeScale',
+              type: _i1.getType<double?>(),
+              nullable: true,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['creature'] as _i4.CreatureEndpoint)
-                  .myCreature(session),
+              ) async =>
+                  (endpoints['creature'] as _i4.CreatureEndpoint).myCreature(
+                    session,
+                    timeScale: params['timeScale'],
+                  ),
         ),
         'feed': _i1.MethodConnector(
           name: 'feed',

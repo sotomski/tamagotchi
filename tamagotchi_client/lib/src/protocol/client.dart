@@ -273,11 +273,19 @@ class EndpointCreature extends _i2.EndpointRef {
       );
 
   /// Returns the caller's creature with its derived mood, or null if none.
-  _i3.Future<_i5.CreatureStatus?> myCreature() =>
+  ///
+  /// Applies elapsed-time decay before returning: reads `now` through the
+  /// [clockFactory] seam, runs the pure [decayCreature] with the clamped
+  /// [timeScale], and persists the decayed row **only when a whole tick fired**
+  /// (so frequent polling never writes on every call). Mood is then derived from
+  /// the decayed stats. `timeScale` is the client's 1×–8× acceleration slider;
+  /// it is nullable at the RPC boundary (so older callers omit it) and defaults
+  /// to `1.0` (real time) when absent.
+  _i3.Future<_i5.CreatureStatus?> myCreature({double? timeScale}) =>
       caller.callServerEndpoint<_i5.CreatureStatus?>(
         'creature',
         'myCreature',
-        {},
+        {'timeScale': timeScale},
       );
 
   /// Feeds the caller's creature once and returns the in-character outcome.

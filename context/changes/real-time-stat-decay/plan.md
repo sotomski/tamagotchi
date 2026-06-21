@@ -477,29 +477,29 @@ existing rows backfill to migration time. Apply via `serverpod run start`
 
 #### Automated
 
-- [x] 1.1 `serverpod generate` completes without error
-- [x] 1.2 Migration created via `serverpod create-migration`
-- [x] 1.3 Migration applies cleanly via `serverpod run start`
-- [x] 1.4 `dart analyze` passes in `tamagotchi_server/`
-- [x] 1.5 Generated `Creature` exposes `lastDecayedAt`
+- [x] 1.1 `serverpod generate` completes without error — ca8ff89
+- [x] 1.2 Migration created via `serverpod create-migration` — ca8ff89
+- [x] 1.3 Migration applies cleanly via `serverpod run start` — ca8ff89
+- [x] 1.4 `dart analyze` passes in `tamagotchi_server/` — ca8ff89
+- [x] 1.5 Generated `Creature` exposes `lastDecayedAt` — ca8ff89
 
 #### Manual
 
-- [x] 1.6 `lastDecayedAt` column exists on the creature table
-- [x] 1.7 Existing creature row backfilled with non-null `lastDecayedAt`
+- [x] 1.6 `lastDecayedAt` column exists on the creature table — ca8ff89
+- [x] 1.7 Existing creature row backfilled with non-null `lastDecayedAt` — ca8ff89
 
 ### Phase 2: Server Decay Engine (Read Path)
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass for the pure decay fn (elapsed cases, floor, cap, illness, scaling, determinism)
-- [ ] 2.2 Integration test: `myCreature` decays + advances anchor; immediate re-call is a no-op
-- [ ] 2.3 `serverpod generate` clean; `dart analyze` passes
-- [ ] 2.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/`
+- [x] 2.1 Unit tests pass for the pure decay fn (elapsed cases, floor, cap, illness, scaling, determinism)
+- [x] 2.2 Integration test: `myCreature` decays + advances anchor; immediate re-call is a no-op
+- [x] 2.3 `serverpod generate` clean; `dart analyze` passes
+- [x] 2.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/`
 
 #### Manual
 
-- [ ] 2.5 Idle creature reflects decay on next `myCreature`; higher `timeScale` increases decay
+- [x] 2.5 Idle creature reflects decay on next `myCreature`; higher `timeScale` increases decay
 
 ### Phase 3: Decay-Before-Interaction
 

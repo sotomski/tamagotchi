@@ -6,6 +6,7 @@ import '../generated/protocol.dart';
 import '../llm/llm_service.dart';
 import 'creature_service.dart';
 import 'cure_service.dart';
+import 'decay_service.dart';
 import 'feed_service.dart';
 import 'play_service.dart';
 
@@ -113,7 +114,18 @@ class CreatureEndpoint extends Endpoint {
   }
 
   /// Returns the caller's creature with its derived mood, or null if none.
-  Future<CreatureStatus?> myCreature(Session session) async {
+  ///
+  /// Applies elapsed-time decay before returning: reads `now` through the
+  /// [clockFactory] seam, runs the pure [decayCreature] with the clamped
+  /// [timeScale], and persists the decayed row **only when a whole tick fired**
+  /// (so frequent polling never writes on every call). Mood is then derived from
+  /// the decayed stats. `timeScale` is the client's 1×–8× acceleration slider;
+  /// it is nullable at the RPC boundary (so older callers omit it) and defaults
+  /// to `1.0` (real time) when absent.
+  Future<CreatureStatus?> myCreature(
+    Session session, {
+    double? timeScale,
+  }) async {
     final ownerUuid = UuidValue.fromString(
       session.authenticated!.userIdentifier,
     );
@@ -124,7 +136,30 @@ class CreatureEndpoint extends Endpoint {
     );
     if (creature == null) return null;
 
-    return CreatureStatus(creature: creature, mood: _moodOf(creature));
+    final personality = await CreaturePersonality.db.findFirstRow(
+      session,
+      where: (t) => t.creatureId.equals(creature.id!),
+    );
+    if (personality == null) {
+      // Personality is written 1:1 with the creature at hatch; its absence is a
+      // data-integrity bug, not a user-facing path — fail loudly (as in feed).
+      throw StateError('Creature ${creature.id} has no personality row');
+    }
+
+    final decayed = decayCreature(
+      creature: creature,
+      personality: personality,
+      now: clockFactory(session)(),
+      timeScale: clampTimeScale(timeScale ?? 1.0),
+    );
+    if (decayed.changed) {
+      await Creature.db.updateRow(session, decayed.creature);
+    }
+
+    return CreatureStatus(
+      creature: decayed.creature,
+      mood: _moodOf(decayed.creature),
+    );
   }
 
   /// Feeds the caller's creature once and returns the in-character outcome.
