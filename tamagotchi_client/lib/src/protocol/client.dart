@@ -22,8 +22,10 @@ import 'package:tamagotchi_client/src/protocol/creature/feed_result.dart'
     as _i6;
 import 'package:tamagotchi_client/src/protocol/creature/play_result.dart'
     as _i7;
-import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i8;
-import 'protocol.dart' as _i9;
+import 'package:tamagotchi_client/src/protocol/creature/cure_result.dart'
+    as _i8;
+import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i9;
+import 'protocol.dart' as _i10;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -314,6 +316,34 @@ class EndpointCreature extends _i2.EndpointRef {
         'play',
         {},
       );
+
+  /// Cures the caller's creature once and returns the in-character outcome.
+  ///
+  /// Like [play], Cure is **fully deterministic** (`prd.md:39`): no accept/refuse
+  /// gate. The stat change ([cureDelta] — illness down, scaled by the
+  /// `illnessDecayMod` recovery-responsiveness axis; energy/hunger/love untouched)
+  /// is computed up front, then the LLM is asked for a response + journal
+  /// narrative (degrading to canned cure copy on failure), and the stat change +
+  /// journal entry are written as one coherent pair. Exactly one `cure` entry is
+  /// always written.
+  ///
+  /// **FR-006 / S-06 invariant:** Cure is always available *regardless of energy*
+  /// and costs no energy — this method must **never** read energy as a guard. When
+  /// S-06 adds the empty-energy gate to Feed/Pet, it must explicitly exempt Cure.
+  ///
+  /// At `illness == 0` the cure is a no-op on illness ([cureDelta] is zero) yet
+  /// the LLM is still called and a journal entry is still written (mirrors Play's
+  /// max-love behaviour). The disabled-button rule is a client-side UX guard only;
+  /// the server carries no illness precondition.
+  ///
+  /// As in [play], the LLM call sits **outside** the transaction so a degrade
+  /// still commits the stat+journal pair atomically.
+  _i3.Future<_i8.CureResult> cure() =>
+      caller.callServerEndpoint<_i8.CureResult>(
+        'creature',
+        'cure',
+        {},
+      );
 }
 
 /// This is an example endpoint that returns a greeting message through
@@ -326,8 +356,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i8.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i8.Greeting>(
+  _i3.Future<_i9.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i9.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -365,7 +395,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i9.Protocol(),
+         _i10.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
