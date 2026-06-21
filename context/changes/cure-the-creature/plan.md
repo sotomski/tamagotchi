@@ -293,20 +293,20 @@ No migration. `JournalEvent.cure` already exists and serializes by name (additiv
 
 #### Manual
 
-- [x] 2.5 Seeded sick creature returns coherent in-character cure; illness drop feels right
-- [ ] 2.6 `cure()` succeeds at energy 0
+- [x] 2.5 Seeded sick creature returns coherent in-character cure; illness drop feels right — f427bb6
+- [x] 2.6 `cure()` succeeds at energy 0 — f427bb6
 
 ### Phase 3: Flutter client
 
 #### Automated
 
-- [x] 3.1 `cure_controller.g.dart` generated
-- [x] 3.2 Widget tests pass (`creature_view_test.dart`)
-- [x] 3.3 Analyzer clean (flutter)
-- [x] 3.4 Formatting clean (flutter)
+- [x] 3.1 `cure_controller.g.dart` generated — f427bb6
+- [x] 3.2 Widget tests pass (`creature_view_test.dart`) — f427bb6
+- [x] 3.3 Analyzer clean (flutter) — f427bb6
+- [x] 3.4 Formatting clean (flutter) — f427bb6
 
 #### Manual
 
-- [x] 3.5 Cure disabled at illness 0, enabled when seeded/raised
-- [x] 3.6 Tap Cure → loading → in-character response → illness drops
-- [x] 3.7 Shared response area shows most-recent interaction across Feed/Play/Cure
+- [x] 3.5 Cure disabled at illness 0, enabled when seeded/raised — f427bb6
+- [x] 3.6 Tap Cure → loading → in-character response → illness drops — f427bb6
+- [x] 3.7 Shared response area shows most-recent interaction across Feed/Play/Cure — f427bb6
