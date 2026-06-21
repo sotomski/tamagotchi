@@ -25,7 +25,9 @@ abstract class Creature
     required this.love,
     required this.illness,
     DateTime? hatchedAt,
-  }) : hatchedAt = hatchedAt ?? DateTime.now();
+    DateTime? lastDecayedAt,
+  }) : hatchedAt = hatchedAt ?? DateTime.now(),
+       lastDecayedAt = lastDecayedAt ?? DateTime.now();
 
   factory Creature({
     _i1.UuidValue? id,
@@ -36,6 +38,7 @@ abstract class Creature
     required int love,
     required int illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   }) = _CreatureImpl;
 
   factory Creature.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -54,6 +57,11 @@ abstract class Creature
       hatchedAt: jsonSerialization['hatchedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['hatchedAt']),
+      lastDecayedAt: jsonSerialization['lastDecayedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['lastDecayedAt'],
+            ),
     );
   }
 
@@ -85,6 +93,10 @@ abstract class Creature
   /// When the creature was hatched.
   DateTime hatchedAt;
 
+  /// Anchor timestamp that lazy stat decay measures elapsed time from; advanced
+  /// by the real duration of whole decay ticks applied on each read/interaction.
+  DateTime lastDecayedAt;
+
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
 
@@ -100,6 +112,7 @@ abstract class Creature
     int? love,
     int? illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -113,6 +126,7 @@ abstract class Creature
       'love': love,
       'illness': illness,
       'hatchedAt': hatchedAt.toJson(),
+      'lastDecayedAt': lastDecayedAt.toJson(),
     };
   }
 
@@ -128,6 +142,7 @@ abstract class Creature
       'love': love,
       'illness': illness,
       'hatchedAt': hatchedAt.toJson(),
+      'lastDecayedAt': lastDecayedAt.toJson(),
     };
   }
 
@@ -173,6 +188,7 @@ class _CreatureImpl extends Creature {
     required int love,
     required int illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   }) : super._(
          id: id,
          ownerUuid: ownerUuid,
@@ -182,6 +198,7 @@ class _CreatureImpl extends Creature {
          love: love,
          illness: illness,
          hatchedAt: hatchedAt,
+         lastDecayedAt: lastDecayedAt,
        );
 
   /// Returns a shallow copy of this [Creature]
@@ -197,6 +214,7 @@ class _CreatureImpl extends Creature {
     int? love,
     int? illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   }) {
     return Creature(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -207,6 +225,7 @@ class _CreatureImpl extends Creature {
       love: love ?? this.love,
       illness: illness ?? this.illness,
       hatchedAt: hatchedAt ?? this.hatchedAt,
+      lastDecayedAt: lastDecayedAt ?? this.lastDecayedAt,
     );
   }
 }
@@ -251,6 +270,12 @@ class CreatureUpdateTable extends _i1.UpdateTable<CreatureTable> {
         table.hatchedAt,
         value,
       );
+
+  _i1.ColumnValue<DateTime, DateTime> lastDecayedAt(DateTime value) =>
+      _i1.ColumnValue(
+        table.lastDecayedAt,
+        value,
+      );
 }
 
 class CreatureTable extends _i1.Table<_i1.UuidValue?> {
@@ -285,6 +310,11 @@ class CreatureTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    lastDecayedAt = _i1.ColumnDateTime(
+      'lastDecayedAt',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final CreatureUpdateTable updateTable;
@@ -310,6 +340,10 @@ class CreatureTable extends _i1.Table<_i1.UuidValue?> {
   /// When the creature was hatched.
   late final _i1.ColumnDateTime hatchedAt;
 
+  /// Anchor timestamp that lazy stat decay measures elapsed time from; advanced
+  /// by the real duration of whole decay ticks applied on each read/interaction.
+  late final _i1.ColumnDateTime lastDecayedAt;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -320,6 +354,7 @@ class CreatureTable extends _i1.Table<_i1.UuidValue?> {
     love,
     illness,
     hatchedAt,
+    lastDecayedAt,
   ];
 }
 

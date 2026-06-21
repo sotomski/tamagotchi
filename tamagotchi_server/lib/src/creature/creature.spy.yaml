@@ -19,6 +19,9 @@ fields:
   illness: int
   ### When the creature was hatched.
   hatchedAt: DateTime, default=now
+  ### Anchor timestamp that lazy stat decay measures elapsed time from; advanced
+  ### by the real duration of whole decay ticks applied on each read/interaction.
+  lastDecayedAt: DateTime, default=now
 indexes:
   ### One creature per user — DB-authoritative, race-safe backstop.
   creature_owner_idx:

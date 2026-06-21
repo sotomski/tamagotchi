@@ -477,16 +477,16 @@ existing rows backfill to migration time. Apply via `serverpod run start`
 
 #### Automated
 
-- [ ] 1.1 `serverpod generate` completes without error
-- [ ] 1.2 Migration created via `serverpod create-migration`
-- [ ] 1.3 Migration applies cleanly via `serverpod run start`
-- [ ] 1.4 `dart analyze` passes in `tamagotchi_server/`
-- [ ] 1.5 Generated `Creature` exposes `lastDecayedAt`
+- [x] 1.1 `serverpod generate` completes without error
+- [x] 1.2 Migration created via `serverpod create-migration`
+- [x] 1.3 Migration applies cleanly via `serverpod run start`
+- [x] 1.4 `dart analyze` passes in `tamagotchi_server/`
+- [x] 1.5 Generated `Creature` exposes `lastDecayedAt`
 
 #### Manual
 
-- [ ] 1.6 `lastDecayedAt` column exists on the creature table
-- [ ] 1.7 Existing creature row backfilled with non-null `lastDecayedAt`
+- [x] 1.6 `lastDecayedAt` column exists on the creature table
+- [x] 1.7 Existing creature row backfilled with non-null `lastDecayedAt`
 
 ### Phase 2: Server Decay Engine (Read Path)
 
