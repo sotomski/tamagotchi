@@ -3,7 +3,7 @@ project: AI-Tamagotchi
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-06-20
+updated: 2026-06-21
 prd_version: 1
 main_goal: learn
 top_blocker: decisions
@@ -33,7 +33,7 @@ The MVP exists to test whether AI-driven personality — coupled to a structured
 | S-02 | `hatch-creature-and-view-stats`        | hatch a creature with randomized traits and see its current stats + mood          | S-01          | US-01, FR-002, FR-003          | done |
 | S-03 | `feed-with-personality-response`       | Feed the creature once and receive a personality-driven response + journal entry  | S-02 (+F-02 folded in) | US-01, FR-004, FR-009, FR-011  | done |
 | S-04 | `pet-with-personality-response`        | Pet the creature and receive a personality-driven response + journal entry        | S-03          | FR-005                         | done |
-| S-05 | `cure-the-creature`                    | Cure the creature when sick, regardless of energy                                 | S-03          | FR-006                         | proposed |
+| S-05 | `cure-the-creature`                    | Cure the creature when sick, regardless of energy                                 | S-03          | FR-006                         | done |
 | S-06 | `empty-energy-gate`                    | hit the empty-energy gate and receive a pre-written exhausted line (no AI call)   | S-03          | FR-007                         | proposed |
 | S-07 | `real-time-stat-decay`                 | leave and return to see stats decayed (with a floor) and energy regenerated       | S-02          | FR-008                         | proposed |
 | S-08 | `read-creature-journal`                | open the journal and read the full history of narrative entries                   | S-03          | FR-011                         | proposed |
@@ -155,7 +155,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - For Cure to be testable, illness must be non-zero. Either bootstrap illness at hatch, or wait for the decay slice (S-07) to raise it over time. Owner: user. Block: no. (Pick at `/10x-plan` time; bootstrap-at-hatch is the cheaper testing path.)
 - **Risk:** small slice; the FR-006 rule "always available regardless of energy" is mechanical, and user-visible distinctiveness from Feed / Pet relies on the prompt design — covered by F-02's surface.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Empty-energy gate
 
@@ -250,3 +250,4 @@ _None currently open._
 - **S-02: user can hatch one creature (randomized personality traits as continuous values) and see hunger / energy / love / illness plus a derived mood. Stats are mechanical at this point — no AI involved yet.** — Archived 2026-06-20 → `context/archive/2026-06-05-hatch-creature-and-view-stats/`. Lesson: —.
 - **S-04: user Pets the creature; receives a personality-shaped response (introvert / extravert modifier per FR-005); love stat increases; journal gains an entry.** — Archived 2026-06-20 → `context/archive/2026-06-20-pet-with-personality-response/`. Lesson: —.
 - **S-01: user can sign in with email+password and land on a "no creature yet — hatch one" home screen.** — Archived 2026-06-20 → `context/archive/2026-06-04-signed-in-empty-creature-view/`. Lesson: —.
+- **S-05: user Cures the creature; illness drops; Cure works regardless of energy level (FR-006); creature response acknowledges the cure; journal gains an entry.** — Archived 2026-06-21 → `context/archive/2026-06-20-cure-the-creature/`. Lesson: —.
