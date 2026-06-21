@@ -274,22 +274,22 @@ No migration. `JournalEvent.cure` already exists and serializes by name (additiv
 
 #### Automated
 
-- [x] 1.1 Unit tests pass (`cure_service_test.dart`, `creature_prompt_test.dart`)
-- [x] 1.2 Analyzer clean (server)
-- [x] 1.3 Formatting clean (server)
+- [x] 1.1 Unit tests pass (`cure_service_test.dart`, `creature_prompt_test.dart`) — 8d98cd2
+- [x] 1.2 Analyzer clean (server) — 8d98cd2
+- [x] 1.3 Formatting clean (server) — 8d98cd2
 
 #### Manual
 
-- [x] 1.4 Cure copy + prompt read as recovery-themed and in-character
+- [x] 1.4 Cure copy + prompt read as recovery-themed and in-character — 8d98cd2
 
 ### Phase 2: Server endpoint + models
 
 #### Automated
 
-- [ ] 2.1 Client regenerated; `creature.cure()` exposed
-- [ ] 2.2 Integration tests pass (`cure_endpoint_test.dart`)
-- [ ] 2.3 Analyzer clean (server + client)
-- [ ] 2.4 Formatting clean (server)
+- [x] 2.1 Client regenerated; `creature.cure()` exposed
+- [x] 2.2 Integration tests pass (`cure_endpoint_test.dart`)
+- [x] 2.3 Analyzer clean (server + client)
+- [x] 2.4 Formatting clean (server)
 
 #### Manual
 

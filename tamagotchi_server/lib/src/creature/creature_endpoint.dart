@@ -5,6 +5,7 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../llm/llm_service.dart';
 import 'creature_service.dart';
+import 'cure_service.dart';
 import 'feed_service.dart';
 import 'play_service.dart';
 
@@ -333,6 +334,114 @@ class CreatureEndpoint extends Endpoint {
     });
 
     return PlayResult(
+      userResponse: reply.userResponse,
+      status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
+    );
+  }
+
+  /// Cures the caller's creature once and returns the in-character outcome.
+  ///
+  /// Like [play], Cure is **fully deterministic** (`prd.md:39`): no accept/refuse
+  /// gate. The stat change ([cureDelta] — illness down, scaled by the
+  /// `illnessDecayMod` recovery-responsiveness axis; energy/hunger/love untouched)
+  /// is computed up front, then the LLM is asked for a response + journal
+  /// narrative (degrading to canned cure copy on failure), and the stat change +
+  /// journal entry are written as one coherent pair. Exactly one `cure` entry is
+  /// always written.
+  ///
+  /// **FR-006 / S-06 invariant:** Cure is always available *regardless of energy*
+  /// and costs no energy — this method must **never** read energy as a guard. When
+  /// S-06 adds the empty-energy gate to Feed/Pet, it must explicitly exempt Cure.
+  ///
+  /// At `illness == 0` the cure is a no-op on illness ([cureDelta] is zero) yet
+  /// the LLM is still called and a journal entry is still written (mirrors Play's
+  /// max-love behaviour). The disabled-button rule is a client-side UX guard only;
+  /// the server carries no illness precondition.
+  ///
+  /// As in [play], the LLM call sits **outside** the transaction so a degrade
+  /// still commits the stat+journal pair atomically.
+  Future<CureResult> cure(Session session) async {
+    final ownerUuid = UuidValue.fromString(
+      session.authenticated!.userIdentifier,
+    );
+
+    final creature = await Creature.db.findFirstRow(
+      session,
+      where: (t) => t.ownerUuid.equals(ownerUuid),
+    );
+    if (creature == null) {
+      throw CreatureCureError(reason: CreatureCureErrorReason.noCreature);
+    }
+
+    final personality = await CreaturePersonality.db.findFirstRow(
+      session,
+      where: (t) => t.creatureId.equals(creature.id!),
+    );
+    if (personality == null) {
+      // Personality is written 1:1 with the creature at hatch; its absence is a
+      // data-integrity bug, not a user-facing path — fail loudly (as in play).
+      throw StateError('Creature ${creature.id} has no personality row');
+    }
+
+    // Deterministic — no rng. The delta encodes the 0-100 clamp (illness floors
+    // at 0).
+    final delta = cureDelta(creature, personality);
+
+    // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
+    // first (the empty-prose hatched marker is dropped).
+    final recent = await JournalEntry.db.find(
+      session,
+      where: (t) => t.creatureId.equals(creature.id!),
+      orderBy: (t) => t.timestamp,
+      orderDescending: true,
+      limit: 10,
+    );
+    final recentEntries = recent
+        .map((e) => e.prose)
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    final reply = await cureServiceFactory(session).interaction(
+      session,
+      InteractionRequest(
+        personality: personality,
+        hunger: creature.hunger,
+        energy: creature.energy,
+        love: creature.love,
+        illness: creature.illness,
+        mood: _moodOf(creature),
+        interactionType: JournalEvent.cure,
+        accepted: true,
+        // tastiness is feed-only; the cure prompt branch ignores it.
+        tastiness: 0,
+        recentEntries: recentEntries,
+      ),
+    );
+
+    // Coherent pair: the stat update (illness only — energy never moves) + the
+    // journal entry in one transaction.
+    final updated = await session.db.transaction((transaction) async {
+      final result = creature.copyWith(
+        illness: creature.illness + delta.illnessDelta,
+      );
+      await Creature.db.updateRow(session, result, transaction: transaction);
+
+      await JournalEntry.db.insertRow(
+        session,
+        JournalEntry(
+          creatureId: creature.id!,
+          ownerUuid: ownerUuid,
+          event: JournalEvent.cure,
+          prose: reply.journalNarrative,
+          statDelta: delta,
+        ),
+        transaction: transaction,
+      );
+
+      return result;
+    });
+
+    return CureResult(
       userResponse: reply.userResponse,
       status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
     );

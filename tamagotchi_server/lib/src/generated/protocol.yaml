@@ -14,5 +14,6 @@ creature:
   - myCreature:
   - feed:
   - play:
+  - cure:
 greeting:
   - hello:
