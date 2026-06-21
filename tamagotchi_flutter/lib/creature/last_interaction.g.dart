@@ -8,23 +8,23 @@ part of 'last_interaction.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Holds the [InteractionOutcome] of the most recent Feed *or* Pet. `null`
+/// Holds the [InteractionOutcome] of the most recent Feed *or* Play. `null`
 /// before the first interaction. Both controllers write it on success
-/// (Feed passes its `accepted`; Pet always passes `true`); [CreatureView] reads
+/// (Feed passes its `accepted`; Play always passes `true`); [CreatureView] reads
 /// it to render the shared response box.
 
 @ProviderFor(LastInteraction)
 final lastInteractionProvider = LastInteractionProvider._();
 
-/// Holds the [InteractionOutcome] of the most recent Feed *or* Pet. `null`
+/// Holds the [InteractionOutcome] of the most recent Feed *or* Play. `null`
 /// before the first interaction. Both controllers write it on success
-/// (Feed passes its `accepted`; Pet always passes `true`); [CreatureView] reads
+/// (Feed passes its `accepted`; Play always passes `true`); [CreatureView] reads
 /// it to render the shared response box.
 final class LastInteractionProvider
     extends $NotifierProvider<LastInteraction, InteractionOutcome?> {
-  /// Holds the [InteractionOutcome] of the most recent Feed *or* Pet. `null`
+  /// Holds the [InteractionOutcome] of the most recent Feed *or* Play. `null`
   /// before the first interaction. Both controllers write it on success
-  /// (Feed passes its `accepted`; Pet always passes `true`); [CreatureView] reads
+  /// (Feed passes its `accepted`; Play always passes `true`); [CreatureView] reads
   /// it to render the shared response box.
   LastInteractionProvider._()
     : super(
@@ -55,9 +55,9 @@ final class LastInteractionProvider
 
 String _$lastInteractionHash() => r'32760b64b63eea5d21e24ad2704914f164cbec64';
 
-/// Holds the [InteractionOutcome] of the most recent Feed *or* Pet. `null`
+/// Holds the [InteractionOutcome] of the most recent Feed *or* Play. `null`
 /// before the first interaction. Both controllers write it on success
-/// (Feed passes its `accepted`; Pet always passes `true`); [CreatureView] reads
+/// (Feed passes its `accepted`; Play always passes `true`); [CreatureView] reads
 /// it to render the shared response box.
 
 abstract class _$LastInteraction extends $Notifier<InteractionOutcome?> {

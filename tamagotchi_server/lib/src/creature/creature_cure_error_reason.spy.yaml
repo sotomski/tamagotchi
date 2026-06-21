@@ -1,0 +1,7 @@
+### Why a cure attempt failed outright. A single reason (typed for client switch
+### parity with CreaturePlayErrorReason); behind the UI this should never fire —
+### you can only cure a creature you can see.
+enum: CreatureCureErrorReason
+values:
+  ### The caller owns no creature to cure.
+  - noCreature
