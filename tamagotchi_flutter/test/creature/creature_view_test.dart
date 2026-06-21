@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'package:tamagotchi_flutter/creature/creature_provider.dart';
+import 'package:tamagotchi_flutter/creature/cure_controller.dart';
 import 'package:tamagotchi_flutter/creature/feed_controller.dart';
 import 'package:tamagotchi_flutter/creature/hatch_controller.dart';
 import 'package:tamagotchi_flutter/creature/last_interaction.dart';
@@ -146,6 +147,49 @@ class _FakePlayController extends PlayController {
 class _LoadingPlayController extends PlayController {
   @override
   Future<void> play() async {
+    state = const AsyncLoading();
+    await Completer<void>().future;
+  }
+}
+
+/// What [_FakeCureController.cure] publishes: the canned outcome it sets as its
+/// own state, and (optionally) a post-cure status to flip [_creatureSeam] to.
+final _cureResultSeam = StateProvider<CureResult?>((ref) => null);
+final _postCureSeam = StateProvider<CreatureStatus?>((ref) => null);
+
+CureResult _cureResult({
+  required String userResponse,
+  CreatureStatus? status,
+}) => CureResult(userResponse: userResponse, status: status ?? _status());
+
+/// A [CureController] that records calls and, instead of an RPC, publishes a
+/// canned [CureResult] from [_cureResultSeam], writes the shared
+/// [lastInteractionProvider] (`accepted: true` — Cure never refuses), and (if
+/// set) flips [_creatureSeam] to the post-cure status — the Cure analogue of
+/// [_FakePlayController] (lesson #2).
+class _FakeCureController extends CureController {
+  int calls = 0;
+
+  @override
+  Future<void> cure() async {
+    calls++;
+    final post = ref.read(_postCureSeam);
+    if (post != null) ref.read(_creatureSeam.notifier).state = post;
+    final result = ref.read(_cureResultSeam);
+    if (result != null) {
+      ref
+          .read(lastInteractionProvider.notifier)
+          .set(userResponse: result.userResponse, accepted: true);
+    }
+    state = AsyncData(result);
+  }
+}
+
+/// A [CureController] stuck in flight: `cure()` enters loading and never
+/// resolves, so the curing animation stays up under a single `pump()`.
+class _LoadingCureController extends CureController {
+  @override
+  Future<void> cure() async {
     state = const AsyncLoading();
     await Completer<void>().future;
   }
@@ -532,5 +576,133 @@ void main() {
     expect(find.text('55'), findsOneWidget);
     expect(find.text('86'), findsOneWidget);
     expect(find.text('40'), findsNothing);
+  });
+
+  testWidgets('Cure is disabled on a healthy creature (illness == 0) and never '
+      'calls the controller', (tester) async {
+    final fake = _FakeCureController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          // Default _status() is illness 0 — nothing to heal.
+          creatureProvider.overrideWith((ref) => _status(illness: 0)),
+          cureControllerProvider.overrideWith(() => fake),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final cure = find.widgetWithText(ElevatedButton, 'Cure');
+    expect(cure, findsOneWidget);
+    // Disabled → onPressed is null.
+    expect(tester.widget<ElevatedButton>(cure).onPressed, isNull);
+
+    await tester.tap(cure, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(fake.calls, 0);
+  });
+
+  testWidgets(
+    'tapping Cure on a sick creature calls the controller and renders '
+    'the response in the shared area',
+    (tester) async {
+      final fake = _FakeCureController();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            creatureProvider.overrideWith((ref) => _status(illness: 60)),
+            cureControllerProvider.overrideWith(() => fake),
+            _cureResultSeam.overrideWith(
+              (ref) => _cureResult(
+                userResponse: 'Aaah, the fever lifts — I feel so much better!',
+              ),
+            ),
+          ],
+          child: const MaterialApp(home: HomeScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final cure = find.widgetWithText(ElevatedButton, 'Cure');
+      // Enabled when illness > 0.
+      expect(tester.widget<ElevatedButton>(cure).onPressed, isNotNull);
+      // Nothing rendered before the tap.
+      expect(find.textContaining('fever lifts'), findsNothing);
+
+      await tester.tap(cure);
+      await tester.pumpAndSettle();
+
+      expect(fake.calls, 1);
+      // Cure is always accepted → normal styling, rendered in the shared area.
+      final response = find.textContaining('fever lifts');
+      expect(response, findsOneWidget);
+      expect(
+        tester.widget<Text>(response).style?.fontStyle,
+        isNot(FontStyle.italic),
+      );
+      expect(find.byKey(const Key('interactionResponse')), findsOneWidget);
+      // All three buttons stay for another interaction.
+      expect(find.widgetWithText(ElevatedButton, 'Cure'), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Feed'), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Play with'), findsOneWidget);
+    },
+  );
+
+  testWidgets('a cure in flight shows the curing animation in place of the '
+      'buttons', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status(illness: 60)),
+          cureControllerProvider.overrideWith(_LoadingCureController.new),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Cure'));
+    // Single pump — the cure never completes; loading must already be visible.
+    await tester.pump();
+
+    expect(find.text('Curing…'), findsOneWidget);
+    expect(find.byKey(const Key('curingIndicator')), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Cure'), findsNothing);
+    expect(find.widgetWithText(ElevatedButton, 'Feed'), findsNothing);
+    expect(find.widgetWithText(ElevatedButton, 'Play with'), findsNothing);
+  });
+
+  testWidgets('stats refresh after a successful cure (illness drops)', (
+    tester,
+  ) async {
+    final fake = _FakeCureController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => ref.watch(_creatureSeam)),
+          _creatureSeam.overrideWith((ref) => _status(illness: 70)),
+          cureControllerProvider.overrideWith(() => fake),
+          _cureResultSeam.overrideWith(
+            (ref) => _cureResult(userResponse: 'Much better!'),
+          ),
+          // The fake flips _creatureSeam to this post-cure status, mirroring the
+          // real invalidate(creatureProvider): illness down.
+          _postCureSeam.overrideWith((ref) => _status(illness: 30)),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Pre-cure illness.
+    expect(find.text('70'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Cure'));
+    await tester.pumpAndSettle();
+
+    // Post-cure illness replaced it.
+    expect(find.text('30'), findsOneWidget);
+    expect(find.text('70'), findsNothing);
   });
 }

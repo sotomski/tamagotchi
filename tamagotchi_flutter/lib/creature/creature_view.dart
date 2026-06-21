@@ -2,22 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
+import 'cure_controller.dart';
 import 'feed_controller.dart';
 import 'last_interaction.dart';
 import 'play_controller.dart';
 
 /// The present-creature state: the creature's name, its derived [mood] label,
 /// the four raw stat numbers (0–100, raw per MVP — no icons/bars), and the
-/// Feed + Play interactions.
+/// Feed + Play + Cure interactions.
 ///
-/// A [ConsumerWidget] (was a `StatelessWidget`) so it can host both interaction
-/// buttons and watch [feedControllerProvider] / [playControllerProvider]: while
-/// *either* interaction is in flight the buttons are replaced by a continuous
-/// loading animation (NFR-1). The most-recent outcome (Feed *or* Play) renders
-/// below in one shared area — read from [lastInteractionProvider] — styled
-/// distinctly when the creature *refused* a feed (`accepted == false`); Play
-/// always accepts. The four [_StatRow]s re-render once a controller invalidates
-/// `creatureProvider` after an interaction.
+/// A [ConsumerWidget] (was a `StatelessWidget`) so it can host the interaction
+/// buttons and watch [feedControllerProvider] / [playControllerProvider] /
+/// [cureControllerProvider]: while *any* interaction is in flight the buttons
+/// are replaced by a continuous loading animation (NFR-1). The most-recent
+/// outcome (Feed, Play, *or* Cure) renders below in one shared area — read from
+/// [lastInteractionProvider] — styled distinctly when the creature *refused* a
+/// feed (`accepted == false`); Play and Cure always accept. Cure is disabled
+/// when `illness == 0` (nothing to heal — a client-side UX guard only; the
+/// endpoint still processes it). The four [_StatRow]s re-render once a
+/// controller invalidates `creatureProvider` after an interaction.
 class CreatureView extends ConsumerWidget {
   const CreatureView({required this.status, super.key});
 
@@ -29,14 +32,18 @@ class CreatureView extends ConsumerWidget {
     final creature = status.creature;
     final feedState = ref.watch(feedControllerProvider);
     final playState = ref.watch(playControllerProvider);
+    final cureState = ref.watch(cureControllerProvider);
     // The most-recent interaction outcome, if any (null before the first
-    // interaction). Shared by Feed and Play — whichever ran most recently wins.
+    // interaction). Shared by Feed, Play, and Cure — whichever ran most recently
+    // wins.
     final lastInteraction = ref.watch(lastInteractionProvider);
 
-    final isLoading = feedState.isLoading || playState.isLoading;
+    final isLoading =
+        feedState.isLoading || playState.isLoading || cureState.isLoading;
     final hasError =
         (feedState.hasError && !feedState.isLoading) ||
-        (playState.hasError && !playState.isLoading);
+        (playState.hasError && !playState.isLoading) ||
+        (cureState.hasError && !cureState.isLoading);
 
     return Center(
       child: Padding(
@@ -68,6 +75,11 @@ class CreatureView extends ConsumerWidget {
                 label: 'Playing…',
                 indicatorKey: Key('playingIndicator'),
               )
+            else if (cureState.isLoading)
+              const _InteractionIndicator(
+                label: 'Curing…',
+                indicatorKey: Key('curingIndicator'),
+              )
             else
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -86,6 +98,19 @@ class CreatureView extends ConsumerWidget {
                         ref.read(playControllerProvider.notifier).play(),
                     icon: const Icon(Icons.sports_esports),
                     label: const Text('Play with'),
+                  ),
+                  const SizedBox(width: 12),
+                  // Disabled when there is nothing to heal (`illness == 0`) — a
+                  // client-side UX guard only; the endpoint has no illness
+                  // precondition. `onPressed: null` greys the button out.
+                  ElevatedButton.icon(
+                    key: const Key('cureButton'),
+                    onPressed: creature.illness == 0
+                        ? null
+                        : () =>
+                              ref.read(cureControllerProvider.notifier).cure(),
+                    icon: const Icon(Icons.healing),
+                    label: const Text('Cure'),
                   ),
                 ],
               ),
@@ -114,7 +139,7 @@ class CreatureView extends ConsumerWidget {
 }
 
 /// The continuous progress shown during a model round-trip, labelled for the
-/// active interaction ("Feeding…" / "Playing…").
+/// active interaction ("Feeding…" / "Playing…" / "Curing…").
 class _InteractionIndicator extends StatelessWidget {
   const _InteractionIndicator({
     required this.label,
