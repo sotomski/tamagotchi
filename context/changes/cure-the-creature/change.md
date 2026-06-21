@@ -1,9 +1,9 @@
 ---
 change_id: cure-the-creature
 title: Cure the creature when sick, regardless of energy
-status: planned
+status: implementing
 created: 2026-06-20
-updated: 2026-06-20
+updated: 2026-06-21
 archived_at: null
 ---
 

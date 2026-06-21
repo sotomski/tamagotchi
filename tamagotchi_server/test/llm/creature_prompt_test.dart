@@ -218,4 +218,92 @@ void main() {
       expect(withMemory, contains('water bowl'));
     });
   });
+
+  group('buildInteractionMessages — cure branch', () {
+    // Oracle = the plan's Phase 1 contract: when interactionType == cure, the
+    // system prompt keeps the in-character/no-chatbot guardrails but is about
+    // RECOVERING / feeling better (no food, no tastiness); the user message
+    // carries stats/mood/personality/memory and references neither tastiness nor
+    // accepted. We assert presence/structure, never exact prose.
+    InteractionRequest cureRequest({
+      List<String> recentEntries = const [],
+      CreatureMood mood = CreatureMood.sick,
+      int illness = 70,
+    }) => InteractionRequest(
+      personality: _personality(),
+      hunger: 42,
+      energy: 73,
+      love: 64,
+      illness: illness,
+      mood: mood,
+      interactionType: JournalEvent.cure,
+      accepted: true,
+      tastiness: 0,
+      recentEntries: recentEntries,
+    );
+
+    test(
+      'emits a cure persona message with guardrails and recovery framing',
+      () {
+        final messages = buildInteractionMessages(cureRequest());
+
+        expect(messages, hasLength(2));
+        expect(messages[0]['role'], 'system');
+        expect(messages[1]['role'], 'user');
+
+        final system = (messages[0]['content'] as String).toLowerCase();
+        // Same in-character / no-chatbot guardrails as feed and play.
+        expect(system, contains('in character'));
+        expect(system, contains('language model'));
+        // Cure-specific: about recovering / feeling better.
+        expect(system, anyOf(contains('better'), contains('recover')));
+        // Two output fields unchanged.
+        expect(messages[0]['content'] as String, contains('userResponse'));
+        expect(messages[0]['content'] as String, contains('journalNarrative'));
+        // No food / tastiness wording leaks into the cure persona.
+        expect(system, isNot(contains('food')));
+        expect(system, isNot(contains('tastiness')));
+      },
+    );
+
+    test(
+      'cure user message carries stats, mood, and personality; no tastiness',
+      () {
+        final user =
+            buildInteractionMessages(
+                  cureRequest(mood: CreatureMood.sick),
+                )[1]['content']
+                as String;
+
+        // Stats present (each raw value rendered).
+        expect(user, contains('42'));
+        expect(user, contains('73'));
+        expect(user, contains('64'));
+        expect(user, contains('70'));
+        // Mood name present.
+        expect(user, contains('sick'));
+        // Personality summary present (a distinctive modifier value).
+        expect(user, contains('1.40'));
+        // Cure does not reference tastiness or the accept/refuse decision.
+        expect(user.toLowerCase(), isNot(contains('tastiness')));
+        expect(user.toLowerCase(), isNot(contains('accepted')));
+      },
+    );
+
+    test('cure user message includes the recent-memory window', () {
+      final withMemory =
+          buildInteractionMessages(
+                cureRequest(
+                  recentEntries: const [
+                    'Shivered with fever through the long night.',
+                    'Sniffled miserably by the heat lamp.',
+                  ],
+                ),
+              )[1]['content']
+              as String;
+
+      expect(withMemory, contains('Shivered with fever'));
+      expect(withMemory, contains('heat lamp'));
+    });
+  });
 }
