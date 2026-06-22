@@ -273,11 +273,19 @@ class EndpointCreature extends _i2.EndpointRef {
       );
 
   /// Returns the caller's creature with its derived mood, or null if none.
-  _i3.Future<_i5.CreatureStatus?> myCreature() =>
+  ///
+  /// Applies elapsed-time decay before returning: reads `now` through the
+  /// [clockFactory] seam, runs the pure [decayCreature] with the clamped
+  /// [timeScale], and persists the decayed row **only when a whole tick fired**
+  /// (so frequent polling never writes on every call). Mood is then derived from
+  /// the decayed stats. `timeScale` is the client's 1×–8× acceleration slider;
+  /// it is nullable at the RPC boundary (so older callers omit it) and defaults
+  /// to `1.0` (real time) when absent.
+  _i3.Future<_i5.CreatureStatus?> myCreature({double? timeScale}) =>
       caller.callServerEndpoint<_i5.CreatureStatus?>(
         'creature',
         'myCreature',
-        {},
+        {'timeScale': timeScale},
       );
 
   /// Feeds the caller's creature once and returns the in-character outcome.
@@ -291,11 +299,11 @@ class EndpointCreature extends _i2.EndpointRef {
   ///
   /// The LLM call sits **outside** the transaction so a degrade still commits the
   /// stat+journal pair atomically — a stat change never lands without its entry.
-  _i3.Future<_i6.FeedResult> feed() =>
+  _i3.Future<_i6.FeedResult> feed({double? timeScale}) =>
       caller.callServerEndpoint<_i6.FeedResult>(
         'creature',
         'feed',
-        {},
+        {'timeScale': timeScale},
       );
 
   /// Plays with the caller's creature once and returns the in-character outcome.
@@ -310,11 +318,11 @@ class EndpointCreature extends _i2.EndpointRef {
   ///
   /// As in [feed], the LLM call sits **outside** the transaction so a degrade
   /// still commits the stat+journal pair atomically.
-  _i3.Future<_i7.PlayResult> play() =>
+  _i3.Future<_i7.PlayResult> play({double? timeScale}) =>
       caller.callServerEndpoint<_i7.PlayResult>(
         'creature',
         'play',
-        {},
+        {'timeScale': timeScale},
       );
 
   /// Cures the caller's creature once and returns the in-character outcome.
@@ -338,11 +346,11 @@ class EndpointCreature extends _i2.EndpointRef {
   ///
   /// As in [play], the LLM call sits **outside** the transaction so a degrade
   /// still commits the stat+journal pair atomically.
-  _i3.Future<_i8.CureResult> cure() =>
+  _i3.Future<_i8.CureResult> cure({double? timeScale}) =>
       caller.callServerEndpoint<_i8.CureResult>(
         'creature',
         'cure',
-        {},
+        {'timeScale': timeScale},
       );
 }
 

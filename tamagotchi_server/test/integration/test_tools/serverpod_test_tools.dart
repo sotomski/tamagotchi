@@ -534,8 +534,9 @@ class _CreatureEndpoint {
   }
 
   _i3.Future<_i5.CreatureStatus?> myCreature(
-    _i1.TestSessionBuilder sessionBuilder,
-  ) async {
+    _i1.TestSessionBuilder sessionBuilder, {
+    double? timeScale,
+  }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
@@ -547,7 +548,7 @@ class _CreatureEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'creature',
           methodName: 'myCreature',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({'timeScale': timeScale}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -563,7 +564,10 @@ class _CreatureEndpoint {
     });
   }
 
-  _i3.Future<_i6.FeedResult> feed(_i1.TestSessionBuilder sessionBuilder) async {
+  _i3.Future<_i6.FeedResult> feed(
+    _i1.TestSessionBuilder sessionBuilder, {
+    double? timeScale,
+  }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
@@ -575,7 +579,7 @@ class _CreatureEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'creature',
           methodName: 'feed',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({'timeScale': timeScale}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -591,7 +595,10 @@ class _CreatureEndpoint {
     });
   }
 
-  _i3.Future<_i7.PlayResult> play(_i1.TestSessionBuilder sessionBuilder) async {
+  _i3.Future<_i7.PlayResult> play(
+    _i1.TestSessionBuilder sessionBuilder, {
+    double? timeScale,
+  }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
@@ -603,7 +610,7 @@ class _CreatureEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'creature',
           methodName: 'play',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({'timeScale': timeScale}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -619,7 +626,10 @@ class _CreatureEndpoint {
     });
   }
 
-  _i3.Future<_i8.CureResult> cure(_i1.TestSessionBuilder sessionBuilder) async {
+  _i3.Future<_i8.CureResult> cure(
+    _i1.TestSessionBuilder sessionBuilder, {
+    double? timeScale,
+  }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
@@ -631,7 +641,7 @@ class _CreatureEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'creature',
           methodName: 'cure',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({'timeScale': timeScale}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =

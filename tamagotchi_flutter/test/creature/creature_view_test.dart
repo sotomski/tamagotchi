@@ -8,11 +8,13 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'package:tamagotchi_flutter/creature/creature_provider.dart';
+import 'package:tamagotchi_flutter/creature/creature_view.dart';
 import 'package:tamagotchi_flutter/creature/cure_controller.dart';
 import 'package:tamagotchi_flutter/creature/feed_controller.dart';
 import 'package:tamagotchi_flutter/creature/hatch_controller.dart';
 import 'package:tamagotchi_flutter/creature/last_interaction.dart';
 import 'package:tamagotchi_flutter/creature/play_controller.dart';
+import 'package:tamagotchi_flutter/creature/time_scale_provider.dart';
 import 'package:tamagotchi_flutter/home/home_screen.dart';
 
 /// A canned creature status for the "present" states. Stats default to a
@@ -706,5 +708,49 @@ void main() {
     // Post-cure illness replaced it.
     expect(find.text('30'), findsOneWidget);
     expect(find.text('70'), findsNothing);
+  });
+
+  testWidgets('the speed slider renders and defaults to 1×', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final slider = find.byKey(const Key('timeScaleSlider'));
+    expect(slider, findsOneWidget);
+    expect(tester.widget<Slider>(slider).value, minTimeScale);
+    expect(find.text('Speed: 1×'), findsOneWidget);
+  });
+
+  testWidgets('dragging the speed slider updates the time-scale provider', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Defaults to 1× before any interaction.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CreatureView)),
+      listen: false,
+    );
+    expect(container.read(timeScaleProvider), minTimeScale);
+
+    // Drag the thumb fully right → saturates at the 8× max (divisions snap it).
+    await tester.drag(
+      find.byKey(const Key('timeScaleSlider')),
+      const Offset(500, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(container.read(timeScaleProvider), maxTimeScale);
+    expect(find.text('Speed: 8×'), findsOneWidget);
   });
 }

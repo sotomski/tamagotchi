@@ -60,7 +60,7 @@ final class FeedControllerProvider
   FeedController create() => FeedController();
 }
 
-String _$feedControllerHash() => r'30ddee361f9d4e24b049b52cbc61fd54f769a199';
+String _$feedControllerHash() => r'5f3e782a5483ae2559984dc5b782f0fa06342d70';
 
 /// Drives the Feed button: idle → loading → result. Unlike [HatchController],
 /// it *keeps* the returned [FeedResult] so the view can render the in-character
