@@ -1,10 +1,10 @@
 ---
 change_id: cure-the-creature
 title: Cure the creature when sick, regardless of energy
-status: impl_reviewed
+status: archived
 created: 2026-06-20
 updated: 2026-06-21
-archived_at: null
+archived_at: 2026-06-21T10:49:05Z
 ---
 
 ## Notes

@@ -1,5 +1,6 @@
-### The core persisted creature, owned by the auth user. Stats are fixed at the
-### baseline at hatch (S-02 has no decay/regen); personality lives in a 1:1 table.
+### The core persisted creature, owned by the auth user. Stats decay lazily on
+### read from elapsed wall-clock time anchored at `lastDecayedAt` (see
+### `decay_service.dart`); personality lives in a 1:1 table.
 class: Creature
 table: creature
 fields:
@@ -19,6 +20,9 @@ fields:
   illness: int
   ### When the creature was hatched.
   hatchedAt: DateTime, default=now
+  ### Anchor timestamp that lazy stat decay measures elapsed time from; advanced
+  ### by the real duration of whole decay ticks applied on each read/interaction.
+  lastDecayedAt: DateTime, default=now
 indexes:
   ### One creature per user — DB-authoritative, race-safe backstop.
   creature_owner_idx:

@@ -60,7 +60,7 @@ final class PlayControllerProvider
   PlayController create() => PlayController();
 }
 
-String _$playControllerHash() => r'c4836b38775f83230fe42d7526e7bae170641b4b';
+String _$playControllerHash() => r'937658b496466edf655a65db73814ff9f491fcb1';
 
 /// Drives the Play button: idle → loading → result. Mirrors [FeedController] but
 /// playing is deterministic — there is no refusal, so the outcome always reads

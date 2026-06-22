@@ -12,8 +12,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-/// The core persisted creature, owned by the auth user. Stats are fixed at the
-/// baseline at hatch (S-02 has no decay/regen); personality lives in a 1:1 table.
+/// The core persisted creature, owned by the auth user. Stats decay lazily on
+/// read from elapsed wall-clock time anchored at `lastDecayedAt` (see
+/// `decay_service.dart`); personality lives in a 1:1 table.
 abstract class Creature implements _i1.SerializableModel {
   Creature._({
     this.id,
@@ -24,7 +25,9 @@ abstract class Creature implements _i1.SerializableModel {
     required this.love,
     required this.illness,
     DateTime? hatchedAt,
-  }) : hatchedAt = hatchedAt ?? DateTime.now();
+    DateTime? lastDecayedAt,
+  }) : hatchedAt = hatchedAt ?? DateTime.now(),
+       lastDecayedAt = lastDecayedAt ?? DateTime.now();
 
   factory Creature({
     _i1.UuidValue? id,
@@ -35,6 +38,7 @@ abstract class Creature implements _i1.SerializableModel {
     required int love,
     required int illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   }) = _CreatureImpl;
 
   factory Creature.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -53,6 +57,11 @@ abstract class Creature implements _i1.SerializableModel {
       hatchedAt: jsonSerialization['hatchedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['hatchedAt']),
+      lastDecayedAt: jsonSerialization['lastDecayedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['lastDecayedAt'],
+            ),
     );
   }
 
@@ -80,6 +89,10 @@ abstract class Creature implements _i1.SerializableModel {
   /// When the creature was hatched.
   DateTime hatchedAt;
 
+  /// Anchor timestamp that lazy stat decay measures elapsed time from; advanced
+  /// by the real duration of whole decay ticks applied on each read/interaction.
+  DateTime lastDecayedAt;
+
   /// Returns a shallow copy of this [Creature]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -92,6 +105,7 @@ abstract class Creature implements _i1.SerializableModel {
     int? love,
     int? illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -105,6 +119,7 @@ abstract class Creature implements _i1.SerializableModel {
       'love': love,
       'illness': illness,
       'hatchedAt': hatchedAt.toJson(),
+      'lastDecayedAt': lastDecayedAt.toJson(),
     };
   }
 
@@ -126,6 +141,7 @@ class _CreatureImpl extends Creature {
     required int love,
     required int illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   }) : super._(
          id: id,
          ownerUuid: ownerUuid,
@@ -135,6 +151,7 @@ class _CreatureImpl extends Creature {
          love: love,
          illness: illness,
          hatchedAt: hatchedAt,
+         lastDecayedAt: lastDecayedAt,
        );
 
   /// Returns a shallow copy of this [Creature]
@@ -150,6 +167,7 @@ class _CreatureImpl extends Creature {
     int? love,
     int? illness,
     DateTime? hatchedAt,
+    DateTime? lastDecayedAt,
   }) {
     return Creature(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -160,6 +178,7 @@ class _CreatureImpl extends Creature {
       love: love ?? this.love,
       illness: illness ?? this.illness,
       hatchedAt: hatchedAt ?? this.hatchedAt,
+      lastDecayedAt: lastDecayedAt ?? this.lastDecayedAt,
     );
   }
 }

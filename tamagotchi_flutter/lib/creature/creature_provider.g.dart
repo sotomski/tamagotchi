@@ -11,6 +11,9 @@ part of 'creature_provider.dart';
 /// The signed-in user's creature with its derived mood, or `null` if they have
 /// not hatched yet. The project's first async-data provider — consumed via
 /// `AsyncValue.when`, refreshed by invalidation after a successful hatch.
+///
+/// Watches [timeScaleProvider] so every read carries the current 1×–8× slider
+/// value: the server decays proportionally, and moving the slider re-fetches.
 
 @ProviderFor(creature)
 final creatureProvider = CreatureProvider._();
@@ -18,6 +21,9 @@ final creatureProvider = CreatureProvider._();
 /// The signed-in user's creature with its derived mood, or `null` if they have
 /// not hatched yet. The project's first async-data provider — consumed via
 /// `AsyncValue.when`, refreshed by invalidation after a successful hatch.
+///
+/// Watches [timeScaleProvider] so every read carries the current 1×–8× slider
+/// value: the server decays proportionally, and moving the slider re-fetches.
 
 final class CreatureProvider
     extends
@@ -30,6 +36,9 @@ final class CreatureProvider
   /// The signed-in user's creature with its derived mood, or `null` if they have
   /// not hatched yet. The project's first async-data provider — consumed via
   /// `AsyncValue.when`, refreshed by invalidation after a successful hatch.
+  ///
+  /// Watches [timeScaleProvider] so every read carries the current 1×–8× slider
+  /// value: the server decays proportionally, and moving the slider re-fetches.
   CreatureProvider._()
     : super(
         from: null,
@@ -56,4 +65,4 @@ final class CreatureProvider
   }
 }
 
-String _$creatureHash() => r'd25b700e92000d5fbaf0ebb122f6c5ee194c00da';
+String _$creatureHash() => r'4b1ff2a6ac4b115d380418fa49feb91d886a2080';

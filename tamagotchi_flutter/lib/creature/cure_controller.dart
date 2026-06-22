@@ -4,6 +4,7 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 import '../app/client_provider.dart';
 import 'creature_provider.dart';
 import 'last_interaction.dart';
+import 'time_scale_provider.dart';
 
 part 'cure_controller.g.dart';
 
@@ -26,7 +27,11 @@ class CureController extends _$CureController {
   Future<void> cure() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final result = await ref.read(serverpodClientProvider).creature.cure();
+      final timeScale = ref.read(timeScaleProvider);
+      final result = await ref
+          .read(serverpodClientProvider)
+          .creature
+          .cure(timeScale: timeScale);
       ref.invalidate(creatureProvider);
       ref
           .read(lastInteractionProvider.notifier)

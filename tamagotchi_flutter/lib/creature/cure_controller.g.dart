@@ -60,7 +60,7 @@ final class CureControllerProvider
   CureController create() => CureController();
 }
 
-String _$cureControllerHash() => r'379bdfa34626b26c50ab8d0c283c73dfdf7efb1d';
+String _$cureControllerHash() => r'7c8c9159e6e2ac12c6d68e95eaa23c1a055e881a';
 
 /// Drives the Cure button: idle → loading → result. Mirrors [PlayController] —
 /// curing is deterministic and always available (FR-006), so the outcome always
