@@ -4,6 +4,7 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 import '../app/client_provider.dart';
 import 'creature_provider.dart';
 import 'last_interaction.dart';
+import 'time_scale_provider.dart';
 
 part 'feed_controller.g.dart';
 
@@ -25,7 +26,11 @@ class FeedController extends _$FeedController {
   Future<void> feed() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final result = await ref.read(serverpodClientProvider).creature.feed();
+      final timeScale = ref.read(timeScaleProvider);
+      final result = await ref
+          .read(serverpodClientProvider)
+          .creature
+          .feed(timeScale: timeScale);
       ref.invalidate(creatureProvider);
       ref
           .read(lastInteractionProvider.notifier)

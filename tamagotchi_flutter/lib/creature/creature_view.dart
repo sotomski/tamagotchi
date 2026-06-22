@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
 import 'cure_controller.dart';
+import 'decay_poll.dart';
 import 'feed_controller.dart';
 import 'last_interaction.dart';
 import 'play_controller.dart';
+import 'time_scale_provider.dart';
 
 /// The present-creature state: the creature's name, its derived [mood] label,
 /// the four raw stat numbers (0–100, raw per MVP — no icons/bars), and the
@@ -30,6 +32,10 @@ class CreatureView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final creature = status.creature;
+    // Keep the scaled refresh poll alive for as long as the creature is on
+    // screen; it disposes (cancelling its timer) when this view leaves the tree.
+    ref.watch(decayPollProvider);
+    final timeScale = ref.watch(timeScaleProvider);
     final feedState = ref.watch(feedControllerProvider);
     final playState = ref.watch(playControllerProvider);
     final cureState = ref.watch(cureControllerProvider);
@@ -62,7 +68,11 @@ class CreatureView extends ConsumerWidget {
             _StatRow(label: 'Energy', value: creature.energy),
             _StatRow(label: 'Love', value: creature.love),
             _StatRow(label: 'Illness', value: creature.illness),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            // Time-acceleration control (FR-008): drag 1×–8× to compress both
+            // how fast stats decay and how often the view refreshes.
+            _SpeedControl(timeScale: timeScale),
+            const SizedBox(height: 16),
             // In-flight: a continuous animation in place of the buttons. On
             // success: the response below + the buttons stay for another go.
             if (feedState.isLoading)
@@ -134,6 +144,38 @@ class CreatureView extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The 1×–8× time-acceleration slider plus its current-multiplier label. Bound
+/// to [timeScaleProvider]; dragging it both re-fetches the creature (the
+/// provider watches the scale) and re-paces [decayPollProvider].
+class _SpeedControl extends ConsumerWidget {
+  const _SpeedControl({required this.timeScale});
+
+  final double timeScale;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Speed: ${timeScale.toStringAsFixed(0)}×'),
+        SizedBox(
+          width: 280,
+          child: Slider(
+            key: const Key('timeScaleSlider'),
+            min: minTimeScale,
+            max: maxTimeScale,
+            divisions: (maxTimeScale - minTimeScale).round(),
+            value: timeScale,
+            label: '${timeScale.toStringAsFixed(0)}×',
+            onChanged: (value) =>
+                ref.read(timeScaleProvider.notifier).set(value),
+          ),
+        ),
+      ],
     );
   }
 }

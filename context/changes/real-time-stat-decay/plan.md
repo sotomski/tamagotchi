@@ -505,24 +505,24 @@ existing rows backfill to migration time. Apply via `serverpod run start`
 
 #### Automated
 
-- [x] 3.1 Integration tests: feed/play/cure decay-before-interaction, anchor advanced, single journal entry
-- [x] 3.2 Existing feed/play/cure tests still pass (feed RNG draw-order intact)
-- [x] 3.3 `serverpod generate` clean; `dart analyze` passes
-- [x] 3.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/`
+- [x] 3.1 Integration tests: feed/play/cure decay-before-interaction, anchor advanced, single journal entry — f35d5b1
+- [x] 3.2 Existing feed/play/cure tests still pass (feed RNG draw-order intact) — f35d5b1
+- [x] 3.3 `serverpod generate` clean; `dart analyze` passes — f35d5b1
+- [x] 3.4 `dart format --set-exit-if-changed .` clean in `tamagotchi_server/` — f35d5b1
 
 #### Manual
 
-- [x] 3.5 Interacting after idle reflects decay-then-interaction
+- [x] 3.5 Interacting after idle reflects decay-then-interaction — f35d5b1
 
 ### Phase 4: Frontend Slider + Scaled Polling
 
 #### Automated
 
-- [ ] 4.1 Widget test: slider renders, defaults 1×, updates time-scale provider
-- [ ] 4.2 Widget test: provider + interaction controllers pass `timeScale`
-- [ ] 4.3 Test: poll timer interval scales inversely with `timeScale` and invalidates `creatureProvider`
-- [ ] 4.4 `flutter analyze` passes; `dart format --set-exit-if-changed .` clean in `tamagotchi_flutter/`
-- [ ] 4.5 `flutter test` passes
+- [x] 4.1 Widget test: slider renders, defaults 1×, updates time-scale provider
+- [x] 4.2 Widget test: provider + interaction controllers pass `timeScale`
+- [x] 4.3 Test: poll timer interval scales inversely with `timeScale` and invalidates `creatureProvider`
+- [x] 4.4 `flutter analyze` passes; `dart format --set-exit-if-changed .` clean in `tamagotchi_flutter/`
+- [x] 4.5 `flutter test` passes
 
 #### Manual
 
