@@ -1,9 +1,9 @@
 ---
 change_id: real-time-stat-decay
 title: Real time stat decay
-status: implementing
+status: implemented
 created: 2026-06-21
-updated: 2026-06-21
+updated: 2026-06-22
 archived_at: null
 ---
 

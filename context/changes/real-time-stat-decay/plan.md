@@ -518,13 +518,13 @@ existing rows backfill to migration time. Apply via `serverpod run start`
 
 #### Automated
 
-- [x] 4.1 Widget test: slider renders, defaults 1×, updates time-scale provider
-- [x] 4.2 Widget test: provider + interaction controllers pass `timeScale`
-- [x] 4.3 Test: poll timer interval scales inversely with `timeScale` and invalidates `creatureProvider`
-- [x] 4.4 `flutter analyze` passes; `dart format --set-exit-if-changed .` clean in `tamagotchi_flutter/`
-- [x] 4.5 `flutter test` passes
+- [x] 4.1 Widget test: slider renders, defaults 1×, updates time-scale provider — ed86d69
+- [x] 4.2 Widget test: provider + interaction controllers pass `timeScale` — ed86d69
+- [x] 4.3 Test: poll timer interval scales inversely with `timeScale` and invalidates `creatureProvider` — ed86d69
+- [x] 4.4 `flutter analyze` passes; `dart format --set-exit-if-changed .` clean in `tamagotchi_flutter/` — ed86d69
+- [x] 4.5 `flutter test` passes — ed86d69
 
 #### Manual
 
-- [ ] 4.6 Slider visibly scales decay speed + refresh cadence; decayed values render without layout breakage
-- [ ] 4.7 (Optional) `patrol` e2e smoke still passes
+- [x] 4.6 Slider visibly scales decay speed + refresh cadence; decayed values render without layout breakage — ed86d69
+- [x] 4.7 (Optional) `patrol` e2e smoke still passes — ed86d69
