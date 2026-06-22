@@ -146,14 +146,50 @@ class CreatureEndpoint extends Endpoint {
       throw StateError('Creature ${creature.id} has no personality row');
     }
 
-    final decayed = decayCreature(
+    final now = clockFactory(session)();
+    final scale = clampTimeScale(timeScale ?? 1.0);
+
+    // Decay is computed lock-free first: the common polling case fires no tick
+    // and returns immediately, never taking a row lock or writing. Only when a
+    // tick actually fired do we persist — and then under a `forUpdate` lock,
+    // re-reading and recomputing from the committed row, so this read-path write
+    // can't clobber an overlapping feed/play/cure write (last-writer-wins lost
+    // update).
+    final optimistic = decayCreature(
       creature: creature,
       personality: personality,
-      now: clockFactory(session)(),
-      timeScale: clampTimeScale(timeScale ?? 1.0),
+      now: now,
+      timeScale: scale,
     );
-    if (decayed.changed) {
-      await Creature.db.updateRow(session, decayed.creature);
+    final DecayOutcome decayed;
+    if (!optimistic.changed) {
+      decayed = optimistic;
+    } else {
+      decayed = await session.db.transaction((transaction) async {
+        final fresh = await Creature.db.findById(
+          session,
+          creature.id!,
+          transaction: transaction,
+          lockMode: LockMode.forUpdate,
+        );
+        // Row vanished mid-call (no delete path in this app) — keep the
+        // optimistic value rather than resurrecting a deleted row.
+        if (fresh == null) return optimistic;
+        final reDecayed = decayCreature(
+          creature: fresh,
+          personality: personality,
+          now: now,
+          timeScale: scale,
+        );
+        if (reDecayed.changed) {
+          await Creature.db.updateRow(
+            session,
+            reDecayed.creature,
+            transaction: transaction,
+          );
+        }
+        return reDecayed;
+      });
     }
 
     return CreatureStatus(

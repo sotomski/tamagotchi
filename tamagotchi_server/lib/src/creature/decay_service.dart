@@ -67,6 +67,9 @@ DecayOutcome decayCreature({
   required DateTime now,
   required double timeScale,
 }) {
+  // Precondition: callers clamp via [clampTimeScale] (min 1.0). A zero/negative
+  // scale would divide by zero at the anchor-advance step below.
+  assert(timeScale >= minTimeScale);
   final realElapsedMin =
       now.difference(creature.lastDecayedAt).inMilliseconds / 60000.0;
   final effElapsedMin = realElapsedMin * timeScale;

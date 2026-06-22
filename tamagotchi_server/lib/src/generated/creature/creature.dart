@@ -12,8 +12,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 
-/// The core persisted creature, owned by the auth user. Stats are fixed at the
-/// baseline at hatch (S-02 has no decay/regen); personality lives in a 1:1 table.
+/// The core persisted creature, owned by the auth user. Stats decay lazily on
+/// read from elapsed wall-clock time anchored at `lastDecayedAt` (see
+/// `decay_service.dart`); personality lives in a 1:1 table.
 abstract class Creature
     implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Creature._({
