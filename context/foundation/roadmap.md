@@ -3,7 +3,7 @@ project: AI-Tamagotchi
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-06-21
+updated: 2026-06-22
 prd_version: 1
 main_goal: learn
 top_blocker: decisions
@@ -35,7 +35,7 @@ The MVP exists to test whether AI-driven personality — coupled to a structured
 | S-04 | `pet-with-personality-response`        | Pet the creature and receive a personality-driven response + journal entry        | S-03          | FR-005                         | done |
 | S-05 | `cure-the-creature`                    | Cure the creature when sick, regardless of energy                                 | S-03          | FR-006                         | done |
 | S-06 | `empty-energy-gate`                    | hit the empty-energy gate and receive a pre-written exhausted line (no AI call)   | S-03          | FR-007                         | proposed |
-| S-07 | `real-time-stat-decay`                 | leave and return to see stats decayed (with a floor) and energy regenerated       | S-02          | FR-008                         | proposed |
+| S-07 | `real-time-stat-decay`                 | leave and return to see stats decayed (with a floor) and energy regenerated       | S-02          | FR-008                         | done |
 | S-08 | `read-creature-journal`                | open the journal and read the full history of narrative entries                   | S-03          | FR-011                         | proposed |
 | S-09 | `reset-and-rehatch`                    | reset the current creature and hatch a fresh one                                  | S-02          | FR-010                         | proposed |
 
@@ -181,7 +181,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Personality-driven decay rates — exact formula or table per trait. Owner: user. Block: no. (Pick during `/10x-plan`; tunable later.)
   - Whether decay is computed lazily on read or pushed via Serverpod future-calls. Owner: user. Block: no. (Both work; future-call is more conventional, lazy-on-read is cheaper; pick at `/10x-plan` time.)
 - **Risk:** stretches the unfamiliar future-call API of Serverpod (per `main_goal: learn`, this is a feature, not a bug). The floor mechanic is critical — without it, returning users hit a "starving creature" state and bounce; the guilt-cap is the PRD's revised resolution to FR-008's counter-argument.
-- **Status:** proposed
+- **Status:** done
 
 ### S-08: Read the creature's full journal
 
@@ -251,3 +251,4 @@ _None currently open._
 - **S-04: user Pets the creature; receives a personality-shaped response (introvert / extravert modifier per FR-005); love stat increases; journal gains an entry.** — Archived 2026-06-20 → `context/archive/2026-06-20-pet-with-personality-response/`. Lesson: —.
 - **S-01: user can sign in with email+password and land on a "no creature yet — hatch one" home screen.** — Archived 2026-06-20 → `context/archive/2026-06-04-signed-in-empty-creature-view/`. Lesson: —.
 - **S-05: user Cures the creature; illness drops; Cure works regardless of energy level (FR-006); creature response acknowledges the cure; journal gains an entry.** — Archived 2026-06-21 → `context/archive/2026-06-20-cure-the-creature/`. Lesson: —.
+- **S-07: when the user returns after a period away, stats reflect personality-driven decay (with a floor — never unrecoverable) and energy reflects in-real-time regeneration (FR-008).** — Archived 2026-06-22 → `context/archive/2026-06-21-real-time-stat-decay/`. Lesson: —.
