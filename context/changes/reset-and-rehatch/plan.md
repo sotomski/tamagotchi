@@ -488,10 +488,10 @@ MVP scale.
 
 #### Automated
 
-- [x] 3.1 E2E test passes against the running app via the patrol runner
-- [x] 3.2 Test is independent and self-cleaning (unique account; passes on re-run and in parallel)
+- [x] 3.1 E2E test passes against the running app via the patrol runner — 7ecff57
+- [x] 3.2 Test is independent and self-cleaning (unique account; passes on re-run and in parallel) — 7ecff57
 
 #### Manual
 
-- [x] 3.3 E2E run visibly completes hatch → reset → re-hatch without intervention
-- [x] 3.4 No leftover test creatures/accounts block subsequent runs
+- [x] 3.3 E2E run visibly completes hatch → reset → re-hatch without intervention — 7ecff57
+- [x] 3.4 No leftover test creatures/accounts block subsequent runs — 7ecff57
