@@ -472,26 +472,26 @@ MVP scale.
 
 #### Automated
 
-- [x] 2.1 build_runner completes; `reset_controller.g.dart` generated
-- [x] 2.2 Flutter analyzer passes: `flutter analyze`
-- [x] 2.3 Reset widget test passes: `flutter test test/creature/reset_flow_test.dart`
-- [x] 2.4 Existing widget tests still pass: `flutter test`
+- [x] 2.1 build_runner completes; `reset_controller.g.dart` generated — cb2cb5b
+- [x] 2.2 Flutter analyzer passes: `flutter analyze` — cb2cb5b
+- [x] 2.3 Reset widget test passes: `flutter test test/creature/reset_flow_test.dart` — cb2cb5b
+- [x] 2.4 Existing widget tests still pass: `flutter test` — cb2cb5b
 
 #### Manual
 
-- [ ] 2.5 Reset action shows only when a creature exists
-- [ ] 2.6 Reset → Cancel leaves the creature untouched
-- [ ] 2.7 Reset → confirm returns to the HatchForm empty state
-- [ ] 2.8 Re-hatching after reset produces a different creature
+- [x] 2.5 Reset action shows only when a creature exists — cb2cb5b
+- [x] 2.6 Reset → Cancel leaves the creature untouched — cb2cb5b
+- [x] 2.7 Reset → confirm returns to the HatchForm empty state — cb2cb5b
+- [x] 2.8 Re-hatching after reset produces a different creature — cb2cb5b
 
 ### Phase 3: End-to-end reset → re-hatch loop (patrol)
 
 #### Automated
 
-- [ ] 3.1 E2E test passes against the running app via the patrol runner
-- [ ] 3.2 Test is independent and self-cleaning (unique account; passes on re-run and in parallel)
+- [x] 3.1 E2E test passes against the running app via the patrol runner
+- [x] 3.2 Test is independent and self-cleaning (unique account; passes on re-run and in parallel)
 
 #### Manual
 
-- [ ] 3.3 E2E run visibly completes hatch → reset → re-hatch without intervention
-- [ ] 3.4 No leftover test creatures/accounts block subsequent runs
+- [x] 3.3 E2E run visibly completes hatch → reset → re-hatch without intervention
+- [x] 3.4 No leftover test creatures/accounts block subsequent runs
