@@ -457,11 +457,11 @@ MVP scale.
 
 #### Automated
 
-- [ ] 1.1 `serverpod generate` completes cleanly and `reset()` appears in the generated client
-- [ ] 1.2 Migration created and applies cleanly: `dart bin/main.dart --apply-migrations`
-- [ ] 1.3 Server analyzer passes: `dart analyze`
-- [ ] 1.4 Reset integration test passes: `dart test test/integration/reset_endpoint_test.dart`
-- [ ] 1.5 Existing endpoint integration tests still pass: `dart test test/integration/`
+- [x] 1.1 `serverpod generate` completes cleanly and `reset()` appears in the generated client
+- [x] 1.2 Migration created and applies cleanly: `dart bin/main.dart --apply-migrations`
+- [x] 1.3 Server analyzer passes: `dart analyze`
+- [x] 1.4 Reset integration test passes: `dart test test/integration/reset_endpoint_test.dart`
+- [x] 1.5 Existing endpoint integration tests still pass: `dart test test/integration/`
 
 #### Manual
 
