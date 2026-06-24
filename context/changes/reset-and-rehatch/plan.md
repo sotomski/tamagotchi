@@ -457,25 +457,25 @@ MVP scale.
 
 #### Automated
 
-- [x] 1.1 `serverpod generate` completes cleanly and `reset()` appears in the generated client
-- [x] 1.2 Migration created and applies cleanly: `dart bin/main.dart --apply-migrations`
-- [x] 1.3 Server analyzer passes: `dart analyze`
-- [x] 1.4 Reset integration test passes: `dart test test/integration/reset_endpoint_test.dart`
-- [x] 1.5 Existing endpoint integration tests still pass: `dart test test/integration/`
+- [x] 1.1 `serverpod generate` completes cleanly and `reset()` appears in the generated client — de7c402
+- [x] 1.2 Migration created and applies cleanly: `dart bin/main.dart --apply-migrations` — de7c402
+- [x] 1.3 Server analyzer passes: `dart analyze` — de7c402
+- [x] 1.4 Reset integration test passes: `dart test test/integration/reset_endpoint_test.dart` — de7c402
+- [x] 1.5 Existing endpoint integration tests still pass: `dart test test/integration/` — de7c402
 
 #### Manual
 
-- [ ] 1.6 DB shows zero creature/personality/journal rows for that owner after reset
-- [ ] 1.7 No orphaned journal/personality rows remain after delete
+- [x] 1.6 DB shows zero creature/personality/journal rows for that owner after reset — de7c402
+- [x] 1.7 No orphaned journal/personality rows remain after delete — de7c402
 
 ### Phase 2: Frontend — reset controller, confirmation dialog, AppBar action
 
 #### Automated
 
-- [ ] 2.1 build_runner completes; `reset_controller.g.dart` generated
-- [ ] 2.2 Flutter analyzer passes: `flutter analyze`
-- [ ] 2.3 Reset widget test passes: `flutter test test/creature/reset_flow_test.dart`
-- [ ] 2.4 Existing widget tests still pass: `flutter test`
+- [x] 2.1 build_runner completes; `reset_controller.g.dart` generated
+- [x] 2.2 Flutter analyzer passes: `flutter analyze`
+- [x] 2.3 Reset widget test passes: `flutter test test/creature/reset_flow_test.dart`
+- [x] 2.4 Existing widget tests still pass: `flutter test`
 
 #### Manual
 
