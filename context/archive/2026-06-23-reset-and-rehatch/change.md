@@ -1,10 +1,10 @@
 ---
 change_id: reset-and-rehatch
 title: Reset and rehatch
-status: impl_reviewed
+status: archived
 created: 2026-06-23
 updated: 2026-06-25
-archived_at: null
+archived_at: 2026-06-25T18:58:27Z
 ---
 
 ## Notes
