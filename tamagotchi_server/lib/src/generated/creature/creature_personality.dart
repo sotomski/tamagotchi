@@ -71,6 +71,7 @@ abstract class CreaturePersonality
   _i1.UuidValue? id;
 
   /// 1:1 FK to the owning creature (unique index below enforces 1:1).
+  /// Cascading FK so deleting the creature removes its personality (FR-010 reset).
   _i1.UuidValue creatureId;
 
   double hungerDecayMod;
@@ -314,6 +315,7 @@ class CreaturePersonalityTable extends _i1.Table<_i1.UuidValue?> {
   late final CreaturePersonalityUpdateTable updateTable;
 
   /// 1:1 FK to the owning creature (unique index below enforces 1:1).
+  /// Cascading FK so deleting the creature removes its personality (FR-010 reset).
   late final _i1.ColumnUuid creatureId;
 
   late final _i1.ColumnDouble hungerDecayMod;

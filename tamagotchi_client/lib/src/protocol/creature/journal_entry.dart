@@ -68,6 +68,7 @@ abstract class JournalEntry implements _i1.SerializableModel {
   _i1.UuidValue? id;
 
   /// The creature this entry belongs to (many entries per creature).
+  /// Cascading FK so deleting the creature removes its journal (FR-010 reset).
   _i1.UuidValue creatureId;
 
   /// The owning auth user, stored directly for scoping.

@@ -11,7 +11,8 @@ fields:
   ### UUID primary key.
   id: UuidValue?, defaultPersist=random_v7
   ### 1:1 FK to the owning creature (unique index below enforces 1:1).
-  creatureId: UuidValue, relation(parent=creature)
+  ### Cascading FK so deleting the creature removes its personality (FR-010 reset).
+  creatureId: UuidValue, relation(parent=creature, onUpdate=NoAction, onDelete=Cascade)
   hungerDecayMod: double
   hungerRegenMod: double
   energyDecayMod: double

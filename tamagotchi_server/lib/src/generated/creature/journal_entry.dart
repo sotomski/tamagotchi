@@ -73,6 +73,7 @@ abstract class JournalEntry
   _i1.UuidValue? id;
 
   /// The creature this entry belongs to (many entries per creature).
+  /// Cascading FK so deleting the creature removes its journal (FR-010 reset).
   _i1.UuidValue creatureId;
 
   /// The owning auth user, stored directly for scoping.
@@ -289,6 +290,7 @@ class JournalEntryTable extends _i1.Table<_i1.UuidValue?> {
   late final JournalEntryUpdateTable updateTable;
 
   /// The creature this entry belongs to (many entries per creature).
+  /// Cascading FK so deleting the creature removes its journal (FR-010 reset).
   late final _i1.ColumnUuid creatureId;
 
   /// The owning auth user, stored directly for scoping.

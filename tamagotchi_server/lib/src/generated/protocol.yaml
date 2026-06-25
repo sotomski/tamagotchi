@@ -11,6 +11,7 @@ jwtRefresh:
   - refreshAccessToken:
 creature:
   - hatch:
+  - reset:
   - myCreature:
   - feed:
   - play:

@@ -7,7 +7,8 @@ fields:
   ### UUID primary key.
   id: UuidValue?, defaultPersist=random_v7
   ### The creature this entry belongs to (many entries per creature).
-  creatureId: UuidValue
+  ### Cascading FK so deleting the creature removes its journal (FR-010 reset).
+  creatureId: UuidValue, relation(parent=creature, onUpdate=NoAction, onDelete=Cascade)
   ### The owning auth user, stored directly for scoping.
   ownerUuid: UuidValue
   ### When the event occurred.
