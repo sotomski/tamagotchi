@@ -6,6 +6,8 @@ import '../app/client_provider.dart';
 import '../creature/creature_provider.dart';
 import '../creature/creature_view.dart';
 import '../creature/hatch_form.dart';
+import '../creature/reset_confirm_dialog.dart';
+import '../creature/reset_controller.dart';
 
 /// The signed-in creature home (S-01 / S-02).
 ///
@@ -21,14 +23,53 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final creatureStatus = ref.watch(creatureProvider);
+    // Only offer Reset once a creature exists — there's nothing to delete from
+    // the empty (HatchForm) state.
+    final hasCreature = creatureStatus.asData?.value != null;
+    // Watch (not just read) the reset controller so the auto-dispose provider
+    // stays alive across its in-flight RPC: a bare `read` lets it dispose
+    // between the await and the post-reset `invalidate(creatureProvider)`, so
+    // the home never falls back to the HatchForm. Watching also gives us the
+    // loading flag to disable the button mid-reset.
+    final resetting = ref.watch(resetControllerProvider).isLoading;
+    // Surface a reset failure the way every sibling controller surfaces its
+    // errors: the confirm dialog is already gone and the creature is still
+    // present, so a SnackBar is the one-shot feedback that the delete didn't
+    // happen — without it the button just silently re-enables.
+    ref.listen(resetControllerProvider, (previous, next) {
+      if (next.hasError && !next.isLoading) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            key: Key('resetErrorSnackBar'),
+            content: Text('Could not reset — please try again.'),
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI-Tamagotchi'),
         actions: [
-          // A text-labelled action (not a bare icon): the "Log out" label
-          // renders from the app font, so it stays visible on Flutter web even
-          // when the tree-shaken MaterialIcons subset is served stale from cache.
+          // A text-labelled action (not a bare icon): the labels render from the
+          // app font, so they stay visible on Flutter web even when the
+          // tree-shaken MaterialIcons subset is served stale from cache.
+          if (hasCreature)
+            TextButton.icon(
+              key: const Key('resetButton'),
+              icon: const Icon(Icons.restart_alt),
+              label: const Text('Reset'),
+              onPressed: resetting
+                  ? null
+                  : () async {
+                      final confirmed = await showResetConfirmDialog(context);
+                      if (confirmed) {
+                        await ref
+                            .read(resetControllerProvider.notifier)
+                            .reset();
+                      }
+                    },
+            ),
           TextButton.icon(
             icon: const Icon(Icons.logout),
             label: const Text('Log out'),

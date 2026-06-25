@@ -113,6 +113,31 @@ class CreatureEndpoint extends Endpoint {
     return CreatureStatus(creature: creature, mood: _moodOf(creature));
   }
 
+  /// Deletes the caller's creature, cascading to its personality and journal,
+  /// returning the user to the creatureless (re-hatch) state.
+  ///
+  /// Idempotent: deleting zero rows is success, so calling reset with no creature
+  /// is a silent no-op (FR-010). Wrapped in a transaction to keep the
+  /// `creature_owner_idx` from a half state, mirroring [hatch]'s transactional
+  /// write.
+  Future<void> reset(Session session) async {
+    final ownerUuid = UuidValue.fromString(
+      session.authenticated!.userIdentifier,
+    );
+
+    // One owner-scoped delete: the `onDelete=Cascade` FKs on
+    // `creature_personality` and `journal_entry` let Postgres remove the
+    // personality and journal rows as the single creature row goes. Deleting
+    // zero rows is success, so this is a no-op for a creatureless caller.
+    await session.db.transaction(
+      (transaction) => Creature.db.deleteWhere(
+        session,
+        where: (t) => t.ownerUuid.equals(ownerUuid),
+        transaction: transaction,
+      ),
+    );
+  }
+
   /// Returns the caller's creature with its derived mood, or null if none.
   ///
   /// Applies elapsed-time decay before returning: reads `now` through the
