@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
+import 'package:tamagotchi_flutter/app/client_provider.dart';
 import 'package:tamagotchi_flutter/creature/creature_provider.dart';
+import 'package:tamagotchi_flutter/creature/last_interaction.dart';
 import 'package:tamagotchi_flutter/creature/reset_controller.dart';
 import 'package:tamagotchi_flutter/home/home_screen.dart';
 
@@ -35,6 +37,19 @@ class _FakeResetController extends ResetController {
   }
 }
 
+/// A [ResetController] whose `reset()` fails, driving the same idle → loading →
+/// error path the real controller takes via `AsyncValue.guard` — so the home's
+/// error listener fires exactly as it would on a network/server failure.
+class _FailingResetController extends ResetController {
+  @override
+  Future<void> reset() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      throw Exception('reset failed');
+    });
+  }
+}
+
 /// Flip-able seam for the reset-flow swap test: the overridden
 /// [creatureProvider] watches it, so nulling it re-renders the home from the
 /// stats view back to the empty [HatchForm] — the same effect the real
@@ -51,7 +66,48 @@ class _SwappingResetController extends ResetController {
   }
 }
 
+/// A [Client] whose `reset` RPC is intercepted at [callServerEndpoint] and
+/// returns success without a server — so the real [ResetController.reset] runs
+/// its post-success invalidations unmodified (lesson: don't fake the Client
+/// per-method; override its single egress point).
+class _StubResetClient extends Client {
+  _StubResetClient() : super('http://localhost/');
+
+  @override
+  Future<T> callServerEndpoint<T>(
+    String endpoint,
+    String method,
+    Map<String, dynamic> args, {
+    bool authenticated = true,
+  }) async {
+    if (method == 'reset') return null as T;
+    throw UnimplementedError(method);
+  }
+}
+
 void main() {
+  test('reset clears the stale last-interaction outcome', () async {
+    final container = ProviderContainer(
+      overrides: [
+        serverpodClientProvider.overrideWithValue(_StubResetClient()),
+      ],
+    );
+    addTearDown(container.dispose);
+    // Keep the auto-dispose provider alive, then seed a stale outcome from the
+    // (about-to-be-deleted) creature.
+    container.listen(lastInteractionProvider, (_, _) {});
+    container
+        .read(lastInteractionProvider.notifier)
+        .set(userResponse: 'yum', accepted: true);
+    expect(container.read(lastInteractionProvider), isNotNull);
+
+    await container.read(resetControllerProvider.notifier).reset();
+
+    // The real controller invalidated it back to its null build() — no stale
+    // Feed/Play line lingers into the next creature.
+    expect(container.read(lastInteractionProvider), isNull);
+  });
+
   testWidgets('the Reset action is hidden when no creature exists', (
     tester,
   ) async {
@@ -146,6 +202,32 @@ void main() {
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(fake.calls, 1);
+  });
+
+  testWidgets('a failed reset surfaces an error and keeps the creature', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status()),
+          resetControllerProvider.overrideWith(_FailingResetController.new),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('resetButton')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('resetConfirmButton')));
+    await tester.pumpAndSettle();
+
+    // The failure is surfaced and nothing was lost: the creature is still here
+    // and the Reset action is still available to retry.
+    expect(find.byKey(const Key('resetErrorSnackBar')), findsOneWidget);
+    expect(find.text('Nibbles'), findsOneWidget);
+    expect(find.byKey(const Key('resetButton')), findsOneWidget);
   });
 
   testWidgets('confirming swaps the home back to the HatchForm empty state', (

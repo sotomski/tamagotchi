@@ -32,6 +32,20 @@ class HomeScreen extends ConsumerWidget {
     // the home never falls back to the HatchForm. Watching also gives us the
     // loading flag to disable the button mid-reset.
     final resetting = ref.watch(resetControllerProvider).isLoading;
+    // Surface a reset failure the way every sibling controller surfaces its
+    // errors: the confirm dialog is already gone and the creature is still
+    // present, so a SnackBar is the one-shot feedback that the delete didn't
+    // happen — without it the button just silently re-enables.
+    ref.listen(resetControllerProvider, (previous, next) {
+      if (next.hasError && !next.isLoading) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            key: Key('resetErrorSnackBar'),
+            content: Text('Could not reset — please try again.'),
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
