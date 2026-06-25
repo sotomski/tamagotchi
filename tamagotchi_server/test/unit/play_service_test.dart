@@ -3,7 +3,10 @@ import 'package:tamagotchi_server/src/creature/play_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
 import 'package:tamagotchi_server/src/llm/feed_copy.dart' as feed;
 import 'package:tamagotchi_server/src/llm/play_copy.dart' as play;
+import 'package:tamagotchi_server/src/llm/stub_llm_service.dart';
 import 'package:test/test.dart';
+
+import '../helpers/scripted_random.dart';
 
 const _ownerUuid = '00000000-0000-0000-0000-000000000001';
 const _creatureId = '00000000-0000-0000-0000-000000000002';
@@ -153,6 +156,40 @@ void main() {
       // a real-stub run from an LLM-failure run.
       expect(play.stubUserResponse, isNot(play.degradeUserResponse));
       expect(play.stubJournalNarrative, isNot(play.degradeJournalNarrative));
+    });
+
+    group('playExhaustedLines', () {
+      // Oracle = the plan's Phase 1 contract (FR-007): ~10 play+tired lines, all
+      // non-empty, flat pre-written copy for the energy-gate path (no LLM).
+      test('has 10-20 entries', () {
+        expect(play.playExhaustedLines.length, inInclusiveRange(10, 20));
+      });
+
+      test('every line is non-empty and trimmed', () {
+        for (final line in play.playExhaustedLines) {
+          expect(line.trim(), isNotEmpty);
+        }
+      });
+
+      test('lines are distinct (no accidental duplicates)', () {
+        expect(
+          play.playExhaustedLines.toSet(),
+          hasLength(play.playExhaustedLines.length),
+        );
+      });
+    });
+  });
+
+  group('PlayService.exhaustedLine', () {
+    // Mirrors FeedService.fullRefusalLine: picks a member of playExhaustedLines
+    // off the injected Random via nextInt only — it must draw NO nextDouble (an
+    // empty ScriptedRandom throws if it does), so the stat path stays RNG-free.
+    test('returns a member of playExhaustedLines and draws no nextDouble', () {
+      final service = PlayService(
+        rng: ScriptedRandom(const []),
+        llm: const StubLlmService(),
+      );
+      expect(service.exhaustedLine(), isIn(play.playExhaustedLines));
     });
   });
 }

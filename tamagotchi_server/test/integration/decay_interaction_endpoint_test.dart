@@ -29,9 +29,11 @@ void _injectFeedService(List<double> doubles) {
   addTearDown(() => feedServiceFactory = feedServiceFor);
 }
 
-/// Injects a [PlayService] with the hermetic stub LLM; self-cleans.
+/// Injects a [PlayService] with a scripted rng (the stat path draws none — an
+/// empty queue throws if it does) + hermetic stub LLM; self-cleans.
 void _injectPlayService() {
-  playServiceFactory = (_) => PlayService(llm: const StubLlmService());
+  playServiceFactory = (_) =>
+      PlayService(rng: ScriptedRandom(const []), llm: const StubLlmService());
   addTearDown(() => playServiceFactory = playServiceFor);
 }
 

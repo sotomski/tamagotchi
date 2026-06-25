@@ -225,14 +225,14 @@ None — `CreatureStatus`, `FeedResult`, `PlayResult` are non-table models; only
 
 #### Automated
 
-- [ ] 1.1 `serverpod generate` runs clean with no uncommitted drift
-- [ ] 1.2 Server analyzes clean (`dart analyze`)
-- [ ] 1.3 Integration tests pass (`dart test` with sidecars up)
-- [ ] 1.4 New tests: Feed blocked at energy<10 (flags, no stat change, no journal, LLM stub not called)
-- [ ] 1.5 New tests: Play blocked at energy<playEnergyCost (flag, no stat change, no journal)
-- [ ] 1.6 New test: Cure succeeds at energy==0
-- [ ] 1.7 New tests: canFeed/canPlay correct across an energy sweep
-- [ ] 1.8 New tests: affordable Feed/Play unchanged (stat change + one journal entry, exhausted==false)
+- [x] 1.1 `serverpod generate` runs clean with no uncommitted drift
+- [x] 1.2 Server analyzes clean (`dart analyze`)
+- [x] 1.3 Integration tests pass (`dart test` with sidecars up)
+- [x] 1.4 New tests: Feed blocked at energy<10 (flags, no stat change, no journal, LLM stub not called)
+- [x] 1.5 New tests: Play blocked at energy<playEnergyCost (flag, no stat change, no journal)
+- [x] 1.6 New test: Cure succeeds at energy==0
+- [x] 1.7 New tests: canFeed/canPlay correct across an energy sweep
+- [x] 1.8 New tests: affordable Feed/Play unchanged (stat change + one journal entry, exhausted==false)
 
 #### Manual
 

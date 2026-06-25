@@ -4,3 +4,10 @@ class: CreatureStatus
 fields:
   creature: Creature
   mood: CreatureMood
+  ### Whether the creature can currently afford a Feed (energy >= feedEnergyCost).
+  ### Lets the client disable an unaffordable Feed button without knowing the cost.
+  canFeed: bool
+  ### Whether the creature can currently afford a Play (energy >=
+  ### playEnergyCost(loveRegenMod)). The Play cost is personality-derived, so the
+  ### client cannot compute affordability itself — the server reports it.
+  canPlay: bool

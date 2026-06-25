@@ -26,6 +26,8 @@ CreatureStatus _status({
   int energy = 95,
   int love = 90,
   int illness = 0,
+  bool canFeed = true,
+  bool canPlay = true,
 }) => CreatureStatus(
   creature: Creature(
     ownerUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
@@ -36,6 +38,8 @@ CreatureStatus _status({
     illness: illness,
   ),
   mood: mood,
+  canFeed: canFeed,
+  canPlay: canPlay,
 );
 
 /// Test seam the flow tests flip to simulate a hatch landing a creature: the
@@ -71,10 +75,12 @@ final _postFeedSeam = StateProvider<CreatureStatus?>((ref) => null);
 FeedResult _feedResult({
   required bool accepted,
   required String userResponse,
+  bool exhausted = false,
   CreatureStatus? status,
 }) => FeedResult(
   userResponse: userResponse,
   accepted: accepted,
+  exhausted: exhausted,
   status: status ?? _status(),
 );
 
@@ -118,8 +124,13 @@ final _postPlaySeam = StateProvider<CreatureStatus?>((ref) => null);
 
 PlayResult _playResult({
   required String userResponse,
+  bool exhausted = false,
   CreatureStatus? status,
-}) => PlayResult(userResponse: userResponse, status: status ?? _status());
+}) => PlayResult(
+  userResponse: userResponse,
+  exhausted: exhausted,
+  status: status ?? _status(),
+);
 
 /// A [PlayController] that records calls and, instead of an RPC, publishes a
 /// canned [PlayResult] from [_playResultSeam], writes the shared

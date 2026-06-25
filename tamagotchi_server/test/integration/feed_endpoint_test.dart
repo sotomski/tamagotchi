@@ -113,6 +113,8 @@ void main() {
 
         // Returned outcome: accepted, stub accept copy, post-feed stats + mood.
         expect(result.accepted, isTrue);
+        expect(result.exhausted, isFalse); // affordable: gate did not fire
+        expect(result.status.canFeed, isTrue); // energy 100 >= 10
         expect(result.userResponse, stubAcceptUserResponse);
         expect(result.status.creature.hunger, 50);
         expect(result.status.creature.energy, 90);
@@ -226,6 +228,46 @@ void main() {
         expect(entries, hasLength(1));
         expect(entries.single.prose, degradeJournalNarrative);
         expect(entries.single.statDelta!.hungerDelta, -30);
+      },
+    );
+
+    test(
+      'an exhausted creature (energy < feedEnergyCost) is gated: a canned '
+      'exhausted line, no LLM call, no journal entry, no stat change, '
+      'exhausted/accepted flags, and canFeed false',
+      () async {
+        // Gate path draws no gate roll (decide() is never reached) — an empty
+        // ScriptedRandom throws if a nextDouble is drawn, asserting that. The
+        // throwing LLM proves the model is never called: if the gate regressed
+        // and feed proceeded, the response would be the degrade line, not a pool
+        // line (and the empty rng would throw at decide()).
+        _injectFeedService(const [], llm: const _ThrowingLlmService());
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+        final session = authed.build();
+        // energy 5 < feedEnergyCost (10); hunger 80 so it is NOT a full-refusal.
+        final creature = await _seedCreature(
+          session,
+          userUuid,
+          hunger: 80,
+          energy: 5,
+        );
+
+        final result = await endpoints.creature.feed(authed);
+
+        expect(result.exhausted, isTrue);
+        expect(result.accepted, isFalse);
+        expect(result.userResponse, isIn(feedExhaustedLines));
+        expect(result.status.canFeed, isFalse);
+        // Stats unchanged on the returned status.
+        expect(result.status.creature.energy, 5);
+        expect(result.status.creature.hunger, 80);
+
+        // Nothing persisted: energy/hunger untouched, no feed journal entry.
+        final stored = await Creature.db.findById(session, creature.id!);
+        expect(stored!.energy, 5);
+        expect(stored.hunger, 80);
+        expect(await _feedEntries(session, creature.id!), isEmpty);
       },
     );
 

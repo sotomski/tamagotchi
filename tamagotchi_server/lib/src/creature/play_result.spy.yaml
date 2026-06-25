@@ -11,6 +11,11 @@ fields:
   ### The user-facing, in-character response (LLM-generated, or canned play copy
   ### on a model-failure degrade).
   userResponse: String
+  ### Whether the play was blocked by the empty-energy gate (FR-007): the creature
+  ### was too tired to play (energy < playEnergyCost(loveRegenMod)). On an exhausted
+  ### outcome the LLM is never called, no journal entry is written, and stats are
+  ### unchanged; the response is a canned `playExhaustedLines` pick. False otherwise.
+  exhausted: bool
   ### The creature's post-play status: updated stats (love up, energy down) plus
   ### a freshly re-derived mood.
   status: CreatureStatus

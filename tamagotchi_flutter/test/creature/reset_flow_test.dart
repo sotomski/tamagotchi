@@ -23,6 +23,8 @@ CreatureStatus _status({String name = 'Nibbles'}) => CreatureStatus(
     illness: 0,
   ),
   mood: CreatureMood.happy,
+  canFeed: true,
+  canPlay: true,
 );
 
 /// A [ResetController] that records calls instead of hitting the server, so the

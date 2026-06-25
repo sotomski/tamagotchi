@@ -26,17 +26,20 @@ abstract class PlayResult
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   PlayResult._({
     required this.userResponse,
+    required this.exhausted,
     required this.status,
   });
 
   factory PlayResult({
     required String userResponse,
+    required bool exhausted,
     required _i2.CreatureStatus status,
   }) = _PlayResultImpl;
 
   factory PlayResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return PlayResult(
       userResponse: jsonSerialization['userResponse'] as String,
+      exhausted: _i1.BoolJsonExtension.fromJson(jsonSerialization['exhausted']),
       status: _i3.Protocol().deserialize<_i2.CreatureStatus>(
         jsonSerialization['status'],
       ),
@@ -47,6 +50,12 @@ abstract class PlayResult
   /// on a model-failure degrade).
   String userResponse;
 
+  /// Whether the play was blocked by the empty-energy gate (FR-007): the creature
+  /// was too tired to play (energy < playEnergyCost(loveRegenMod)). On an exhausted
+  /// outcome the LLM is never called, no journal entry is written, and stats are
+  /// unchanged; the response is a canned `playExhaustedLines` pick. False otherwise.
+  bool exhausted;
+
   /// The creature's post-play status: updated stats (love up, energy down) plus
   /// a freshly re-derived mood.
   _i2.CreatureStatus status;
@@ -56,6 +65,7 @@ abstract class PlayResult
   @_i1.useResult
   PlayResult copyWith({
     String? userResponse,
+    bool? exhausted,
     _i2.CreatureStatus? status,
   });
   @override
@@ -63,6 +73,7 @@ abstract class PlayResult
     return {
       '__className__': 'PlayResult',
       'userResponse': userResponse,
+      'exhausted': exhausted,
       'status': status.toJson(),
     };
   }
@@ -72,6 +83,7 @@ abstract class PlayResult
     return {
       '__className__': 'PlayResult',
       'userResponse': userResponse,
+      'exhausted': exhausted,
       'status': status.toJsonForProtocol(),
     };
   }
@@ -85,9 +97,11 @@ abstract class PlayResult
 class _PlayResultImpl extends PlayResult {
   _PlayResultImpl({
     required String userResponse,
+    required bool exhausted,
     required _i2.CreatureStatus status,
   }) : super._(
          userResponse: userResponse,
+         exhausted: exhausted,
          status: status,
        );
 
@@ -97,10 +111,12 @@ class _PlayResultImpl extends PlayResult {
   @override
   PlayResult copyWith({
     String? userResponse,
+    bool? exhausted,
     _i2.CreatureStatus? status,
   }) {
     return PlayResult(
       userResponse: userResponse ?? this.userResponse,
+      exhausted: exhausted ?? this.exhausted,
       status: status ?? this.status.copyWith(),
     );
   }
