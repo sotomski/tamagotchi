@@ -272,6 +272,41 @@ void main() {
     );
 
     test(
+      'a creature that is both full (hunger==0) and exhausted (energy < '
+      'feedEnergyCost) returns the exhausted line, not the full-refusal line: '
+      'the energy gate takes priority over the full-refusal check',
+      () async {
+        // Empty rng + throwing LLM: the gate path draws no roll and never calls
+        // the model. If the gate regressed and the full-refusal check ran first,
+        // userResponse would be a fullRefusalLines member instead.
+        _injectFeedService(const [], llm: const _ThrowingLlmService());
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+        final session = authed.build();
+        // hunger 0 (full) AND energy 5 < feedEnergyCost (10) (exhausted).
+        final creature = await _seedCreature(
+          session,
+          userUuid,
+          hunger: 0,
+          energy: 5,
+        );
+
+        final result = await endpoints.creature.feed(authed);
+
+        // Exhausted wins: the response is a tired line, not a full line.
+        expect(result.exhausted, isTrue);
+        expect(result.userResponse, isIn(feedExhaustedLines));
+        expect(result.userResponse, isNot(isIn(fullRefusalLines)));
+
+        // Still a non-event: nothing persisted, no journal entry.
+        final stored = await Creature.db.findById(session, creature.id!);
+        expect(stored!.energy, 5);
+        expect(stored.hunger, 0);
+        expect(await _feedEntries(session, creature.id!), isEmpty);
+      },
+    );
+
+    test(
       'feeding with no creature throws CreatureFeedError(noCreature)',
       () async {
         _injectFeedService(const [0.5, 0.99]);

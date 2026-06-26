@@ -413,6 +413,7 @@ class CreatureEndpoint extends Endpoint {
       timeScale: clampTimeScale(timeScale ?? 1.0),
     );
     final base = decayed.creature;
+    final playService = playServiceFactory(session);
 
     // Empty-energy gate (FR-007): a creature too tired to play. Plain early
     // return mirroring [feed]'s gate: a canned exhausted line, no LLM call, no
@@ -421,7 +422,7 @@ class CreatureEndpoint extends Endpoint {
     final playCost = playEnergyCost(personality.loveRegenMod);
     if (base.energy < playCost) {
       return PlayResult(
-        userResponse: playServiceFactory(session).exhaustedLine(),
+        userResponse: playService.exhaustedLine(),
         exhausted: true,
         status: _statusFor(base, personality.loveRegenMod),
       );
@@ -444,7 +445,7 @@ class CreatureEndpoint extends Endpoint {
         .where((p) => p.isNotEmpty)
         .toList();
 
-    final reply = await playServiceFactory(session).interaction(
+    final reply = await playService.interaction(
       session,
       InteractionRequest(
         personality: personality,
