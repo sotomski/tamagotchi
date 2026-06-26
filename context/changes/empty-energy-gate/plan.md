@@ -236,20 +236,20 @@ None — `CreatureStatus`, `FeedResult`, `PlayResult` are non-table models; only
 
 #### Manual
 
-- [ ] 1.9 Seeded run yields varied exhausted lines across repeated blocked attempts
+- [x] 1.9 Seeded run yields varied exhausted lines across repeated blocked attempts — test-covered (Phase 1 seeded-RNG pool tests); backstop-only by design, not reachable via normal clicks
 
 ### Phase 2: Client — disabling, hint, distinct response
 
 #### Automated
 
-- [x] 2.1 Client analyzes clean (`flutter analyze`)
-- [x] 2.2 Widget tests pass (`flutter test`)
-- [x] 2.3 Widget test: Feed/Play buttons disabled when unaffordable, enabled when affordable
-- [x] 2.4 Widget test: energy hint visible only when an interaction is gated
-- [x] 2.5 Widget test: exhausted outcome renders the distinct treatment (not error, not plain accepted)
+- [x] 2.1 Client analyzes clean (`flutter analyze`) — 571d6c6
+- [x] 2.2 Widget tests pass (`flutter test`) — 571d6c6
+- [x] 2.3 Widget test: Feed/Play buttons disabled when unaffordable, enabled when affordable — 571d6c6
+- [x] 2.4 Widget test: energy hint visible only when an interaction is gated — 571d6c6
+- [x] 2.5 Widget test: exhausted outcome renders the distinct treatment (not error, not plain accepted) — 571d6c6
 
 #### Manual
 
 - [ ] 2.6 Drain energy in-app: Feed/Play disable, hint appears, Cure stays enabled
 - [ ] 2.7 Buttons re-enable once energy regenerates past each cost
-- [ ] 2.8 A server-gated click renders exhausted flavor, not an error
+- [x] 2.8 A server-gated click renders exhausted flavor, not an error — test-covered (widget test 2.5, 571d6c6); backstop-only by design (stale/concurrent state)
