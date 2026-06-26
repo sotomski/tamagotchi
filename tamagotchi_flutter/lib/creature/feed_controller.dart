@@ -34,7 +34,11 @@ class FeedController extends _$FeedController {
       ref.invalidate(creatureProvider);
       ref
           .read(lastInteractionProvider.notifier)
-          .set(userResponse: result.userResponse, accepted: result.accepted);
+          .set(
+            userResponse: result.userResponse,
+            accepted: result.accepted,
+            exhausted: result.exhausted,
+          );
       return result;
     });
   }

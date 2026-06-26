@@ -225,14 +225,14 @@ None — `CreatureStatus`, `FeedResult`, `PlayResult` are non-table models; only
 
 #### Automated
 
-- [x] 1.1 `serverpod generate` runs clean with no uncommitted drift
-- [x] 1.2 Server analyzes clean (`dart analyze`)
-- [x] 1.3 Integration tests pass (`dart test` with sidecars up)
-- [x] 1.4 New tests: Feed blocked at energy<10 (flags, no stat change, no journal, LLM stub not called)
-- [x] 1.5 New tests: Play blocked at energy<playEnergyCost (flag, no stat change, no journal)
-- [x] 1.6 New test: Cure succeeds at energy==0
-- [x] 1.7 New tests: canFeed/canPlay correct across an energy sweep
-- [x] 1.8 New tests: affordable Feed/Play unchanged (stat change + one journal entry, exhausted==false)
+- [x] 1.1 `serverpod generate` runs clean with no uncommitted drift — bced6b9
+- [x] 1.2 Server analyzes clean (`dart analyze`) — bced6b9
+- [x] 1.3 Integration tests pass (`dart test` with sidecars up) — bced6b9
+- [x] 1.4 New tests: Feed blocked at energy<10 (flags, no stat change, no journal, LLM stub not called) — bced6b9
+- [x] 1.5 New tests: Play blocked at energy<playEnergyCost (flag, no stat change, no journal) — bced6b9
+- [x] 1.6 New test: Cure succeeds at energy==0 — bced6b9
+- [x] 1.7 New tests: canFeed/canPlay correct across an energy sweep — bced6b9
+- [x] 1.8 New tests: affordable Feed/Play unchanged (stat change + one journal entry, exhausted==false) — bced6b9
 
 #### Manual
 
@@ -242,11 +242,11 @@ None — `CreatureStatus`, `FeedResult`, `PlayResult` are non-table models; only
 
 #### Automated
 
-- [ ] 2.1 Client analyzes clean (`flutter analyze`)
-- [ ] 2.2 Widget tests pass (`flutter test`)
-- [ ] 2.3 Widget test: Feed/Play buttons disabled when unaffordable, enabled when affordable
-- [ ] 2.4 Widget test: energy hint visible only when an interaction is gated
-- [ ] 2.5 Widget test: exhausted outcome renders the distinct treatment (not error, not plain accepted)
+- [x] 2.1 Client analyzes clean (`flutter analyze`)
+- [x] 2.2 Widget tests pass (`flutter test`)
+- [x] 2.3 Widget test: Feed/Play buttons disabled when unaffordable, enabled when affordable
+- [x] 2.4 Widget test: energy hint visible only when an interaction is gated
+- [x] 2.5 Widget test: exhausted outcome renders the distinct treatment (not error, not plain accepted)
 
 #### Manual
 

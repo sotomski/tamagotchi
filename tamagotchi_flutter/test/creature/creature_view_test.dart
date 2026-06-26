@@ -101,7 +101,11 @@ class _FakeFeedController extends FeedController {
     if (result != null) {
       ref
           .read(lastInteractionProvider.notifier)
-          .set(userResponse: result.userResponse, accepted: result.accepted);
+          .set(
+            userResponse: result.userResponse,
+            accepted: result.accepted,
+            exhausted: result.exhausted,
+          );
     }
     state = AsyncData(result);
   }
@@ -149,7 +153,11 @@ class _FakePlayController extends PlayController {
     if (result != null) {
       ref
           .read(lastInteractionProvider.notifier)
-          .set(userResponse: result.userResponse, accepted: true);
+          .set(
+            userResponse: result.userResponse,
+            accepted: !result.exhausted,
+            exhausted: result.exhausted,
+          );
     }
     state = AsyncData(result);
   }
@@ -192,7 +200,11 @@ class _FakeCureController extends CureController {
     if (result != null) {
       ref
           .read(lastInteractionProvider.notifier)
-          .set(userResponse: result.userResponse, accepted: true);
+          .set(
+            userResponse: result.userResponse,
+            accepted: true,
+            exhausted: false,
+          );
     }
     state = AsyncData(result);
   }
@@ -719,6 +731,128 @@ void main() {
     // Post-cure illness replaced it.
     expect(find.text('30'), findsOneWidget);
     expect(find.text('70'), findsNothing);
+  });
+
+  testWidgets('Feed and Play are disabled when unaffordable', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith(
+            (ref) => _status(canFeed: false, canPlay: false),
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Unaffordable → onPressed is null (greyed out).
+    expect(
+      tester
+          .widget<ElevatedButton>(find.byKey(const Key('feedButton')))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<ElevatedButton>(find.byKey(const Key('playButton')))
+          .onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('Feed and Play are enabled when affordable', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<ElevatedButton>(find.byKey(const Key('feedButton')))
+          .onPressed,
+      isNotNull,
+    );
+    expect(
+      tester
+          .widget<ElevatedButton>(find.byKey(const Key('playButton')))
+          .onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('no energy hint when both interactions are affordable', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('energyHint')), findsNothing);
+  });
+
+  testWidgets('the energy hint shows when an interaction is gated', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          creatureProvider.overrideWith((ref) => _status(canFeed: false)),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Hint appears, and it is not styled as an error.
+    expect(find.byKey(const Key('energyHint')), findsOneWidget);
+    expect(find.textContaining('Something went wrong'), findsNothing);
+  });
+
+  testWidgets('an exhausted outcome renders the distinct treatment, not an '
+      'error or the plain accepted style', (tester) async {
+    final fake = _FakeFeedController();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          // A click slipped through a stale client state; the server gate fires.
+          creatureProvider.overrideWith((ref) => _status(canFeed: false)),
+          feedControllerProvider.overrideWith(() => fake),
+          _feedResultSeam.overrideWith(
+            (ref) => _feedResult(
+              accepted: false,
+              exhausted: true,
+              userResponse: 'Too sleepy to eat… maybe after a nap.',
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The button is disabled, so drive the controller directly to simulate the
+    // stale-state slip-through the server gate backstops.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CreatureView)),
+      listen: false,
+    );
+    await container.read(feedControllerProvider.notifier).feed();
+    await tester.pumpAndSettle();
+
+    // Distinct exhausted treatment — its own key, not the plain accepted bubble,
+    // and never the error message.
+    expect(find.byKey(const Key('exhaustedResponse')), findsOneWidget);
+    expect(find.byKey(const Key('interactionResponse')), findsNothing);
+    expect(find.textContaining('Too sleepy to eat'), findsOneWidget);
+    expect(find.textContaining('Something went wrong'), findsNothing);
   });
 
   testWidgets('the speed slider renders and defaults to 1×', (tester) async {

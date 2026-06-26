@@ -100,7 +100,7 @@ void main() {
     container.listen(lastInteractionProvider, (_, _) {});
     container
         .read(lastInteractionProvider.notifier)
-        .set(userResponse: 'yum', accepted: true);
+        .set(userResponse: 'yum', accepted: true, exhausted: false);
     expect(container.read(lastInteractionProvider), isNotNull);
 
     await container.read(resetControllerProvider.notifier).reset();
