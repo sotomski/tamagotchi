@@ -16,5 +16,6 @@ creature:
   - feed:
   - play:
   - cure:
+  - readJournal:
 greeting:
   - hello:

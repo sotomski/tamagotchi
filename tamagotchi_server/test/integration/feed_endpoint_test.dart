@@ -141,10 +141,12 @@ void main() {
     );
 
     test(
-      'a full creature (hunger==0) returns a canned line, makes no LLM call, '
-      'writes no journal entry, and leaves stats unchanged',
+      'a full creature (hunger==0) flows through the LLM and writes exactly one '
+      'zero-delta feed entry narrated as fullness, leaving stats unchanged',
       () async {
-        // Full path consumes no nextDouble — an empty script throws if drawn.
+        // Full path draws no nextDouble (the gate short-circuits on hunger==0
+        // before any roll, and no canned-line pick remains) — an empty script
+        // throws if drawn, asserting that.
         _injectFeedService(const []);
         final userUuid = const Uuid().v4();
         final authed = _authedAs(sessionBuilder, userUuid);
@@ -153,16 +155,28 @@ void main() {
 
         final result = await endpoints.creature.feed(authed);
 
+        // The refusal is in-character via the model (stub here), not a canned
+        // line, and reads as fullness — distinct from the picky refuse copy.
         expect(result.accepted, isFalse);
-        expect(result.userResponse, isIn(fullRefusalLines));
+        expect(result.userResponse, stubFullRefusalUserResponse);
         expect(result.status.creature.hunger, 0);
         expect(result.status.creature.energy, 100);
 
+        // Stats untouched (a refusal moves nothing).
         final stored = await Creature.db.findById(session, creature.id!);
         expect(stored!.hunger, 0);
         expect(stored.energy, 100);
 
-        expect(await _feedEntries(session, creature.id!), isEmpty);
+        // The full refusal is now recorded — one entry, zero delta (not null),
+        // full-refusal prose. Mirrors the picky test below.
+        final entries = await _feedEntries(session, creature.id!);
+        expect(entries, hasLength(1));
+        final entry = entries.single;
+        expect(entry.prose, stubFullRefusalJournalNarrative);
+        expect(entry.statDelta!.hungerDelta, 0);
+        expect(entry.statDelta!.energyDelta, 0);
+        expect(entry.statDelta!.loveDelta, 0);
+        expect(entry.statDelta!.illnessDelta, 0);
       },
     );
 

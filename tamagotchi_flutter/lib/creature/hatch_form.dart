@@ -94,6 +94,9 @@ String? _hatchErrorText(Object? error) {
         return 'You already have a creature.';
       case CreatureHatchErrorReason.emptyName:
         return 'Please enter a name.';
+      case CreatureHatchErrorReason.narrativeUnavailable:
+        return "Couldn't write your creature's birth story just now — "
+            'please try again.';
     }
   }
   return 'Could not hatch — please try again.';

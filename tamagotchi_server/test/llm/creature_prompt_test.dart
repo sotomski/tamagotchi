@@ -100,8 +100,16 @@ void main() {
                     accepted: true,
                     tastiness: 0.5,
                     recentEntries: const [
-                      'Devoured a glorious Quadruple-Truffle Soufflé.',
-                      'Sulked when offered cold gruel.',
+                      (
+                        event: JournalEvent.feed,
+                        age: 'earlier today',
+                        prose: 'Devoured a glorious Quadruple-Truffle Soufflé.',
+                      ),
+                      (
+                        event: JournalEvent.feed,
+                        age: 'yesterday',
+                        prose: 'Sulked when offered cold gruel.',
+                      ),
                     ],
                   ),
                 )[1]['content']
@@ -130,6 +138,85 @@ void main() {
         expect(noMemory.toLowerCase(), contains('no earlier entries'));
       },
     );
+
+    // Oracle = the plan's Phase 5 contract: the structured memory window renders
+    // each entry's event kind + relative age + prose, and the seam invites the
+    // model to refer back to earlier moments (backward callbacks). We assert
+    // presence/structure, never exact prose.
+    test(
+      'structured window renders event + age + prose and invites callbacks',
+      () {
+        final user =
+            buildInteractionMessages(
+                  InteractionRequest(
+                    personality: _personality(),
+                    hunger: 10,
+                    energy: 90,
+                    love: 80,
+                    illness: 0,
+                    mood: CreatureMood.happy,
+                    interactionType: JournalEvent.feed,
+                    accepted: true,
+                    tastiness: 0.5,
+                    recentEntries: const [
+                      (
+                        event: JournalEvent.play,
+                        age: 'yesterday',
+                        prose: 'Chased the ribbon across the terrarium.',
+                      ),
+                      (
+                        event: JournalEvent.hatched,
+                        age: 'a while back',
+                        prose: 'I awoke as Nibbles and met my owner.',
+                      ),
+                    ],
+                  ),
+                )[1]['content']
+                as String;
+
+        // Each entry's event kind, relative age, and prose are rendered.
+        expect(user, contains('play'));
+        expect(user, contains('yesterday'));
+        expect(user, contains('Chased the ribbon'));
+        expect(user, contains('a while back'));
+        expect(user, contains('I awoke as Nibbles'));
+        // The seam invites the creature to refer back to earlier moments.
+        expect(user.toLowerCase(), contains('refer back'));
+      },
+    );
+
+    // Oracle = the plan's Phase 4 contract: a refused feed is prompted with its
+    // severity so the model narrates fullness (stuffed) distinctly from distaste
+    // (picky). We assert the reason is present and the two read differently —
+    // never exact prose.
+    test('a full refusal is framed as fullness, a picky one as distaste', () {
+      String userFor(RefusalSeverity severity) =>
+          buildInteractionMessages(
+                InteractionRequest(
+                  personality: _personality(),
+                  hunger: 0,
+                  energy: 90,
+                  love: 64,
+                  illness: 5,
+                  mood: CreatureMood.content,
+                  interactionType: JournalEvent.feed,
+                  accepted: false,
+                  tastiness: 0.2,
+                  recentEntries: const [],
+                  refusalSeverity: severity,
+                ),
+              )[1]['content']
+              as String;
+
+      final full = userFor(RefusalSeverity.full).toLowerCase();
+      final picky = userFor(RefusalSeverity.picky).toLowerCase();
+
+      // The full refusal reads as "too full"; the picky one as distaste.
+      expect(full, contains('full'));
+      expect(picky, contains('picky'));
+      // The two refusals must be prompted differently.
+      expect(full, isNot(picky));
+    });
   });
 
   group('buildInteractionMessages — play branch', () {
@@ -139,7 +226,7 @@ void main() {
     // message carries stats/mood/personality/memory and references neither
     // tastiness nor accepted. We assert presence/structure, never exact prose.
     InteractionRequest playRequest({
-      List<String> recentEntries = const [],
+      List<JournalMemory> recentEntries = const [],
       CreatureMood mood = CreatureMood.content,
     }) => InteractionRequest(
       personality: _personality(),
@@ -207,8 +294,16 @@ void main() {
           buildInteractionMessages(
                 playRequest(
                   recentEntries: const [
-                    'Basked in a long afternoon of scritches.',
-                    'Sulked alone by the water bowl.',
+                    (
+                      event: JournalEvent.play,
+                      age: 'earlier today',
+                      prose: 'Basked in a long afternoon of scritches.',
+                    ),
+                    (
+                      event: JournalEvent.play,
+                      age: 'yesterday',
+                      prose: 'Sulked alone by the water bowl.',
+                    ),
                   ],
                 ),
               )[1]['content']
@@ -219,6 +314,67 @@ void main() {
     });
   });
 
+  group('buildInteractionMessages — hatched branch', () {
+    // Oracle = the plan's Phase 3 contract: when interactionType == hatched, the
+    // system prompt keeps the in-character/no-chatbot guardrails but is about
+    // BEING BORN / first awakening (no food, no tastiness), and the user message
+    // introduces the creature by name and carries its personality so the model
+    // can describe its character. We assert presence/structure, never exact prose.
+    InteractionRequest hatchRequest({String name = 'Nibbles'}) =>
+        InteractionRequest(
+          personality: _personality(),
+          name: name,
+          hunger: 0,
+          energy: 100,
+          love: 50,
+          illness: 0,
+          mood: CreatureMood.content,
+          interactionType: JournalEvent.hatched,
+          accepted: true,
+          tastiness: 0,
+          recentEntries: const [],
+        );
+
+    test('emits a birth persona message with guardrails and no food', () {
+      final messages = buildInteractionMessages(hatchRequest());
+
+      expect(messages, hasLength(2));
+      expect(messages[0]['role'], 'system');
+      expect(messages[1]['role'], 'user');
+
+      final system = (messages[0]['content'] as String).toLowerCase();
+      // Same in-character / no-chatbot guardrails as the other interactions.
+      expect(system, contains('in character'));
+      expect(system, contains('language model'));
+      // Birth-specific: about being born / hatching / first awakening.
+      expect(
+        system,
+        anyOf(contains('born'), contains('hatch'), contains('awak')),
+      );
+      // Two output fields unchanged.
+      expect(messages[0]['content'] as String, contains('userResponse'));
+      expect(messages[0]['content'] as String, contains('journalNarrative'));
+      // No food / tastiness wording leaks into the birth persona.
+      expect(system, isNot(contains('food')));
+      expect(system, isNot(contains('tastiness')));
+    });
+
+    test('hatch user message names the creature and carries personality', () {
+      final user =
+          buildInteractionMessages(
+                hatchRequest(name: 'Wobblesworth'),
+              )[1]['content']
+              as String;
+
+      // The creature is introduced by name so the birth narrative can use it.
+      expect(user, contains('Wobblesworth'));
+      // Personality summary present (a distinctive modifier value).
+      expect(user, contains('1.40'));
+      // Birth has no food/tastiness or accept/refuse decision.
+      expect(user.toLowerCase(), isNot(contains('tastiness')));
+    });
+  });
+
   group('buildInteractionMessages — cure branch', () {
     // Oracle = the plan's Phase 1 contract: when interactionType == cure, the
     // system prompt keeps the in-character/no-chatbot guardrails but is about
@@ -226,7 +382,7 @@ void main() {
     // carries stats/mood/personality/memory and references neither tastiness nor
     // accepted. We assert presence/structure, never exact prose.
     InteractionRequest cureRequest({
-      List<String> recentEntries = const [],
+      List<JournalMemory> recentEntries = const [],
       CreatureMood mood = CreatureMood.sick,
       int illness = 70,
     }) => InteractionRequest(
@@ -295,8 +451,16 @@ void main() {
           buildInteractionMessages(
                 cureRequest(
                   recentEntries: const [
-                    'Shivered with fever through the long night.',
-                    'Sniffled miserably by the heat lamp.',
+                    (
+                      event: JournalEvent.cure,
+                      age: 'earlier today',
+                      prose: 'Shivered with fever through the long night.',
+                    ),
+                    (
+                      event: JournalEvent.cure,
+                      age: 'yesterday',
+                      prose: 'Sniffled miserably by the heat lamp.',
+                    ),
                   ],
                 ),
               )[1]['content']

@@ -1,9 +1,24 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:tamagotchi_server/src/creature/creature_endpoint.dart';
 import 'package:tamagotchi_server/src/creature/creature_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
+import 'package:tamagotchi_server/src/llm/hatch_copy.dart' as hatch;
+import 'package:tamagotchi_server/src/llm/llm_service.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
+
+/// An [LlmService] that always throws, to drive hatch's block-on-failure path:
+/// the birth narrative can't be generated, so hatch must abort and write nothing.
+class _ThrowingLlmService implements LlmService {
+  const _ThrowingLlmService();
+
+  @override
+  Future<({String userResponse, String journalNarrative})> generateInteraction(
+    Session session,
+    InteractionRequest request,
+  ) async => throw Exception('model unreachable');
+}
 
 /// Returns a session builder authenticated as [userUuid] with no extra scopes —
 /// enough to satisfy `requireLogin`.
@@ -56,7 +71,8 @@ void main() {
   withServerpod('Given CreatureEndpoint', (sessionBuilder, endpoints) {
     test(
       'when hatching then it creates the creature with baseline stats, '
-      'content mood, a personality row, and a single hatched journal marker',
+      'content mood, a personality row, and a single hatched journal marker '
+      'carrying the LLM-generated birth prose',
       () async {
         final userUuid = const Uuid().v4();
         final authed = _authedAs(sessionBuilder, userUuid);
@@ -86,8 +102,55 @@ void main() {
         );
         expect(journal, hasLength(1));
         expect(journal.single.event, JournalEvent.hatched);
-        expect(journal.single.prose, '');
+        // The birth marker now carries real, LLM-generated prose (the hermetic
+        // stub's birth narrative in the test run mode) — no longer the blank ''.
+        expect(journal.single.prose, isNotEmpty);
+        expect(journal.single.prose, hatch.stubJournalNarrative);
+        // A birth records no stat change.
         expect(journal.single.statDelta, isNull);
+      },
+    );
+
+    test(
+      'when the birth-narrative LLM fails then hatch blocks (narrativeUnavailable) '
+      'and writes no creature, personality, or journal row',
+      () async {
+        // Inject a throwing LLM via the production seam; restore it after.
+        hatchLlmServiceFactory = (_) => const _ThrowingLlmService();
+        addTearDown(() => hatchLlmServiceFactory = llmServiceFor);
+
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+
+        await expectLater(
+          () => endpoints.creature.hatch(authed, 'Nibbles'),
+          throwsA(
+            isA<CreatureHatchError>().having(
+              (e) => e.reason,
+              'reason',
+              CreatureHatchErrorReason.narrativeUnavailable,
+            ),
+          ),
+        );
+
+        // Block-on-failure leaves NO partial state: the LLM call runs before the
+        // transaction, so a thrown birth narrative writes nothing at all.
+        final session = authed.build();
+        final owner = UuidValue.fromString(userUuid);
+        expect(
+          await Creature.db.find(
+            session,
+            where: (t) => t.ownerUuid.equals(owner),
+          ),
+          isEmpty,
+        );
+        expect(
+          await JournalEntry.db.find(
+            session,
+            where: (t) => t.ownerUuid.equals(owner),
+          ),
+          isEmpty,
+        );
       },
     );
 

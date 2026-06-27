@@ -69,10 +69,23 @@ const String stubAcceptJournalNarrative =
     'Happily devoured the meal and felt a little brighter for it.';
 
 /// Deterministic response the [StubLlmService] returns when the creature
-/// refused the food (picky-refusal path; full-refusal uses [fullRefusalLines]).
+/// refused the food because it was picky (distaste). Distinct from the
+/// full-refusal copy so the two refusals are assertable apart in tests.
 const String stubRefuseUserResponse =
     'Hmph. I sniffed it, judged it, and turned up my nose. Not today.';
 
 /// Stub journal narrative for a (picky) refused feed.
 const String stubRefuseJournalNarrative =
     'Turned down the offered food with a dramatic little huff and looked away.';
+
+/// Deterministic response the [StubLlmService] returns when the creature
+/// refused the food because it was FULL (stuffed). The full-refusal path now
+/// flows through the model like the picky path, so this is its stub output —
+/// distinct from [stubRefuseUserResponse] so integration tests tell them apart.
+const String stubFullRefusalUserResponse =
+    'Oh, no more for me! I am full to the very brim and could not manage a crumb.';
+
+/// Stub journal narrative for a full (stuffed) refused feed.
+const String stubFullRefusalJournalNarrative =
+    'Patted my round little belly and waved the food away — far too stuffed '
+    'from earlier to fit another single bite.';

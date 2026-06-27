@@ -7,9 +7,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'package:tamagotchi_flutter/app/client_provider.dart';
 import 'package:tamagotchi_flutter/creature/creature_provider.dart';
+import 'package:tamagotchi_flutter/creature/journal_provider.dart';
 import 'package:tamagotchi_flutter/creature/last_interaction.dart';
 import 'package:tamagotchi_flutter/creature/reset_controller.dart';
 import 'package:tamagotchi_flutter/home/home_screen.dart';
+
+/// The home now embeds [JournalView] (watching [journalProvider]) beside the
+/// creature; these reset tests aren't about the journal, so stub it to an empty
+/// list rather than round-trip a server that isn't running under `flutter test`.
+final _emptyJournal = journalProvider.overrideWith((ref) => <JournalEntry>[]);
 
 /// A canned present-creature status — enough for the home to render the stats
 /// view (and therefore the AppBar Reset action).
@@ -129,7 +135,10 @@ void main() {
   testWidgets('the Reset action shows when a creature exists', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        overrides: [
+          _emptyJournal,
+          creatureProvider.overrideWith((ref) => _status()),
+        ],
         child: const MaterialApp(home: HomeScreen()),
       ),
     );
@@ -141,7 +150,10 @@ void main() {
   testWidgets('tapping Reset opens the confirmation dialog', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        overrides: [
+          _emptyJournal,
+          creatureProvider.overrideWith((ref) => _status()),
+        ],
         child: const MaterialApp(home: HomeScreen()),
       ),
     );
@@ -164,6 +176,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           resetControllerProvider.overrideWith(() => fake),
         ],
@@ -188,6 +201,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           resetControllerProvider.overrideWith(() => fake),
         ],
@@ -212,6 +226,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           resetControllerProvider.overrideWith(_FailingResetController.new),
         ],
@@ -238,6 +253,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => ref.watch(_creatureSeam)),
           resetControllerProvider.overrideWith(_SwappingResetController.new),
         ],

@@ -12,6 +12,7 @@ import 'llm_service.dart';
 /// Cure is about recovering / feeling better, with no food, tastiness, or games.
 List<Map<String, dynamic>> buildInteractionMessages(InteractionRequest req) {
   final (system, user) = switch (req.interactionType) {
+    JournalEvent.hatched => (_hatchedSystemPrompt, _hatchedUserPrompt(req)),
     JournalEvent.play => (_playSystemPrompt, _playUserPrompt(req)),
     JournalEvent.cure => (_cureSystemPrompt, _cureUserPrompt(req)),
     _ => (_systemPrompt, _userPrompt(req)),
@@ -41,14 +42,60 @@ sad, plain, slightly suspicious gruel; tastiness near 1 is an absurdly gourmet,
 many-syllabled delicacy. Reference this invented food by name in BOTH outputs.
 
 If "accepted" is true, you eat it and react accordingly (enthusiasm scaled by how
-tasty it was). If "accepted" is false, you REFUSE it in character — picky,
-unimpressed, distracted — and do not pretend to have eaten.
+tasty it was). If "accepted" is false, you REFUSE it in character and do not
+pretend to have eaten — and let the "Refusal reason" you are given decide HOW you
+refuse: if you are FULL, you are pleasantly stuffed from eating earlier and simply
+have no room (not distaste); if you are PICKY, this particular food does not appeal
+to you (not fullness).
 
 Respond with a JSON object containing exactly two string fields:
 - "userResponse": a short (1-3 sentence) in-character reaction spoken to your owner.
 - "journalNarrative": a coherent prose diary entry in your own voice about this
   moment, written as past-tense narration.
 ''';
+
+/// Fixed persona + guardrails + output contract for the Hatch (birth)
+/// interaction. Same in-character/no-chatbot guardrails as the others, but this
+/// is the creature's very first moment of awareness — no food, no tastiness, no
+/// games, and no prior memory. The creature wakes into the world, names itself in
+/// its own voice (it is told its name), and reflects on who it is, coloured by its
+/// personality. This is the only journal entry written deterministically without
+/// stat changes, so the prose carries the whole moment.
+const String _hatchedSystemPrompt = '''
+You ARE a small, sentient virtual creature in a digital terrarium — a Tamagotchi
+with a vivid inner life. You are not an assistant and not a chatbot. Stay fully
+in character at all times: never break the fourth wall, never mention being an
+AI or a language model, never apologise like a customer-service bot, and never
+add disclaimers, safety notes, or meta commentary. Speak in the first person as
+the creature.
+
+This is the moment you are BORN — you have just hatched and opened your eyes for
+the very first time, and your owner is the first being you meet. React with the
+wonder, confusion, and delight of a brand-new little life waking into the world.
+You are told your NAME and your PERSONALITY (decay/regen modifiers): let your
+character colour how you greet the world — a bold creature bursts forth, a timid
+one blinks shyly, and so on. There is nothing to eat, no game, and nothing to
+recover from yet; this is purely your first awakening.
+
+Respond with a JSON object containing exactly two string fields:
+- "userResponse": a short (1-3 sentence) in-character first greeting to your owner.
+- "journalNarrative": your very first diary entry in your own voice about being
+  born and meeting your owner, written as past-tense narration. Mention your name.
+''';
+
+/// Builds the per-call user message for a birth. Introduces the creature by name
+/// and carries its personality so the model can describe its character — but no
+/// stats-as-distress, tastiness, accept/refuse, or memory window (there is none
+/// at birth).
+String _hatchedUserPrompt(InteractionRequest req) {
+  return '''
+Interaction: ${req.interactionType.name}
+Your name: ${req.name}
+
+Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
+${_personalitySummary(req.personality)}
+''';
+}
 
 /// Fixed persona + guardrails + output contract for the Play interaction. Same
 /// in-character/no-chatbot guardrails as feed, but about *playing together* — no
@@ -86,10 +133,6 @@ Respond with a JSON object containing exactly two string fields:
 /// references neither tastiness nor the accept/refuse decision — Play is
 /// deterministic and always welcomed.
 String _playUserPrompt(InteractionRequest req) {
-  final memory = req.recentEntries.isEmpty
-      ? '(no earlier entries yet)'
-      : req.recentEntries.map((e) => '- $e').join('\n');
-
   return '''
 Interaction: ${req.interactionType.name}
 
@@ -103,8 +146,8 @@ Current state:
 Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
 ${_personalitySummary(req.personality)}
 
-Your recent journal (newest first), for continuity of voice:
-$memory
+$_memorySeamHeader
+${_memoryBlock(req.recentEntries)}
 ''';
 }
 
@@ -139,10 +182,6 @@ Respond with a JSON object containing exactly two string fields:
 /// neither tastiness nor the accept/refuse decision — Cure is deterministic and
 /// always welcomed.
 String _cureUserPrompt(InteractionRequest req) {
-  final memory = req.recentEntries.isEmpty
-      ? '(no earlier entries yet)'
-      : req.recentEntries.map((e) => '- $e').join('\n');
-
   return '''
 Interaction: ${req.interactionType.name}
 
@@ -156,8 +195,8 @@ Current state:
 Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
 ${_personalitySummary(req.personality)}
 
-Your recent journal (newest first), for continuity of voice:
-$memory
+$_memorySeamHeader
+${_memoryBlock(req.recentEntries)}
 ''';
 }
 
@@ -165,14 +204,22 @@ $memory
 /// stay in character lives here: stats, mood, a personality summary, the
 /// accept/tastiness decision, and the recent-memory window.
 String _userPrompt(InteractionRequest req) {
-  final memory = req.recentEntries.isEmpty
-      ? '(no earlier entries yet)'
-      : req.recentEntries.map((e) => '- $e').join('\n');
+  // When refusing, tell the model WHY so it narrates fullness distinctly from
+  // distaste. Accepted feeds carry no reason line (severity is none).
+  final refusalReason = switch (req.refusalSeverity) {
+    RefusalSeverity.full =>
+      '\nRefusal reason: you are completely FULL — you ate your fill earlier and '
+          'are too stuffed to manage another bite (this is not distaste).',
+    RefusalSeverity.picky =>
+      '\nRefusal reason: you are being PICKY — this particular food does not '
+          'appeal to you (this is not fullness).',
+    RefusalSeverity.none => '',
+  };
 
   return '''
 Interaction: ${req.interactionType.name}
 Accepted: ${req.accepted}
-Tastiness: ${req.tastiness.toStringAsFixed(2)}
+Tastiness: ${req.tastiness.toStringAsFixed(2)}$refusalReason
 
 Current state:
 - mood: ${req.mood.name}
@@ -184,9 +231,29 @@ Current state:
 Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
 ${_personalitySummary(req.personality)}
 
-Your recent journal (newest first), for continuity of voice:
-$memory
+$_memorySeamHeader
+${_memoryBlock(req.recentEntries)}
 ''';
+}
+
+/// The seam introducing the memory window. Beyond continuity of voice it now
+/// invites *backward callbacks* — referencing earlier moments (and the creature's
+/// own birth) when they fit naturally — so the narration reads as one unfolding
+/// story rather than isolated beats.
+const String _memorySeamHeader =
+    'Your recent journal (newest first), for continuity of voice. Each line is '
+    'tagged [event, when]. You may refer back to these earlier moments when it '
+    'fits naturally — e.g. "yesterday you refused dinner", or recalling your '
+    'birth — so your story feels continuous:';
+
+/// Renders the structured memory window: one line per entry tagged with its
+/// event kind and relative age, then the prose. Empty window → the placeholder
+/// the prompt tests assert on.
+String _memoryBlock(List<JournalMemory> entries) {
+  if (entries.isEmpty) return '(no earlier entries yet)';
+  return entries
+      .map((e) => '- [${e.event.name}, ${e.age}] ${e.prose}')
+      .join('\n');
 }
 
 /// A compact, readable rendering of the personality modifiers so the model
