@@ -35,7 +35,13 @@ class PlayController extends _$PlayController {
       ref.invalidate(creatureProvider);
       ref
           .read(lastInteractionProvider.notifier)
-          .set(userResponse: result.userResponse, accepted: true);
+          .set(
+            userResponse: result.userResponse,
+            // Play never refuses; an exhausted backstop is the only non-accepted
+            // outcome, so accepted is the inverse of exhausted.
+            accepted: !result.exhausted,
+            exhausted: result.exhausted,
+          );
       return result;
     });
   }

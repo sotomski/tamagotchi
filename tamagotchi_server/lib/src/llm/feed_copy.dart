@@ -26,6 +26,26 @@ const List<String> fullRefusalLines = [
   'My appetite has clocked out for the day. See it tomorrow.',
 ];
 
+/// In-character lines for a creature too tired to eat — picked via the shared
+/// `Random` on the empty-energy gate path (FR-007: `energy < feedEnergyCost`).
+/// No model call on that path. Food + tiredness flavour, 10-20 entries, all
+/// non-empty, and deliberately distinct from [fullRefusalLines] so the two
+/// refusals (too tired vs. too full) read differently.
+const List<String> feedExhaustedLines = [
+  'I am too sleepy to chew. Waking the jaw takes energy I simply do not have.',
+  "No food, please — I'd doze off mid-bite and snore right into the bowl.",
+  'My fork-lifting muscles have gone on strike until I have had a nap.',
+  "Can't eat now. Even my appetite is yawning.",
+  "I'm running on empty, friend — far too drowsy to so much as nibble.",
+  'Food sounds lovely, but my eyelids weigh more than the snack does.',
+  "Too tired to eat. Ask again once I've recharged my little batteries.",
+  "I'd love a bite, but I'm one blink away from a very long nap.",
+  'My energy is at the bottom of the jar. Dinner waits for my second wind.',
+  "Zzz... oh, food? Sorry, I'm far too exhausted to lift a single crumb.",
+  "I'm all out of pep. Eating can resume after I have rested my weary self.",
+  "No thank you — chewing is a workout and I've nothing left in the tank.",
+];
+
 /// User-facing line substituted when the model call fails, so a stat change
 /// still lands with a coherent (if generic) response. In-character, no
 /// chatbot/disclaimer language.

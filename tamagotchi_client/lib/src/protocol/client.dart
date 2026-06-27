@@ -274,6 +274,19 @@ class EndpointCreature extends _i2.EndpointRef {
         {'name': name},
       );
 
+  /// Deletes the caller's creature, cascading to its personality and journal,
+  /// returning the user to the creatureless (re-hatch) state.
+  ///
+  /// Idempotent: deleting zero rows is success, so calling reset with no creature
+  /// is a silent no-op (FR-010). Wrapped in a transaction to keep the
+  /// `creature_owner_idx` from a half state, mirroring [hatch]'s transactional
+  /// write.
+  _i3.Future<void> reset() => caller.callServerEndpoint<void>(
+    'creature',
+    'reset',
+    {},
+  );
+
   /// Returns the caller's creature with its derived mood, or null if none.
   ///
   /// Applies elapsed-time decay before returning: reads `now` through the

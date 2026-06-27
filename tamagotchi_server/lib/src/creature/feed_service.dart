@@ -126,6 +126,12 @@ class FeedService {
   String fullRefusalLine() =>
       fullRefusalLines[_rng.nextInt(fullRefusalLines.length)];
 
+  /// Picks a canned "too tired to eat" line for the empty-energy gate path off
+  /// the *same* rng (nextInt only — no gate roll is drawn on the blocked path),
+  /// so a seeded run is reproducible. Mirrors [fullRefusalLine].
+  String exhaustedLine() =>
+      feedExhaustedLines[_rng.nextInt(feedExhaustedLines.length)];
+
   /// Produces the in-character response + journal narrative for one feed,
   /// degrading to canned [degradeUserResponse]/[degradeJournalNarrative] if the
   /// model call throws — so a flaky/unreachable model never blocks the

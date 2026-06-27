@@ -20,6 +20,34 @@ void main() {
     });
   });
 
+  group('feedExhaustedLines', () {
+    // Oracle = the plan's Phase 1 contract (FR-007): ~10 food+tired lines, all
+    // non-empty, picked via the shared Random on the energy-gate path. Flat,
+    // pre-written, in-character — no LLM, no disclaimer language.
+    test('has 10-20 entries', () {
+      expect(feedExhaustedLines.length, inInclusiveRange(10, 20));
+    });
+
+    test('every line is non-empty and trimmed', () {
+      for (final line in feedExhaustedLines) {
+        expect(line.trim(), isNotEmpty);
+      }
+    });
+
+    test('lines are distinct (no accidental duplicates)', () {
+      expect(feedExhaustedLines.toSet(), hasLength(feedExhaustedLines.length));
+    });
+
+    test('exhausted lines are distinct from the full-refusal lines', () {
+      // Two different gates (too tired vs. too full) — their copy must not
+      // collide, so a reader can tell which refusal fired.
+      expect(
+        feedExhaustedLines.toSet().intersection(fullRefusalLines.toSet()),
+        isEmpty,
+      );
+    });
+  });
+
   group('degrade + stub copy', () {
     test('degrade strings are non-empty', () {
       expect(degradeUserResponse.trim(), isNotEmpty);

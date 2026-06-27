@@ -66,6 +66,7 @@ abstract class CreaturePersonality implements _i1.SerializableModel {
   _i1.UuidValue? id;
 
   /// 1:1 FK to the owning creature (unique index below enforces 1:1).
+  /// Cascading FK so deleting the creature removes its personality (FR-010 reset).
   _i1.UuidValue creatureId;
 
   double hungerDecayMod;

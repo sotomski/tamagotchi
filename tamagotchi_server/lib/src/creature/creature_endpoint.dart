@@ -110,7 +110,32 @@ class CreatureEndpoint extends Endpoint {
       rethrow;
     }
 
-    return CreatureStatus(creature: creature, mood: _moodOf(creature));
+    return _statusFor(creature, mods.loveRegenMod);
+  }
+
+  /// Deletes the caller's creature, cascading to its personality and journal,
+  /// returning the user to the creatureless (re-hatch) state.
+  ///
+  /// Idempotent: deleting zero rows is success, so calling reset with no creature
+  /// is a silent no-op (FR-010). Wrapped in a transaction to keep the
+  /// `creature_owner_idx` from a half state, mirroring [hatch]'s transactional
+  /// write.
+  Future<void> reset(Session session) async {
+    final ownerUuid = UuidValue.fromString(
+      session.authenticated!.userIdentifier,
+    );
+
+    // One owner-scoped delete: the `onDelete=Cascade` FKs on
+    // `creature_personality` and `journal_entry` let Postgres remove the
+    // personality and journal rows as the single creature row goes. Deleting
+    // zero rows is success, so this is a no-op for a creatureless caller.
+    await session.db.transaction(
+      (transaction) => Creature.db.deleteWhere(
+        session,
+        where: (t) => t.ownerUuid.equals(ownerUuid),
+        transaction: transaction,
+      ),
+    );
   }
 
   /// Returns the caller's creature with its derived mood, or null if none.
@@ -192,10 +217,7 @@ class CreatureEndpoint extends Endpoint {
       });
     }
 
-    return CreatureStatus(
-      creature: decayed.creature,
-      mood: _moodOf(decayed.creature),
-    );
+    return _statusFor(decayed.creature, personality.loveRegenMod);
   }
 
   /// Feeds the caller's creature once and returns the in-character outcome.
@@ -244,6 +266,23 @@ class CreatureEndpoint extends Endpoint {
     final base = decayed.creature;
 
     final feedService = feedServiceFactory(session);
+
+    // Empty-energy gate (FR-007): a creature too tired to eat. This takes
+    // priority over the full-refusal check below — a creature too tired to eat
+    // shouldn't first be told it's full. Like full-refusal, it's a plain early
+    // return: a canned exhausted line, no LLM call, no journal entry, no stat
+    // change, and no persistence. Not persisting the (possibly decayed) `base` is
+    // safe: `lastDecayedAt` isn't advanced, so the same elapsed window is
+    // recomputed idempotently on the next poll/interaction.
+    if (base.energy < feedEnergyCost) {
+      return FeedResult(
+        userResponse: feedService.exhaustedLine(),
+        accepted: false,
+        exhausted: true,
+        status: _statusFor(base, personality.loveRegenMod),
+      );
+    }
+
     final decision = feedService.decide(base, personality);
 
     // Already full: a cheap canned line — no LLM call, no journal entry, no stat
@@ -253,7 +292,8 @@ class CreatureEndpoint extends Endpoint {
       return FeedResult(
         userResponse: feedService.fullRefusalLine(),
         accepted: false,
-        status: CreatureStatus(creature: base, mood: _moodOf(base)),
+        exhausted: false,
+        status: _statusFor(base, personality.loveRegenMod),
       );
     }
 
@@ -323,7 +363,8 @@ class CreatureEndpoint extends Endpoint {
     return FeedResult(
       userResponse: reply.userResponse,
       accepted: decision.accepted,
-      status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
+      exhausted: false,
+      status: _statusFor(updated, personality.loveRegenMod),
     );
   }
 
@@ -372,6 +413,20 @@ class CreatureEndpoint extends Endpoint {
       timeScale: clampTimeScale(timeScale ?? 1.0),
     );
     final base = decayed.creature;
+    final playService = playServiceFactory(session);
+
+    // Empty-energy gate (FR-007): a creature too tired to play. Plain early
+    // return mirroring [feed]'s gate: a canned exhausted line, no LLM call, no
+    // journal entry, no stat change, no persistence (decay is recomputed
+    // idempotently next call since `lastDecayedAt` isn't advanced).
+    final playCost = playEnergyCost(personality.loveRegenMod);
+    if (base.energy < playCost) {
+      return PlayResult(
+        userResponse: playService.exhaustedLine(),
+        exhausted: true,
+        status: _statusFor(base, personality.loveRegenMod),
+      );
+    }
 
     // Deterministic — no rng. The delta encodes the 0-100 clamp.
     final delta = playDelta(base, personality);
@@ -390,7 +445,7 @@ class CreatureEndpoint extends Endpoint {
         .where((p) => p.isNotEmpty)
         .toList();
 
-    final reply = await playServiceFactory(session).interaction(
+    final reply = await playService.interaction(
       session,
       InteractionRequest(
         personality: personality,
@@ -434,7 +489,8 @@ class CreatureEndpoint extends Endpoint {
 
     return PlayResult(
       userResponse: reply.userResponse,
-      status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
+      exhausted: false,
+      status: _statusFor(updated, personality.loveRegenMod),
     );
   }
 
@@ -555,7 +611,7 @@ class CreatureEndpoint extends Endpoint {
 
     return CureResult(
       userResponse: reply.userResponse,
-      status: CreatureStatus(creature: updated, mood: _moodOf(updated)),
+      status: _statusFor(updated, personality.loveRegenMod),
     );
   }
 
@@ -591,6 +647,18 @@ class CreatureEndpoint extends Endpoint {
 
   CreatureMood _moodOf(Creature c) =>
       deriveMood(c.hunger, c.energy, c.love, c.illness);
+
+  /// Bundles [c] with its derived mood and current affordability. `canFeed`/
+  /// `canPlay` mirror the server-side gate: Feed needs [feedEnergyCost], Play
+  /// needs the personality-derived [playEnergyCost] of [loveRegenMod] (which the
+  /// client can't compute, so it's reported here). The single construction point
+  /// for every [CreatureStatus] the endpoint returns.
+  CreatureStatus _statusFor(Creature c, double loveRegenMod) => CreatureStatus(
+    creature: c,
+    mood: _moodOf(c),
+    canFeed: c.energy >= feedEnergyCost,
+    canPlay: c.energy >= playEnergyCost(loveRegenMod),
+  );
 }
 
 /// Generous bounded cap for a full journal read — MVP fetches everything at once;

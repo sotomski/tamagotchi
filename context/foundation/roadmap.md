@@ -3,7 +3,7 @@ project: AI-Tamagotchi
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-06-22
+updated: 2026-06-27
 prd_version: 1
 main_goal: learn
 top_blocker: decisions
@@ -34,10 +34,10 @@ The MVP exists to test whether AI-driven personality — coupled to a structured
 | S-03 | `feed-with-personality-response`       | Feed the creature once and receive a personality-driven response + journal entry  | S-02 (+F-02 folded in) | US-01, FR-004, FR-009, FR-011  | done |
 | S-04 | `pet-with-personality-response`        | Pet the creature and receive a personality-driven response + journal entry        | S-03          | FR-005                         | done |
 | S-05 | `cure-the-creature`                    | Cure the creature when sick, regardless of energy                                 | S-03          | FR-006                         | done |
-| S-06 | `empty-energy-gate`                    | hit the empty-energy gate and receive a pre-written exhausted line (no AI call)   | S-03          | FR-007                         | proposed |
+| S-06 | `empty-energy-gate`                    | hit the empty-energy gate and receive a pre-written exhausted line (no AI call)   | S-03          | FR-007                         | done |
 | S-07 | `real-time-stat-decay`                 | leave and return to see stats decayed (with a floor) and energy regenerated       | S-02          | FR-008                         | done |
 | S-08 | `read-creature-journal`                | open the journal and read the full history of narrative entries                   | S-03          | FR-011                         | proposed |
-| S-09 | `reset-and-rehatch`                    | reset the current creature and hatch a fresh one                                  | S-02          | FR-010                         | proposed |
+| S-09 | `reset-and-rehatch`                    | reset the current creature and hatch a fresh one                                  | S-02          | FR-010                         | done |
 
 ## Streams
 
@@ -167,7 +167,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** small slice; the rule is mechanical (gate before the LLM call), and exhausted lines are static text. This gate is also the first mitigation against PRD §Open Question #5 (cost scaling), which is otherwise parked for MVP — every call this gate blocks is a call the AI vendor never sees.
-- **Status:** proposed
+- **Status:** done
 
 ### S-07: Real-time stat decay and energy regen
 
@@ -205,7 +205,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** small slice; just a delete + re-trigger of S-02's hatch path. Scheduled late because no user can reset before they hatch, but content-wise it is trivial.
-- **Status:** proposed
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -252,3 +252,5 @@ _None currently open._
 - **S-01: user can sign in with email+password and land on a "no creature yet — hatch one" home screen.** — Archived 2026-06-20 → `context/archive/2026-06-04-signed-in-empty-creature-view/`. Lesson: —.
 - **S-05: user Cures the creature; illness drops; Cure works regardless of energy level (FR-006); creature response acknowledges the cure; journal gains an entry.** — Archived 2026-06-21 → `context/archive/2026-06-20-cure-the-creature/`. Lesson: —.
 - **S-07: when the user returns after a period away, stats reflect personality-driven decay (with a floor — never unrecoverable) and energy reflects in-real-time regeneration (FR-008).** — Archived 2026-06-22 → `context/archive/2026-06-21-real-time-stat-decay/`. Lesson: —.
+- **S-09: user can wipe their current creature (and its journal) and hatch a fresh one (FR-010).** — Archived 2026-06-25 → `context/archive/2026-06-23-reset-and-rehatch/`. Lesson: —.
+- **S-06: when energy=0, Feed and Pet return one of a small set of pre-written exhausted lines (no AI call). Cure remains available.** — Archived 2026-06-27 → `context/archive/2026-06-25-empty-energy-gate/`. Lesson: —.

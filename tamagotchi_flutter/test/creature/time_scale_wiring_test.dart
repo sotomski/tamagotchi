@@ -33,9 +33,14 @@ class _RecordingClient extends Client {
       'feed' => FeedResult(
         userResponse: 'ok',
         accepted: true,
+        exhausted: false,
         status: _status(),
       ),
-      'play' => PlayResult(userResponse: 'ok', status: _status()),
+      'play' => PlayResult(
+        userResponse: 'ok',
+        exhausted: false,
+        status: _status(),
+      ),
       'cure' => CureResult(userResponse: 'ok', status: _status()),
       _ => throw UnimplementedError(method),
     };
@@ -53,6 +58,8 @@ CreatureStatus _status() => CreatureStatus(
     illness: 0,
   ),
   mood: CreatureMood.happy,
+  canFeed: true,
+  canPlay: true,
 );
 
 /// The `timeScale` argument the [method] call carried (the first such call).

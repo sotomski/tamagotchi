@@ -35,7 +35,12 @@ class CureController extends _$CureController {
       ref.invalidate(creatureProvider);
       ref
           .read(lastInteractionProvider.notifier)
-          .set(userResponse: result.userResponse, accepted: true);
+          // Cure is always available (FR-006) and never energy-gated.
+          .set(
+            userResponse: result.userResponse,
+            accepted: true,
+            exhausted: false,
+          );
       return result;
     });
   }
