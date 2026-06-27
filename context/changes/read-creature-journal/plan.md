@@ -584,20 +584,20 @@ with no prose until overwritten by new hatches).
 - [x] 2.3 Analyze + format clean — e4626c5
 
 #### Manual
-- [ ] 2.4 Home right-half journal: day headers newest-first; born entry renders as origin card
-- [ ] 2.5 Zero-delta entry shows no "+0" chips; normal shows deltas
-- [ ] 2.6 "Pet" label for `play`; an interaction refreshes the journal in place (left/right split)
+- [x] 2.4 Home right-half journal: day headers newest-first; born entry renders as origin card
+- [x] 2.5 Zero-delta entry shows no "+0" chips; normal shows deltas
+- [x] 2.6 "Pet" label for `play`; an interaction refreshes the journal in place (left/right split)
 
 ### Phase 3: LLM-generated birth entry
 
 #### Automated
-- [ ] 3.1 `serverpod generate` clean after enum addition, analyzer passes
-- [ ] 3.2 Endpoint + LLM tests pass incl. block-on-failure leaves no row
-- [ ] 3.3 Format clean
+- [x] 3.1 `serverpod generate` clean after enum addition, analyzer passes
+- [x] 3.2 Endpoint + LLM tests pass incl. block-on-failure leaves no row
+- [x] 3.3 Format clean
 
 #### Manual
-- [ ] 3.4 Hatch writes name-aware birth narrative; origin card shows it
-- [ ] 3.5 Forced real-key LLM failure → hatch errors, no creature created
+- [x] 3.4 Hatch writes name-aware birth narrative; origin card shows it
+- [x] 3.5 Forced real-key LLM failure → hatch errors, no creature created
 
 ### Phase 4: Full-refusal trace through the LLM
 

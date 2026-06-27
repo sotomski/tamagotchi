@@ -15,6 +15,7 @@ import 'stub_llm_service.dart';
 class InteractionRequest {
   const InteractionRequest({
     required this.personality,
+    this.name = '',
     required this.hunger,
     required this.energy,
     required this.love,
@@ -29,6 +30,10 @@ class InteractionRequest {
   /// The creature's rolled decay/regen modifiers — its disposition, summarised
   /// into the prompt so the response reads in-character.
   final CreaturePersonality personality;
+
+  /// The creature's name. Only the birth (`hatched`) prompt needs it — feed/play/
+  /// cure leave it at the empty default since their prompts never reference it.
+  final String name;
 
   /// Current raw stats (0-100). `hunger=0` means full.
   final int hunger;

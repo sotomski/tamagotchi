@@ -219,6 +219,67 @@ void main() {
     });
   });
 
+  group('buildInteractionMessages — hatched branch', () {
+    // Oracle = the plan's Phase 3 contract: when interactionType == hatched, the
+    // system prompt keeps the in-character/no-chatbot guardrails but is about
+    // BEING BORN / first awakening (no food, no tastiness), and the user message
+    // introduces the creature by name and carries its personality so the model
+    // can describe its character. We assert presence/structure, never exact prose.
+    InteractionRequest hatchRequest({String name = 'Nibbles'}) =>
+        InteractionRequest(
+          personality: _personality(),
+          name: name,
+          hunger: 0,
+          energy: 100,
+          love: 50,
+          illness: 0,
+          mood: CreatureMood.content,
+          interactionType: JournalEvent.hatched,
+          accepted: true,
+          tastiness: 0,
+          recentEntries: const [],
+        );
+
+    test('emits a birth persona message with guardrails and no food', () {
+      final messages = buildInteractionMessages(hatchRequest());
+
+      expect(messages, hasLength(2));
+      expect(messages[0]['role'], 'system');
+      expect(messages[1]['role'], 'user');
+
+      final system = (messages[0]['content'] as String).toLowerCase();
+      // Same in-character / no-chatbot guardrails as the other interactions.
+      expect(system, contains('in character'));
+      expect(system, contains('language model'));
+      // Birth-specific: about being born / hatching / first awakening.
+      expect(
+        system,
+        anyOf(contains('born'), contains('hatch'), contains('awak')),
+      );
+      // Two output fields unchanged.
+      expect(messages[0]['content'] as String, contains('userResponse'));
+      expect(messages[0]['content'] as String, contains('journalNarrative'));
+      // No food / tastiness wording leaks into the birth persona.
+      expect(system, isNot(contains('food')));
+      expect(system, isNot(contains('tastiness')));
+    });
+
+    test('hatch user message names the creature and carries personality', () {
+      final user =
+          buildInteractionMessages(
+                hatchRequest(name: 'Wobblesworth'),
+              )[1]['content']
+              as String;
+
+      // The creature is introduced by name so the birth narrative can use it.
+      expect(user, contains('Wobblesworth'));
+      // Personality summary present (a distinctive modifier value).
+      expect(user, contains('1.40'));
+      // Birth has no food/tastiness or accept/refuse decision.
+      expect(user.toLowerCase(), isNot(contains('tastiness')));
+    });
+  });
+
   group('buildInteractionMessages — cure branch', () {
     // Oracle = the plan's Phase 1 contract: when interactionType == cure, the
     // system prompt keeps the in-character/no-chatbot guardrails but is about

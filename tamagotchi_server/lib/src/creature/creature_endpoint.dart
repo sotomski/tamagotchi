@@ -44,6 +44,30 @@ class CreatureEndpoint extends Endpoint {
 
     final mods = randomPersonalityModifiers(Random());
 
+    // Birth narrative: a real LLM round-trip BEFORE the transaction (mirroring
+    // feed's call-then-transaction ordering), so a failure throws and nothing is
+    // written — no half-hatched creature. There is deliberately NO canned
+    // fallback: hatch blocks on failure. The hermetic stub keeps dev/test/e2e
+    // deterministic, so only a real-key production call can actually fail. The
+    // rolled `mods` are simply discarded if this throws (no creature row exists).
+    final ({String userResponse, String journalNarrative}) birth;
+    try {
+      birth = await hatchLlmServiceFactory(session).generateInteraction(
+        session,
+        _birthRequest(trimmedName, mods),
+      );
+    } catch (e, stackTrace) {
+      session.log(
+        'Hatch LLM call failed; blocking the hatch (no canned fallback)',
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      throw CreatureHatchError(
+        reason: CreatureHatchErrorReason.narrativeUnavailable,
+      );
+    }
+
     final Creature creature;
     try {
       creature = await session.db.transaction((transaction) async {
@@ -81,7 +105,7 @@ class CreatureEndpoint extends Endpoint {
             creatureId: created.id!,
             ownerUuid: ownerUuid,
             event: JournalEvent.hatched,
-            prose: '',
+            prose: birth.journalNarrative,
             statDelta: null,
           ),
           transaction: transaction,
@@ -645,6 +669,42 @@ class CreatureEndpoint extends Endpoint {
     );
   }
 
+  /// Builds the birth [InteractionRequest] for [name] from the freshly-rolled
+  /// [mods]. The creature does not exist yet, so this carries baseline stats and a
+  /// throwaway [CreaturePersonality] whose `creatureId` is never read — only its
+  /// modifiers feed the birth prompt's personality summary. No tastiness, accept
+  /// decision, or memory window: a birth has none.
+  InteractionRequest _birthRequest(String name, PersonalityModifiers mods) =>
+      InteractionRequest(
+        personality: CreaturePersonality(
+          creatureId: UuidValue.fromString(
+            '00000000-0000-0000-0000-000000000000',
+          ),
+          hungerDecayMod: mods.hungerDecayMod,
+          hungerRegenMod: mods.hungerRegenMod,
+          energyDecayMod: mods.energyDecayMod,
+          energyRegenMod: mods.energyRegenMod,
+          loveRegenMod: mods.loveRegenMod,
+          illnessDecayMod: mods.illnessDecayMod,
+          illnessRegenMod: mods.illnessRegenMod,
+        ),
+        name: name,
+        hunger: baselineCreatureStats.hunger,
+        energy: baselineCreatureStats.energy,
+        love: baselineCreatureStats.love,
+        illness: baselineCreatureStats.illness,
+        mood: deriveMood(
+          baselineCreatureStats.hunger,
+          baselineCreatureStats.energy,
+          baselineCreatureStats.love,
+          baselineCreatureStats.illness,
+        ),
+        interactionType: JournalEvent.hatched,
+        accepted: true,
+        tastiness: 0,
+        recentEntries: const [],
+      );
+
   CreatureMood _moodOf(Creature c) =>
       deriveMood(c.hunger, c.energy, c.love, c.illness);
 
@@ -664,3 +724,10 @@ class CreatureEndpoint extends Endpoint {
 /// Generous bounded cap for a full journal read — MVP fetches everything at once;
 /// pagination is deferred (`research.md` Open Q1).
 const int _journalReadCap = 500;
+
+/// Dependency seam for hatch's birth-narrative LLM call. Defaults to the
+/// production wiring [llmServiceFor] (real Mistral when a key is present, the
+/// hermetic stub otherwise); tests reassign it to inject a deliberately-throwing
+/// [LlmService] (to exercise block-on-failure) and self-clean with `addTearDown`.
+/// Not a test-only member — its default IS the production injection point.
+LlmService Function(Session session) hatchLlmServiceFactory = llmServiceFor;

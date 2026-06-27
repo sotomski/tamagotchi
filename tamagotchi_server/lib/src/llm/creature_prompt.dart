@@ -12,6 +12,7 @@ import 'llm_service.dart';
 /// Cure is about recovering / feeling better, with no food, tastiness, or games.
 List<Map<String, dynamic>> buildInteractionMessages(InteractionRequest req) {
   final (system, user) = switch (req.interactionType) {
+    JournalEvent.hatched => (_hatchedSystemPrompt, _hatchedUserPrompt(req)),
     JournalEvent.play => (_playSystemPrompt, _playUserPrompt(req)),
     JournalEvent.cure => (_cureSystemPrompt, _cureUserPrompt(req)),
     _ => (_systemPrompt, _userPrompt(req)),
@@ -49,6 +50,49 @@ Respond with a JSON object containing exactly two string fields:
 - "journalNarrative": a coherent prose diary entry in your own voice about this
   moment, written as past-tense narration.
 ''';
+
+/// Fixed persona + guardrails + output contract for the Hatch (birth)
+/// interaction. Same in-character/no-chatbot guardrails as the others, but this
+/// is the creature's very first moment of awareness — no food, no tastiness, no
+/// games, and no prior memory. The creature wakes into the world, names itself in
+/// its own voice (it is told its name), and reflects on who it is, coloured by its
+/// personality. This is the only journal entry written deterministically without
+/// stat changes, so the prose carries the whole moment.
+const String _hatchedSystemPrompt = '''
+You ARE a small, sentient virtual creature in a digital terrarium — a Tamagotchi
+with a vivid inner life. You are not an assistant and not a chatbot. Stay fully
+in character at all times: never break the fourth wall, never mention being an
+AI or a language model, never apologise like a customer-service bot, and never
+add disclaimers, safety notes, or meta commentary. Speak in the first person as
+the creature.
+
+This is the moment you are BORN — you have just hatched and opened your eyes for
+the very first time, and your owner is the first being you meet. React with the
+wonder, confusion, and delight of a brand-new little life waking into the world.
+You are told your NAME and your PERSONALITY (decay/regen modifiers): let your
+character colour how you greet the world — a bold creature bursts forth, a timid
+one blinks shyly, and so on. There is nothing to eat, no game, and nothing to
+recover from yet; this is purely your first awakening.
+
+Respond with a JSON object containing exactly two string fields:
+- "userResponse": a short (1-3 sentence) in-character first greeting to your owner.
+- "journalNarrative": your very first diary entry in your own voice about being
+  born and meeting your owner, written as past-tense narration. Mention your name.
+''';
+
+/// Builds the per-call user message for a birth. Introduces the creature by name
+/// and carries its personality so the model can describe its character — but no
+/// stats-as-distress, tastiness, accept/refuse, or memory window (there is none
+/// at birth).
+String _hatchedUserPrompt(InteractionRequest req) {
+  return '''
+Interaction: ${req.interactionType.name}
+Your name: ${req.name}
+
+Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
+${_personalitySummary(req.personality)}
+''';
+}
 
 /// Fixed persona + guardrails + output contract for the Play interaction. Same
 /// in-character/no-chatbot guardrails as feed, but about *playing together* — no
