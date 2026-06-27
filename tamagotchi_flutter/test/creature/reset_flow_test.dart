@@ -23,6 +23,8 @@ CreatureStatus _status({String name = 'Nibbles'}) => CreatureStatus(
     illness: 0,
   ),
   mood: CreatureMood.happy,
+  canFeed: true,
+  canPlay: true,
 );
 
 /// A [ResetController] that records calls instead of hitting the server, so the
@@ -98,7 +100,7 @@ void main() {
     container.listen(lastInteractionProvider, (_, _) {});
     container
         .read(lastInteractionProvider.notifier)
-        .set(userResponse: 'yum', accepted: true);
+        .set(userResponse: 'yum', accepted: true, exhausted: false);
     expect(container.read(lastInteractionProvider), isNotNull);
 
     await container.read(resetControllerProvider.notifier).reset();

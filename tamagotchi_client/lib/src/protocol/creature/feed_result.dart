@@ -22,12 +22,14 @@ abstract class FeedResult implements _i1.SerializableModel {
   FeedResult._({
     required this.userResponse,
     required this.accepted,
+    required this.exhausted,
     required this.status,
   });
 
   factory FeedResult({
     required String userResponse,
     required bool accepted,
+    required bool exhausted,
     required _i2.CreatureStatus status,
   }) = _FeedResultImpl;
 
@@ -35,6 +37,7 @@ abstract class FeedResult implements _i1.SerializableModel {
     return FeedResult(
       userResponse: jsonSerialization['userResponse'] as String,
       accepted: _i1.BoolJsonExtension.fromJson(jsonSerialization['accepted']),
+      exhausted: _i1.BoolJsonExtension.fromJson(jsonSerialization['exhausted']),
       status: _i3.Protocol().deserialize<_i2.CreatureStatus>(
         jsonSerialization['status'],
       ),
@@ -49,6 +52,12 @@ abstract class FeedResult implements _i1.SerializableModel {
   /// or a picky-refusal — neither is an error; both ride this flag.
   bool accepted;
 
+  /// Whether the feed was blocked by the empty-energy gate (FR-007): the creature
+  /// was too tired to eat (energy < feedEnergyCost). On an exhausted outcome the
+  /// LLM is never called, no journal entry is written, and stats are unchanged;
+  /// the response is a canned `feedExhaustedLines` pick. False on every other path.
+  bool exhausted;
+
   /// The creature's post-feed status: updated stats (on an accepted feed) plus a
   /// freshly re-derived mood.
   _i2.CreatureStatus status;
@@ -59,6 +68,7 @@ abstract class FeedResult implements _i1.SerializableModel {
   FeedResult copyWith({
     String? userResponse,
     bool? accepted,
+    bool? exhausted,
     _i2.CreatureStatus? status,
   });
   @override
@@ -67,6 +77,7 @@ abstract class FeedResult implements _i1.SerializableModel {
       '__className__': 'FeedResult',
       'userResponse': userResponse,
       'accepted': accepted,
+      'exhausted': exhausted,
       'status': status.toJson(),
     };
   }
@@ -81,10 +92,12 @@ class _FeedResultImpl extends FeedResult {
   _FeedResultImpl({
     required String userResponse,
     required bool accepted,
+    required bool exhausted,
     required _i2.CreatureStatus status,
   }) : super._(
          userResponse: userResponse,
          accepted: accepted,
+         exhausted: exhausted,
          status: status,
        );
 
@@ -95,11 +108,13 @@ class _FeedResultImpl extends FeedResult {
   FeedResult copyWith({
     String? userResponse,
     bool? accepted,
+    bool? exhausted,
     _i2.CreatureStatus? status,
   }) {
     return FeedResult(
       userResponse: userResponse ?? this.userResponse,
       accepted: accepted ?? this.accepted,
+      exhausted: exhausted ?? this.exhausted,
       status: status ?? this.status.copyWith(),
     );
   }

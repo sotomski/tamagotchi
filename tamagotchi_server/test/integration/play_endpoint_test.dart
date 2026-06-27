@@ -6,6 +6,7 @@ import 'package:tamagotchi_server/src/llm/play_copy.dart';
 import 'package:tamagotchi_server/src/llm/stub_llm_service.dart';
 import 'package:test/test.dart';
 
+import '../helpers/scripted_random.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 /// An [LlmService] that always throws, to drive the degrade path: the endpoint
@@ -25,7 +26,11 @@ class _ThrowingLlmService implements LlmService {
 /// with (by default) the hermetic [StubLlmService]. Play has no rng seam — it is
 /// deterministic — so the only injected collaborator is the LLM.
 void _injectPlayService({LlmService llm = const StubLlmService()}) {
-  playServiceFactory = (_) => PlayService(llm: llm);
+  // Play is deterministic — the rng feeds only the blocked-path exhaustedLine()
+  // pick (nextInt), never the stat math, so an empty ScriptedRandom is safe: it
+  // throws if a nextDouble is ever drawn, asserting the stat path stays RNG-free.
+  playServiceFactory = (_) =>
+      PlayService(rng: ScriptedRandom(const []), llm: llm);
   // Self-cleaning: restore production wiring when this test ends, even on
   // failure, so a fake never leaks into the next sequential test.
   addTearDown(() => playServiceFactory = playServiceFor);
@@ -110,6 +115,8 @@ void main() {
 
         // Returned outcome: stub play copy + post-play stats + mood.
         expect(result.userResponse, stubUserResponse);
+        expect(result.exhausted, isFalse); // affordable: gate did not fire
+        expect(result.status.canPlay, isTrue); // energy 100 >= cost
         expect(result.status.creature.love, 65); // +15
         expect(result.status.creature.energy, 96); // -4
         expect(result.status.creature.hunger, 20); // untouched
@@ -241,6 +248,43 @@ void main() {
         expect(entries.single.prose, degradeJournalNarrative);
         expect(entries.single.statDelta!.loveDelta, 15);
         expect(entries.single.statDelta!.energyDelta, -4);
+      },
+    );
+
+    test(
+      'an exhausted creature (energy < playEnergyCost) is gated: a canned '
+      'exhausted line, no LLM call, no journal entry, no stat change, '
+      'exhausted flag true, and canPlay false',
+      () async {
+        // playEnergyCost(1.0) = 4; energy 3 < 4. The throwing LLM proves the
+        // model is never reached (a regressed gate would return the degrade line
+        // and write an entry); the empty ScriptedRandom in _injectPlayService
+        // throws if the deterministic stat path ever drew a nextDouble.
+        _injectPlayService(llm: const _ThrowingLlmService());
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+        final session = authed.build();
+        final creature = await _seedCreature(
+          session,
+          userUuid,
+          love: 50,
+          energy: 3,
+        );
+
+        final result = await endpoints.creature.play(authed);
+
+        expect(result.exhausted, isTrue);
+        expect(result.userResponse, isIn(playExhaustedLines));
+        expect(result.status.canPlay, isFalse);
+        // Stats unchanged on the returned status.
+        expect(result.status.creature.energy, 3);
+        expect(result.status.creature.love, 50);
+
+        // Nothing persisted: stats untouched, no play journal entry.
+        final stored = await Creature.db.findById(session, creature.id!);
+        expect(stored!.energy, 3);
+        expect(stored.love, 50);
+        expect(await _playEntries(session, creature.id!), isEmpty);
       },
     );
 

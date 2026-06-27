@@ -5,6 +5,8 @@ import 'package:tamagotchi_server/src/creature/creature_service.dart'
     show clampStat;
 import 'package:tamagotchi_server/src/creature/feed_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
+import 'package:tamagotchi_server/src/llm/feed_copy.dart';
+import 'package:tamagotchi_server/src/llm/stub_llm_service.dart';
 import 'package:test/test.dart';
 
 import '../helpers/scripted_random.dart';
@@ -253,5 +255,18 @@ void main() {
         expect(minPickyResult.accepted, isTrue);
       },
     );
+  });
+
+  group('FeedService.exhaustedLine', () {
+    // Mirrors fullRefusalLine: picks a member of feedExhaustedLines off the
+    // injected Random via nextInt only — it must draw NO nextDouble (an empty
+    // ScriptedRandom throws if it does), so the gate path consumes no gate roll.
+    test('returns a member of feedExhaustedLines and draws no nextDouble', () {
+      final service = FeedService(
+        rng: ScriptedRandom(const []),
+        llm: const StubLlmService(),
+      );
+      expect(service.exhaustedLine(), isIn(feedExhaustedLines));
+    });
   });
 }
