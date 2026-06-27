@@ -51,119 +51,130 @@ class CreatureView extends ConsumerWidget {
         (playState.hasError && !playState.isLoading) ||
         (cureState.hasError && !cureState.isLoading);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(creature.name, style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
-            Text(
-              'Mood: ${status.mood.name}',
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 24),
-            _StatRow(label: 'Hunger', value: creature.hunger),
-            _StatRow(label: 'Energy', value: creature.energy),
-            _StatRow(label: 'Love', value: creature.love),
-            _StatRow(label: 'Illness', value: creature.illness),
-            const SizedBox(height: 16),
-            // Time-acceleration control (FR-008): drag 1×–8× to compress both
-            // how fast stats decay and how often the view refreshes.
-            _SpeedControl(timeScale: timeScale),
-            const SizedBox(height: 16),
-            // In-flight: a continuous animation in place of the buttons. On
-            // success: the response below + the buttons stay for another go.
-            if (feedState.isLoading)
-              const _InteractionIndicator(
-                label: 'Feeding…',
-                indicatorKey: Key('feedingIndicator'),
-              )
-            else if (playState.isLoading)
-              const _InteractionIndicator(
-                label: 'Playing…',
-                indicatorKey: Key('playingIndicator'),
-              )
-            else if (cureState.isLoading)
-              const _InteractionIndicator(
-                label: 'Curing…',
-                indicatorKey: Key('curingIndicator'),
-              )
-            else
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Disabled when the creature can't afford the feed's energy
-                  // cost (FR-007) — `onPressed: null` greys it out and an
-                  // "out of energy" hint appears below. The server enforces the
-                  // gate authoritatively; this is the proactive client guard.
-                  ElevatedButton.icon(
-                    key: const Key('feedButton'),
-                    onPressed: status.canFeed
-                        ? () => ref.read(feedControllerProvider.notifier).feed()
-                        : null,
-                    icon: const Icon(Icons.restaurant),
-                    label: const Text('Feed'),
-                  ),
-                  const SizedBox(width: 12),
-                  // Disabled when the creature can't afford the play's energy
-                  // cost (FR-007) — same shape as Feed above.
-                  ElevatedButton.icon(
-                    key: const Key('playButton'),
-                    onPressed: status.canPlay
-                        ? () => ref.read(playControllerProvider.notifier).play()
-                        : null,
-                    icon: const Icon(Icons.sports_esports),
-                    label: const Text('Play with'),
-                  ),
-                  const SizedBox(width: 12),
-                  // Disabled when there is nothing to heal (`illness == 0`) — a
-                  // client-side UX guard only; the endpoint has no illness
-                  // precondition. `onPressed: null` greys the button out.
-                  ElevatedButton.icon(
-                    key: const Key('cureButton'),
-                    onPressed: creature.illness == 0
-                        ? null
-                        : () =>
-                              ref.read(cureControllerProvider.notifier).cure(),
-                    icon: const Icon(Icons.healing),
-                    label: const Text('Cure'),
-                  ),
-                ],
-              ),
-            // Out-of-energy hint: shown when Feed and/or Play is unaffordable
-            // and the buttons are visible (not mid-interaction). In-character,
-            // explanatory — deliberately not styled as an error.
-            if (!isLoading && (!status.canFeed || !status.canPlay)) ...[
-              const SizedBox(height: 12),
+    // Scrollable so the (taller) content can't overflow the half-height pane it
+    // now occupies beside the journal — the journal half scrolls too.
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(creature.name, style: theme.textTheme.headlineMedium),
+              const SizedBox(height: 8),
               Text(
-                'Too tired — energy is regenerating.',
-                key: const Key('energyHint'),
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                'Mood: ${status.mood.name}',
+                style: theme.textTheme.titleMedium,
               ),
-            ],
-            // RPC/network failure on any interaction — refusals are data,
-            // rendered below.
-            if (hasError) ...[
+              const SizedBox(height: 24),
+              _StatRow(label: 'Hunger', value: creature.hunger),
+              _StatRow(label: 'Energy', value: creature.energy),
+              _StatRow(label: 'Love', value: creature.love),
+              _StatRow(label: 'Illness', value: creature.illness),
               const SizedBox(height: 16),
-              Text(
-                'Something went wrong — please try again.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.error,
+              // Time-acceleration control (FR-008): drag 1×–8× to compress both
+              // how fast stats decay and how often the view refreshes.
+              _SpeedControl(timeScale: timeScale),
+              const SizedBox(height: 16),
+              // In-flight: a continuous animation in place of the buttons. On
+              // success: the response below + the buttons stay for another go.
+              if (feedState.isLoading)
+                const _InteractionIndicator(
+                  label: 'Feeding…',
+                  indicatorKey: Key('feedingIndicator'),
+                )
+              else if (playState.isLoading)
+                const _InteractionIndicator(
+                  label: 'Playing…',
+                  indicatorKey: Key('playingIndicator'),
+                )
+              else if (cureState.isLoading)
+                const _InteractionIndicator(
+                  label: 'Curing…',
+                  indicatorKey: Key('curingIndicator'),
+                )
+              else
+                // A Wrap (not a Row) so the three buttons reflow onto a second
+                // line when the creature occupies only half the width (it now
+                // shares the home with the journal) — a bare Row overflows in
+                // that narrower column.
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    // Disabled when the creature can't afford the feed's energy
+                    // cost (FR-007) — `onPressed: null` greys it out and an
+                    // "out of energy" hint appears below. The server enforces the
+                    // gate authoritatively; this is the proactive client guard.
+                    ElevatedButton.icon(
+                      key: const Key('feedButton'),
+                      onPressed: status.canFeed
+                          ? () =>
+                                ref.read(feedControllerProvider.notifier).feed()
+                          : null,
+                      icon: const Icon(Icons.restaurant),
+                      label: const Text('Feed'),
+                    ),
+                    // Disabled when the creature can't afford the play's energy
+                    // cost (FR-007) — same shape as Feed above.
+                    ElevatedButton.icon(
+                      key: const Key('playButton'),
+                      onPressed: status.canPlay
+                          ? () =>
+                                ref.read(playControllerProvider.notifier).play()
+                          : null,
+                      icon: const Icon(Icons.sports_esports),
+                      label: const Text('Play with'),
+                    ),
+                    // Disabled when there is nothing to heal (`illness == 0`) — a
+                    // client-side UX guard only; the endpoint has no illness
+                    // precondition. `onPressed: null` greys the button out.
+                    ElevatedButton.icon(
+                      key: const Key('cureButton'),
+                      onPressed: creature.illness == 0
+                          ? null
+                          : () => ref
+                                .read(cureControllerProvider.notifier)
+                                .cure(),
+                      icon: const Icon(Icons.healing),
+                      label: const Text('Cure'),
+                    ),
+                  ],
                 ),
-              ),
+              // Out-of-energy hint: shown when Feed and/or Play is unaffordable
+              // and the buttons are visible (not mid-interaction). In-character,
+              // explanatory — deliberately not styled as an error.
+              if (!isLoading && (!status.canFeed || !status.canPlay)) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Too tired — energy is regenerating.',
+                  key: const Key('energyHint'),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              // RPC/network failure on any interaction — refusals are data,
+              // rendered below.
+              if (hasError) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Something went wrong — please try again.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+              // The in-character outcome of the most recent interaction, if any.
+              if (lastInteraction != null && !isLoading) ...[
+                const SizedBox(height: 16),
+                _InteractionResponse(outcome: lastInteraction),
+              ],
             ],
-            // The in-character outcome of the most recent interaction, if any.
-            if (lastInteraction != null && !isLoading) ...[
-              const SizedBox(height: 16),
-              _InteractionResponse(outcome: lastInteraction),
-            ],
-          ],
+          ),
         ),
       ),
     );

@@ -3,7 +3,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../auth/sign_in_screen.dart';
-import '../creature/journal_screen.dart';
 import '../home/home_screen.dart';
 import 'client_provider.dart';
 
@@ -32,10 +31,6 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/journal',
-        builder: (context, state) => const JournalScreen(),
       ),
       GoRoute(
         path: '/sign-in',

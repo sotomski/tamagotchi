@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../app/client_provider.dart';
 import '../creature/creature_provider.dart';
 import '../creature/creature_view.dart';
 import '../creature/hatch_form.dart';
+import '../creature/journal_view.dart';
 import '../creature/reset_confirm_dialog.dart';
 import '../creature/reset_controller.dart';
 
@@ -15,9 +15,10 @@ import '../creature/reset_controller.dart';
 /// The router's auth gate guarantees an authenticated viewer here. The body is
 /// driven by [creatureProvider]: a spinner while loading, an inline error with
 /// retry on failure, the [HatchForm] empty state when the user has no creature,
-/// and the [CreatureView] stats view once they do. The [AppBar] log-out action
-/// calls `client.auth.signOutDevice()`; the gate's `refreshListenable` then
-/// bounces the now-signed-out user back to `/sign-in`.
+/// and — once a creature exists — a 50/50 split with the [CreatureView] stats on
+/// the left and the embedded [JournalView] history on the right. The [AppBar]
+/// log-out action calls `client.auth.signOutDevice()`; the gate's
+/// `refreshListenable` then bounces the now-signed-out user back to `/sign-in`.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -52,14 +53,6 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('AI-Tamagotchi'),
         actions: [
-          // Reach the read-only journal history. A bare icon is acceptable here
-          // (unlike the log-out control) since the destination is non-critical.
-          IconButton(
-            key: const Key('journalButton'),
-            icon: const Icon(Icons.menu_book),
-            tooltip: 'Journal',
-            onPressed: () => context.push('/journal'),
-          ),
           // A text-labelled action (not a bare icon): the labels render from the
           // app font, so they stay visible on Flutter web even when the
           // tree-shaken MaterialIcons subset is served stale from cache.
@@ -96,8 +89,18 @@ class HomeScreen extends ConsumerWidget {
         error: (error, _) => _CreatureLoadError(
           onRetry: () => ref.invalidate(creatureProvider),
         ),
-        data: (status) =>
-            status == null ? const HatchForm() : CreatureView(status: status),
+        // No creature → just the hatch form. With a creature → a 50/50 split:
+        // the stats view on the left, the journal history on the right.
+        data: (status) => status == null
+            ? const HatchForm()
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: CreatureView(status: status)),
+                  const VerticalDivider(width: 1),
+                  const Expanded(child: JournalView()),
+                ],
+              ),
       ),
     );
   }

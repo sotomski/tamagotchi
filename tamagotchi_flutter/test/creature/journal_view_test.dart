@@ -6,10 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'package:tamagotchi_flutter/creature/journal_format.dart';
 import 'package:tamagotchi_flutter/creature/journal_provider.dart';
-import 'package:tamagotchi_flutter/creature/journal_screen.dart';
+import 'package:tamagotchi_flutter/creature/journal_view.dart';
 
 /// Builds a [JournalEntry] for the tests. Owner/creature ids are fixed dummies —
-/// the screen never reads them.
+/// the view never reads them.
 JournalEntry _entry({
   required JournalEvent event,
   DateTime? timestamp,
@@ -36,7 +36,9 @@ StatDelta _delta({
   illnessDelta: illness,
 );
 
-/// Pumps [JournalScreen] with [journalProvider] overridden to [override].
+/// Pumps [JournalView] (the embeddable right-half widget — wrapped in a
+/// [Scaffold] since it is no longer a screen of its own) with [journalProvider]
+/// overridden to [override].
 Future<void> _pumpJournal(
   WidgetTester tester,
   FutureOr<List<JournalEntry>> Function(Ref ref) override,
@@ -44,7 +46,7 @@ Future<void> _pumpJournal(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [journalProvider.overrideWith(override)],
-      child: const MaterialApp(home: JournalScreen()),
+      child: const MaterialApp(home: Scaffold(body: JournalView())),
     ),
   );
 }

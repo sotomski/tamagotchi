@@ -8,7 +8,8 @@ frame brief, the entries on disk are uneven: a blank hatch opener, a silent gap
 where a full feed-refusal wrote no entry, "+0 +0 +0" zero-delta non-events, and
 verbatim-repeated degrade prose. This slice spans **read + write + prompt + UI**:
 
-- **Read:** a `readJournal` endpoint (IDOR-scoped) + a `/journal` Flutter screen.
+- **Read:** a `readJournal` endpoint (IDOR-scoped) + a journal view embedded on the
+  home screen (reshaped from a standalone `/journal` screen — see Phase 2).
 - **Presentation:** newest-first, **day-grouped**, with a distinct **"Day one"**
   origin card; zero-delta entries **relabeled/softened** (kept, not suppressed).
 - **Write:** a real **LLM-generated birth entry** (replacing the blank marker),
@@ -57,7 +58,7 @@ Key seams confirmed by research:
 
 ## Desired End State
 
-The owner opens `/journal` and reads a newest-first, day-grouped history that opens
+The owner sees, on the home screen beside the creature, a newest-first, day-grouped history that opens
 (at the bottom / earliest) with a personalized **"Day one"** birth card naming the
 creature and its character, where every performed interaction — including full
 refusals and zero-delta moments — leaves a softened, in-voice trace, and where the
@@ -182,9 +183,19 @@ and the origin/zero-delta/normal entry classifier.
 
 ### Overview
 
-The first list UI in the app: a `/journal` screen rendering the entries newest-first,
+The first list UI in the app: the journal rendering the entries newest-first,
 **grouped by day**, with a distinct **"Day one" origin card** and **softened** zero-delta
 entries. Renders gracefully against today's data (blank marker) before Phase 3.
+
+> **Reshape (post-manual-verification, 2026-06-27):** per owner feedback the journal
+> is **embedded on the home screen as a 50/50 left-creature / right-journal split**
+> (shown only once a creature exists), **not** a standalone `/journal` screen reached
+> via an AppBar icon — both the route and the icon were dropped. The screen widget is
+> therefore an embeddable `JournalView` (no `Scaffold`/`AppBar`), and the home's
+> `CreatureView` was made responsive for its now-narrower half (button `Row`→`Wrap`,
+> body wrapped in a `SingleChildScrollView`). Additionally, the feed/play/cure/hatch/
+> reset controllers now **invalidate `journalProvider`** so an interaction's entry
+> appears immediately (the journal was otherwise stale after a play).
 
 ### Changes Required
 
@@ -197,44 +208,57 @@ entries. Renders gracefully against today's data (blank marker) before Phase 3.
 **Contract**: codegen `@Riverpod(keepAlive: true) Future<List<JournalEntry>> journal(Ref ref)`
 calling `ref.read(serverpodClientProvider).creature.readJournal()`; `part 'journal_provider.g.dart'`.
 
-#### 2. Journal screen
+#### 2. Journal view (embeddable — reshaped from a standalone screen)
 
-**File**: `tamagotchi_flutter/lib/creature/journal_screen.dart` (new)
+**File**: `tamagotchi_flutter/lib/creature/journal_view.dart` (new; **renamed** from the
+originally-planned `journal_screen.dart` — it is now an embeddable `JournalView` with no
+`Scaffold`/`AppBar`, carrying its own "Journal" header).
 
 **Intent**: Render `AsyncValue.when` (loading spinner / error+retry via
 `ref.invalidate(journalProvider)` / data). Data path: group entries by calendar day
 (newest day first), render a day header per group, then each entry as a `Card`. Give the
 `hatched` entry a distinct **"Day one"** origin card. Apply the **relabel/soften** rule
 to zero-delta entries: render no "+0" stat chips and a muted "nothing changed" treatment;
-non-zero deltas reuse `_StatRow` (`creature_view.dart:251-271`). Map `play → "Pet"` at the
-label layer (never the enum). Empty list → empty-state copy.
+non-zero deltas render as signed stat chips. Map `play → "Pet"` at the label layer (never
+the enum). Empty list → empty-state copy.
 
-**Contract**: `ListView.builder` over day-grouped sections; a small pure helper for
-day-bucketing + hand-formatted day-header labels (e.g. "Today" / "Yesterday" / "June 25")
-— no `intl`. A small classifier for entry kind: origin (`hatched`) / zero-delta / normal.
+**Contract**: `ListView.builder` over day-grouped sections; pure helpers (`journal_format.dart`)
+for day-bucketing + hand-formatted day-header labels (e.g. "Today" / "Yesterday" / "June 25")
+— no `intl` — plus a classifier for entry kind: origin (`hatched`) / zero-delta / normal.
 
-#### 3. Route + entry point
+#### 3. Home embed + freshness (reshaped — no route/AppBar entry)
 
-**File**: `tamagotchi_flutter/lib/app/app_router.dart`, `tamagotchi_flutter/lib/home/home_screen.dart`
+**File**: `tamagotchi_flutter/lib/home/home_screen.dart` (+ `creature_view.dart`;
+`feed/play/cure/hatch/reset_controller.dart`)
 
-**Intent**: Add `/journal` under the authenticated root (auto-protected) and an AppBar
-action to reach it.
+**Intent**: Embed the journal **on the home screen** as the right half of a 50/50
+left-creature / right-journal split, shown only once a creature exists (empty state stays
+the `HatchForm`). Keep the journal fresh after interactions. **No** `/journal` route and
+**no** AppBar icon (both removed — superseded by the embed).
 
-**Contract**: `GoRoute(path: '/journal', builder: (_, __) => const JournalScreen())` at
-`app_router.dart:30-39`; an `IconButton(Icons.menu_book, onPressed: () => context.push('/journal'))`
-in `home_screen.dart:26-38`.
+**Contract**: home `data` path → `Row(children: [Expanded(CreatureView), VerticalDivider,
+Expanded(JournalView)])` when a creature is present. `CreatureView` made responsive for the
+narrower half: button `Row`→`Wrap`, body wrapped in `SingleChildScrollView`. Each of the
+feed/play/cure/hatch/reset controllers adds `ref.invalidate(journalProvider)` beside its
+existing `invalidate(creatureProvider)` so a new entry shows immediately.
 
 #### 4. Widget tests
 
-**File**: `tamagotchi_flutter/test/creature/journal_screen_test.dart` (new)
+**File**: `tamagotchi_flutter/test/creature/journal_view_test.dart` (new; **renamed** from
+`journal_screen_test.dart`). Plus `journalProvider` overrides added to the existing
+`creature_view_test.dart` and `reset_flow_test.dart` — now that the home embeds `JournalView`,
+those present-creature pumps must stub the journal to `[]` ([[lessons]] "Test async Riverpod
+surfaces with provider overrides").
 
 **Intent**: Cover loading / error / empty / populated, and the three render branches
 (origin card, softened zero-delta, normal-with-deltas), via provider overrides — never a
-real RPC ([[lessons]] "Test async Riverpod surfaces with provider overrides").
+real RPC.
 
 **Contract**: override `journalProvider` with canned `AsyncValue`s (loading → `Completer().future`
 + single `pump()`; error → `Future.error`; data → list literals incl. a `hatched` entry, a
-zero-delta entry, and a normal one). Assert "Pet" label maps from `play`.
+zero-delta entry, and a normal one). Assert "Pet" label maps from `play`. Pump `JournalView`
+wrapped in a `Scaffold` (it is no longer a screen of its own). Also includes pure-helper unit
+tests (classifier / bucketing / header formatting).
 
 ### Success Criteria
 
@@ -244,9 +268,9 @@ zero-delta entry, and a normal one). Assert "Pet" label maps from `play`.
 - Analyze + format clean: `cd tamagotchi_flutter && dart analyze && dart format --set-exit-if-changed .`
 
 #### Manual Verification
-- `/journal` shows day headers, newest-first; the born entry renders as a distinct origin card.
+- The home's right-half journal shows day headers, newest-first; the born entry renders as a distinct origin card.
 - A zero-delta entry shows no "+0" chips; a normal entry shows its stat deltas.
-- "Pet" appears for `play` entries; AppBar book icon navigates and back returns to the creature.
+- "Pet" appears for `play` entries; an interaction (e.g. Play) refreshes the journal in place — no navigation needed.
 
 **Implementation Note**: After automated verification passes, pause for manual confirmation before Phase 3.
 
@@ -555,14 +579,14 @@ with no prose until overwritten by new hatches).
 ### Phase 2: Journal screen — provider, route, day-grouped UI
 
 #### Automated
-- [x] 2.1 Riverpod codegen builds
-- [x] 2.2 Widget tests pass (loading/error/empty/populated + 3 render branches)
-- [x] 2.3 Analyze + format clean
+- [x] 2.1 Riverpod codegen builds — e4626c5
+- [x] 2.2 Widget tests pass (loading/error/empty/populated + 3 render branches) — e4626c5
+- [x] 2.3 Analyze + format clean — e4626c5
 
 #### Manual
-- [ ] 2.4 Day headers newest-first; born entry renders as origin card
+- [ ] 2.4 Home right-half journal: day headers newest-first; born entry renders as origin card
 - [ ] 2.5 Zero-delta entry shows no "+0" chips; normal shows deltas
-- [ ] 2.6 "Pet" label for `play`; AppBar nav + back works
+- [ ] 2.6 "Pet" label for `play`; an interaction refreshes the journal in place (left/right split)
 
 ### Phase 3: LLM-generated birth entry
 

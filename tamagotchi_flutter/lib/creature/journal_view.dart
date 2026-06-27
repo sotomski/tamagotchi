@@ -5,37 +5,50 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 import 'journal_format.dart';
 import 'journal_provider.dart';
 
-/// The `/journal` screen: the creature's history, newest-first and grouped by
-/// calendar day. Each day gets a header ("Today" / "Yesterday" / "June 25") and
-/// every entry renders as a [Card]; the `hatched` birth entry gets a distinct
+/// The creature's journal, embedded as the **right half** of the home screen
+/// beside [CreatureView]. Shows the history newest-first, grouped by calendar
+/// day: each day gets a header ("Today" / "Yesterday" / "June 25") and every
+/// entry renders as a [Card]; the `hatched` birth entry gets a distinct
 /// **"Day one"** origin card, and zero-delta entries are softened (no "+0"
 /// chips, a muted "nothing changed" line) rather than suppressed.
 ///
 /// Driven by [journalProvider] via `AsyncValue.when`: a spinner while loading,
 /// an inline error + retry (re-invalidating the provider) on failure, and the
-/// day-grouped list — or an empty-state message — on data.
-class JournalScreen extends ConsumerWidget {
-  const JournalScreen({super.key});
+/// day-grouped list — or an empty-state message — on data. The interaction
+/// controllers invalidate [journalProvider] so a feed/play/cure entry shows up
+/// here immediately.
+class JournalView extends ConsumerWidget {
+  const JournalView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final journal = ref.watch(journalProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Journal')),
-      body: journal.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            key: Key('journalLoadingIndicator'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text('Journal', style: theme.textTheme.titleLarge),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: journal.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                key: Key('journalLoadingIndicator'),
+              ),
+            ),
+            error: (error, _) => _JournalLoadError(
+              onRetry: () => ref.invalidate(journalProvider),
+            ),
+            data: (entries) => entries.isEmpty
+                ? const _JournalEmpty()
+                : _JournalList(entries: entries),
           ),
         ),
-        error: (error, _) => _JournalLoadError(
-          onRetry: () => ref.invalidate(journalProvider),
-        ),
-        data: (entries) => entries.isEmpty
-            ? const _JournalEmpty()
-            : _JournalList(entries: entries),
-      ),
+      ],
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../app/client_provider.dart';
 import 'creature_provider.dart';
+import 'journal_provider.dart';
 
 part 'hatch_controller.g.dart';
 
@@ -21,6 +22,8 @@ class HatchController extends _$HatchController {
     state = await AsyncValue.guard(() async {
       await ref.read(serverpodClientProvider).creature.hatch(name);
       ref.invalidate(creatureProvider);
+      // The new creature's birth entry should appear in the embedded journal.
+      ref.invalidate(journalProvider);
     });
   }
 }

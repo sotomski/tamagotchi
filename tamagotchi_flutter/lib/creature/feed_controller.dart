@@ -3,6 +3,7 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 
 import '../app/client_provider.dart';
 import 'creature_provider.dart';
+import 'journal_provider.dart';
 import 'last_interaction.dart';
 import 'time_scale_provider.dart';
 
@@ -32,6 +33,8 @@ class FeedController extends _$FeedController {
           .creature
           .feed(timeScale: timeScale);
       ref.invalidate(creatureProvider);
+      // The interaction wrote a journal entry — refresh the embedded journal.
+      ref.invalidate(journalProvider);
       ref
           .read(lastInteractionProvider.notifier)
           .set(
