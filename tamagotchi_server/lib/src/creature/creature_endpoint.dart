@@ -8,6 +8,7 @@ import 'creature_service.dart';
 import 'cure_service.dart';
 import 'decay_service.dart';
 import 'feed_service.dart';
+import 'journal_memory.dart';
 import 'play_service.dart';
 
 /// The first first-party `requireLogin` endpoint: hatch a creature and view it.
@@ -43,6 +44,30 @@ class CreatureEndpoint extends Endpoint {
     }
 
     final mods = randomPersonalityModifiers(Random());
+
+    // Birth narrative: a real LLM round-trip BEFORE the transaction (mirroring
+    // feed's call-then-transaction ordering), so a failure throws and nothing is
+    // written — no half-hatched creature. There is deliberately NO canned
+    // fallback: hatch blocks on failure. The hermetic stub keeps dev/test/e2e
+    // deterministic, so only a real-key production call can actually fail. The
+    // rolled `mods` are simply discarded if this throws (no creature row exists).
+    final ({String userResponse, String journalNarrative}) birth;
+    try {
+      birth = await hatchLlmServiceFactory(session).generateInteraction(
+        session,
+        _birthRequest(trimmedName, mods),
+      );
+    } catch (e, stackTrace) {
+      session.log(
+        'Hatch LLM call failed; blocking the hatch (no canned fallback)',
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      throw CreatureHatchError(
+        reason: CreatureHatchErrorReason.narrativeUnavailable,
+      );
+    }
 
     final Creature creature;
     try {
@@ -81,7 +106,7 @@ class CreatureEndpoint extends Endpoint {
             creatureId: created.id!,
             ownerUuid: ownerUuid,
             event: JournalEvent.hatched,
-            prose: '',
+            prose: birth.journalNarrative,
             statDelta: null,
           ),
           transaction: transaction,
@@ -285,31 +310,18 @@ class CreatureEndpoint extends Endpoint {
 
     final decision = feedService.decide(base, personality);
 
-    // Already full: a cheap canned line — no LLM call, no journal entry, no stat
-    // change. (Decay can never leave a creature full: a fired tick raises hunger
-    // above 0, so `base` is full only when no tick fired and nothing to persist.)
-    if (decision.full) {
-      return FeedResult(
-        userResponse: feedService.fullRefusalLine(),
-        accepted: false,
-        exhausted: false,
-        status: _statusFor(base, personality.loveRegenMod),
-      );
-    }
+    // A refused feed still flows through the LLM and records a zero-delta entry —
+    // a full refusal (stuffed) and a picky refusal (distaste) are narrated
+    // distinctly via [RefusalSeverity], and only an accepted feed moves stats.
+    final refusalSeverity = decision.full
+        ? RefusalSeverity.full
+        : decision.accepted
+        ? RefusalSeverity.none
+        : RefusalSeverity.picky;
 
-    // Short-term memory window (ORQ-1): the last 10 journal entries, newest
-    // first, narrative prose only (the empty-prose hatched marker is dropped).
-    final recent = await JournalEntry.db.find(
-      session,
-      where: (t) => t.creatureId.equals(creature.id!),
-      orderBy: (t) => t.timestamp,
-      orderDescending: true,
-      limit: 10,
-    );
-    final recentEntries = recent
-        .map((e) => e.prose)
-        .where((p) => p.isNotEmpty)
-        .toList();
+    // Short-term memory window (ORQ-1): the last interactions (newest first)
+    // plus the permanently-pinned birth entry, each tagged with event + age.
+    final recentEntries = await recentJournalMemory(session, creature);
 
     final reply = await feedService.interaction(
       session,
@@ -324,6 +336,7 @@ class CreatureEndpoint extends Endpoint {
         accepted: decision.accepted,
         tastiness: decision.tastiness,
         recentEntries: recentEntries,
+        refusalSeverity: refusalSeverity,
       ),
     );
 
@@ -431,19 +444,9 @@ class CreatureEndpoint extends Endpoint {
     // Deterministic — no rng. The delta encodes the 0-100 clamp.
     final delta = playDelta(base, personality);
 
-    // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
-    // first (the empty-prose hatched marker is dropped).
-    final recent = await JournalEntry.db.find(
-      session,
-      where: (t) => t.creatureId.equals(creature.id!),
-      orderBy: (t) => t.timestamp,
-      orderDescending: true,
-      limit: 10,
-    );
-    final recentEntries = recent
-        .map((e) => e.prose)
-        .where((p) => p.isNotEmpty)
-        .toList();
+    // Short-term memory window (ORQ-1): the last interactions (newest first)
+    // plus the permanently-pinned birth entry, each tagged with event + age.
+    final recentEntries = await recentJournalMemory(session, creature);
 
     final reply = await playService.interaction(
       session,
@@ -554,19 +557,9 @@ class CreatureEndpoint extends Endpoint {
     // at 0).
     final delta = cureDelta(base, personality);
 
-    // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
-    // first (the empty-prose hatched marker is dropped).
-    final recent = await JournalEntry.db.find(
-      session,
-      where: (t) => t.creatureId.equals(creature.id!),
-      orderBy: (t) => t.timestamp,
-      orderDescending: true,
-      limit: 10,
-    );
-    final recentEntries = recent
-        .map((e) => e.prose)
-        .where((p) => p.isNotEmpty)
-        .toList();
+    // Short-term memory window (ORQ-1): the last interactions (newest first)
+    // plus the permanently-pinned birth entry, each tagged with event + age.
+    final recentEntries = await recentJournalMemory(session, creature);
 
     final reply = await cureServiceFactory(session).interaction(
       session,
@@ -615,6 +608,72 @@ class CreatureEndpoint extends Endpoint {
     );
   }
 
+  /// Returns the caller's journal entries newest-first for the journal screen.
+  ///
+  /// Unlike the short-term LLM memory window, this keeps the empty-prose
+  /// `hatched` marker (the screen renders it as the origin card) and lifts the
+  /// limit to a generous bounded cap (no pagination yet — `research.md` Open Q1).
+  Future<List<JournalEntry>> readJournal(Session session) async {
+    final ownerUuid = UuidValue.fromString(
+      session.authenticated!.userIdentifier,
+    );
+
+    final creature = await Creature.db.findFirstRow(
+      session,
+      where: (t) => t.ownerUuid.equals(ownerUuid),
+    );
+    // No creature yet → empty journal (the screen renders an empty state).
+    if (creature == null) return [];
+
+    // Scope by creatureId, with the owner constraint as a belt-and-suspenders
+    // backstop against IDOR. Keep the empty-prose hatched marker (the origin
+    // card needs it) — unlike the LLM memory window, which drops it.
+    return JournalEntry.db.find(
+      session,
+      where: (t) =>
+          t.creatureId.equals(creature.id!) & t.ownerUuid.equals(ownerUuid),
+      orderBy: (t) => t.timestamp,
+      orderDescending: true,
+      limit: _journalReadCap,
+    );
+  }
+
+  /// Builds the birth [InteractionRequest] for [name] from the freshly-rolled
+  /// [mods]. The creature does not exist yet, so this carries baseline stats and a
+  /// throwaway [CreaturePersonality] whose `creatureId` is never read — only its
+  /// modifiers feed the birth prompt's personality summary. No tastiness, accept
+  /// decision, or memory window: a birth has none.
+  InteractionRequest _birthRequest(String name, PersonalityModifiers mods) =>
+      InteractionRequest(
+        personality: CreaturePersonality(
+          creatureId: UuidValue.fromString(
+            '00000000-0000-0000-0000-000000000000',
+          ),
+          hungerDecayMod: mods.hungerDecayMod,
+          hungerRegenMod: mods.hungerRegenMod,
+          energyDecayMod: mods.energyDecayMod,
+          energyRegenMod: mods.energyRegenMod,
+          loveRegenMod: mods.loveRegenMod,
+          illnessDecayMod: mods.illnessDecayMod,
+          illnessRegenMod: mods.illnessRegenMod,
+        ),
+        name: name,
+        hunger: baselineCreatureStats.hunger,
+        energy: baselineCreatureStats.energy,
+        love: baselineCreatureStats.love,
+        illness: baselineCreatureStats.illness,
+        mood: deriveMood(
+          baselineCreatureStats.hunger,
+          baselineCreatureStats.energy,
+          baselineCreatureStats.love,
+          baselineCreatureStats.illness,
+        ),
+        interactionType: JournalEvent.hatched,
+        accepted: true,
+        tastiness: 0,
+        recentEntries: const [],
+      );
+
   CreatureMood _moodOf(Creature c) =>
       deriveMood(c.hunger, c.energy, c.love, c.illness);
 
@@ -630,3 +689,14 @@ class CreatureEndpoint extends Endpoint {
     canPlay: c.energy >= playEnergyCost(loveRegenMod),
   );
 }
+
+/// Generous bounded cap for a full journal read — MVP fetches everything at once;
+/// pagination is deferred (`research.md` Open Q1).
+const int _journalReadCap = 500;
+
+/// Dependency seam for hatch's birth-narrative LLM call. Defaults to the
+/// production wiring [llmServiceFor] (real Mistral when a key is present, the
+/// hermetic stub otherwise); tests reassign it to inject a deliberately-throwing
+/// [LlmService] (to exercise block-on-failure) and self-clean with `addTearDown`.
+/// Not a test-only member — its default IS the production injection point.
+LlmService Function(Session session) hatchLlmServiceFactory = llmServiceFor;

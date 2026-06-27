@@ -35,6 +35,8 @@ import 'creature/journal_event.dart' as _i20;
 import 'creature/play_result.dart' as _i21;
 import 'creature/stat_delta.dart' as _i22;
 import 'greetings/greeting.dart' as _i23;
+import 'package:tamagotchi_server/src/generated/creature/journal_entry.dart'
+    as _i24;
 export 'creature/creature.dart';
 export 'creature/creature_cure_error.dart';
 export 'creature/creature_cure_error_reason.dart';
@@ -508,6 +510,12 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (t == _i1.getType<_i23.Greeting?>()) {
       return (data != null ? _i23.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == List<_i24.JournalEntry>) {
+      return (data as List)
+              .map((e) => deserialize<_i24.JournalEntry>(e))
+              .toList()
+          as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);

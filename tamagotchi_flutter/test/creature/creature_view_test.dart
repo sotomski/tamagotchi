@@ -12,10 +12,18 @@ import 'package:tamagotchi_flutter/creature/creature_view.dart';
 import 'package:tamagotchi_flutter/creature/cure_controller.dart';
 import 'package:tamagotchi_flutter/creature/feed_controller.dart';
 import 'package:tamagotchi_flutter/creature/hatch_controller.dart';
+import 'package:tamagotchi_flutter/creature/journal_provider.dart';
 import 'package:tamagotchi_flutter/creature/last_interaction.dart';
 import 'package:tamagotchi_flutter/creature/play_controller.dart';
 import 'package:tamagotchi_flutter/creature/time_scale_provider.dart';
 import 'package:tamagotchi_flutter/home/home_screen.dart';
+
+/// The home now embeds [JournalView] beside the creature, and that view watches
+/// [journalProvider]. These tests aren't about the journal, so every pump stubs
+/// it to an empty list — without the override the real provider would round-trip
+/// to a server that isn't running under `flutter test` (lesson: override async
+/// surfaces, don't fake the `Client`).
+final _emptyJournal = journalProvider.overrideWith((ref) => <JournalEntry>[]);
 
 /// A canned creature status for the "present" states. Stats default to a
 /// happy-looking spread so the assertions key on distinct numbers.
@@ -227,6 +235,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           // A future that never completes keeps the provider in the loading
           // state.
           creatureProvider.overrideWith(
@@ -247,6 +256,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith(
             (ref) => Future<CreatureStatus?>.error(Exception('network down')),
           ),
@@ -265,7 +275,10 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [creatureProvider.overrideWith((ref) => _status())],
+          overrides: [
+            _emptyJournal,
+            creatureProvider.overrideWith((ref) => _status()),
+          ],
           child: const MaterialApp(home: HomeScreen()),
         ),
       );
@@ -316,6 +329,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => ref.watch(_hatchedStatus)),
           hatchControllerProvider.overrideWith(() => fake),
         ],
@@ -341,7 +355,10 @@ void main() {
     ) async {
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [creatureProvider.overrideWith((ref) => _status())],
+          overrides: [
+            _emptyJournal,
+            creatureProvider.overrideWith((ref) => _status()),
+          ],
           child: const MaterialApp(home: HomeScreen()),
         ),
       );
@@ -364,6 +381,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           feedControllerProvider.overrideWith(() => fake),
           _feedResultSeam.overrideWith(
@@ -397,6 +415,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           feedControllerProvider.overrideWith(() => fake),
           _feedResultSeam.overrideWith(
@@ -426,6 +445,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           feedControllerProvider.overrideWith(_LoadingFeedController.new),
         ],
@@ -448,6 +468,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => ref.watch(_creatureSeam)),
           _creatureSeam.overrideWith((ref) => _status(hunger: 80)),
           feedControllerProvider.overrideWith(() => fake),
@@ -480,6 +501,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           playControllerProvider.overrideWith(() => fake),
           _playResultSeam.overrideWith(
@@ -518,6 +540,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           playControllerProvider.overrideWith(_LoadingPlayController.new),
         ],
@@ -544,6 +567,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status()),
           feedControllerProvider.overrideWith(() => feedFake),
           playControllerProvider.overrideWith(() => playFake),
@@ -577,6 +601,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => ref.watch(_creatureSeam)),
           _creatureSeam.overrideWith((ref) => _status(love: 40, energy: 90)),
           playControllerProvider.overrideWith(() => fake),
@@ -611,6 +636,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           // Default _status() is illness 0 — nothing to heal.
           creatureProvider.overrideWith((ref) => _status(illness: 0)),
           cureControllerProvider.overrideWith(() => fake),
@@ -681,6 +707,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status(illness: 60)),
           cureControllerProvider.overrideWith(_LoadingCureController.new),
         ],
@@ -707,6 +734,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => ref.watch(_creatureSeam)),
           _creatureSeam.overrideWith((ref) => _status(illness: 70)),
           cureControllerProvider.overrideWith(() => fake),
@@ -737,6 +765,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith(
             (ref) => _status(canFeed: false, canPlay: false),
           ),
@@ -764,7 +793,10 @@ void main() {
   testWidgets('Feed and Play are enabled when affordable', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        overrides: [
+          _emptyJournal,
+          creatureProvider.overrideWith((ref) => _status()),
+        ],
         child: const MaterialApp(home: HomeScreen()),
       ),
     );
@@ -789,7 +821,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        overrides: [
+          _emptyJournal,
+          creatureProvider.overrideWith((ref) => _status()),
+        ],
         child: const MaterialApp(home: HomeScreen()),
       ),
     );
@@ -804,6 +839,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           creatureProvider.overrideWith((ref) => _status(canFeed: false)),
         ],
         child: const MaterialApp(home: HomeScreen()),
@@ -822,6 +858,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          _emptyJournal,
           // A click slipped through a stale client state; the server gate fires.
           creatureProvider.overrideWith((ref) => _status(canFeed: false)),
           feedControllerProvider.overrideWith(() => fake),
@@ -858,7 +895,10 @@ void main() {
   testWidgets('the speed slider renders and defaults to 1×', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        overrides: [
+          _emptyJournal,
+          creatureProvider.overrideWith((ref) => _status()),
+        ],
         child: const MaterialApp(home: HomeScreen()),
       ),
     );
@@ -875,7 +915,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [creatureProvider.overrideWith((ref) => _status())],
+        overrides: [
+          _emptyJournal,
+          creatureProvider.overrideWith((ref) => _status()),
+        ],
         child: const MaterialApp(home: HomeScreen()),
       ),
     );

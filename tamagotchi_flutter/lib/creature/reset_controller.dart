@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../app/client_provider.dart';
 import 'creature_provider.dart';
+import 'journal_provider.dart';
 import 'last_interaction.dart';
 
 part 'reset_controller.g.dart';
@@ -26,6 +27,8 @@ class ResetController extends _$ResetController {
       await ref.read(serverpodClientProvider).creature.reset();
       ref.invalidate(creatureProvider);
       ref.invalidate(lastInteractionProvider);
+      // The deleted creature's journal must not linger into the next one.
+      ref.invalidate(journalProvider);
     });
   }
 }

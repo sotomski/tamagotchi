@@ -6,3 +6,7 @@ values:
   - alreadyHatched
   ### The supplied name was blank.
   - emptyName
+  ### The birth narrative could not be generated (the LLM call failed). Hatch
+  ### blocks on this rather than degrading to canned prose, so no creature is
+  ### created — the owner can simply retry.
+  - narrativeUnavailable

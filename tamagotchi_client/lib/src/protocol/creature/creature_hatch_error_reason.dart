@@ -19,7 +19,12 @@ enum CreatureHatchErrorReason implements _i1.SerializableModel {
   alreadyHatched,
 
   /// The supplied name was blank.
-  emptyName;
+  emptyName,
+
+  /// The birth narrative could not be generated (the LLM call failed). Hatch
+  /// blocks on this rather than degrading to canned prose, so no creature is
+  /// created — the owner can simply retry.
+  narrativeUnavailable;
 
   static CreatureHatchErrorReason fromJson(String name) {
     switch (name) {
@@ -27,6 +32,8 @@ enum CreatureHatchErrorReason implements _i1.SerializableModel {
         return CreatureHatchErrorReason.alreadyHatched;
       case 'emptyName':
         return CreatureHatchErrorReason.emptyName;
+      case 'narrativeUnavailable':
+        return CreatureHatchErrorReason.narrativeUnavailable;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "CreatureHatchErrorReason"',
