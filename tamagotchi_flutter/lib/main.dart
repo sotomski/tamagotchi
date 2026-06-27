@@ -52,7 +52,9 @@ Future<void> main() async {
   try {
     await client.auth.initialize(timeout: const Duration(seconds: 10));
   } catch (error, stackTrace) {
-    debugPrint('Auth initialize failed; continuing to app: $error\n$stackTrace');
+    debugPrint(
+      'Auth initialize failed; continuing to app: $error\n$stackTrace',
+    );
   }
 
   runApp(
