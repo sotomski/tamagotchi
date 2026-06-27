@@ -41,7 +41,19 @@ Future<void> main() async {
   // Restore and validate any persisted session BEFORE first paint, so a
   // returning signed-in user doesn't briefly render as unauthenticated and
   // S-01's auth guard can read settled auth state at boot.
-  await client.auth.initialize();
+  //
+  // This MUST NOT be allowed to abort boot. `SessionManager.initialize` wraps
+  // its server round-trip in `.timeout(...)` but only catches
+  // `ServerpodClientException` — a `TimeoutException` (e.g. a slow prod auth
+  // call exceeding the default 2s budget) escapes uncaught, killing `main()`
+  // before `runApp` and leaving a blank white screen. We give it a longer
+  // budget and swallow any failure: the router's auth gate reads whatever auth
+  // state restored, and validation can be retried later.
+  try {
+    await client.auth.initialize(timeout: const Duration(seconds: 10));
+  } catch (error, stackTrace) {
+    debugPrint('Auth initialize failed; continuing to app: $error\n$stackTrace');
+  }
 
   runApp(
     ProviderScope(
