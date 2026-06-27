@@ -602,8 +602,8 @@ with no prose until overwritten by new hatches).
 ### Phase 4: Full-refusal trace through the LLM
 
 #### Automated
-- [x] 4.1 Feed integration + LLM tests pass (full refusal → one zero-delta entry)
-- [x] 4.2 Analyze + format clean
+- [x] 4.1 Feed integration + LLM tests pass (full refusal → one zero-delta entry) — 88ce975
+- [x] 4.2 Analyze + format clean — 88ce975
 
 #### Manual
 - [ ] 4.3 Full refusal → one zero-delta "too full" entry visible in journal
@@ -612,9 +612,9 @@ with no prose until overwritten by new hatches).
 ### Phase 5: Narrative memory window — structured, clock-aware, pinned birth
 
 #### Automated
-- [ ] 5.1 LLM + helper tests pass (structured window, pinned birth, deterministic ages)
-- [ ] 5.2 Full server suite green
-- [ ] 5.3 Analyze + format clean
+- [x] 5.1 LLM + helper tests pass (structured window, pinned birth, deterministic ages)
+- [x] 5.2 Full server suite green
+- [x] 5.3 Analyze + format clean
 
 #### Manual
 - [ ] 5.4 Narration references earlier moments and recalls birth

@@ -100,8 +100,16 @@ void main() {
                     accepted: true,
                     tastiness: 0.5,
                     recentEntries: const [
-                      'Devoured a glorious Quadruple-Truffle Soufflé.',
-                      'Sulked when offered cold gruel.',
+                      (
+                        event: JournalEvent.feed,
+                        age: 'earlier today',
+                        prose: 'Devoured a glorious Quadruple-Truffle Soufflé.',
+                      ),
+                      (
+                        event: JournalEvent.feed,
+                        age: 'yesterday',
+                        prose: 'Sulked when offered cold gruel.',
+                      ),
                     ],
                   ),
                 )[1]['content']
@@ -128,6 +136,52 @@ void main() {
                 as String;
 
         expect(noMemory.toLowerCase(), contains('no earlier entries'));
+      },
+    );
+
+    // Oracle = the plan's Phase 5 contract: the structured memory window renders
+    // each entry's event kind + relative age + prose, and the seam invites the
+    // model to refer back to earlier moments (backward callbacks). We assert
+    // presence/structure, never exact prose.
+    test(
+      'structured window renders event + age + prose and invites callbacks',
+      () {
+        final user =
+            buildInteractionMessages(
+                  InteractionRequest(
+                    personality: _personality(),
+                    hunger: 10,
+                    energy: 90,
+                    love: 80,
+                    illness: 0,
+                    mood: CreatureMood.happy,
+                    interactionType: JournalEvent.feed,
+                    accepted: true,
+                    tastiness: 0.5,
+                    recentEntries: const [
+                      (
+                        event: JournalEvent.play,
+                        age: 'yesterday',
+                        prose: 'Chased the ribbon across the terrarium.',
+                      ),
+                      (
+                        event: JournalEvent.hatched,
+                        age: 'a while back',
+                        prose: 'I awoke as Nibbles and met my owner.',
+                      ),
+                    ],
+                  ),
+                )[1]['content']
+                as String;
+
+        // Each entry's event kind, relative age, and prose are rendered.
+        expect(user, contains('play'));
+        expect(user, contains('yesterday'));
+        expect(user, contains('Chased the ribbon'));
+        expect(user, contains('a while back'));
+        expect(user, contains('I awoke as Nibbles'));
+        // The seam invites the creature to refer back to earlier moments.
+        expect(user.toLowerCase(), contains('refer back'));
       },
     );
 
@@ -172,7 +226,7 @@ void main() {
     // message carries stats/mood/personality/memory and references neither
     // tastiness nor accepted. We assert presence/structure, never exact prose.
     InteractionRequest playRequest({
-      List<String> recentEntries = const [],
+      List<JournalMemory> recentEntries = const [],
       CreatureMood mood = CreatureMood.content,
     }) => InteractionRequest(
       personality: _personality(),
@@ -240,8 +294,16 @@ void main() {
           buildInteractionMessages(
                 playRequest(
                   recentEntries: const [
-                    'Basked in a long afternoon of scritches.',
-                    'Sulked alone by the water bowl.',
+                    (
+                      event: JournalEvent.play,
+                      age: 'earlier today',
+                      prose: 'Basked in a long afternoon of scritches.',
+                    ),
+                    (
+                      event: JournalEvent.play,
+                      age: 'yesterday',
+                      prose: 'Sulked alone by the water bowl.',
+                    ),
                   ],
                 ),
               )[1]['content']
@@ -320,7 +382,7 @@ void main() {
     // carries stats/mood/personality/memory and references neither tastiness nor
     // accepted. We assert presence/structure, never exact prose.
     InteractionRequest cureRequest({
-      List<String> recentEntries = const [],
+      List<JournalMemory> recentEntries = const [],
       CreatureMood mood = CreatureMood.sick,
       int illness = 70,
     }) => InteractionRequest(
@@ -389,8 +451,16 @@ void main() {
           buildInteractionMessages(
                 cureRequest(
                   recentEntries: const [
-                    'Shivered with fever through the long night.',
-                    'Sniffled miserably by the heat lamp.',
+                    (
+                      event: JournalEvent.cure,
+                      age: 'earlier today',
+                      prose: 'Shivered with fever through the long night.',
+                    ),
+                    (
+                      event: JournalEvent.cure,
+                      age: 'yesterday',
+                      prose: 'Sniffled miserably by the heat lamp.',
+                    ),
                   ],
                 ),
               )[1]['content']

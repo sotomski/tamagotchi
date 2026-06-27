@@ -57,15 +57,23 @@ class InteractionRequest {
   /// it into the invented food's fanciness; it never moves stat magnitudes.
   final double tastiness;
 
-  /// Up to the last 10 non-empty journal prose entries (newest first), the
-  /// creature's short-term memory window (ORQ-1).
-  final List<String> recentEntries;
+  /// The creature's short-term memory window (ORQ-1): the last interactions
+  /// (newest first) plus the permanently-pinned birth entry, each carrying its
+  /// event kind, a relative age, and prose. Assembled by `recentJournalMemory`.
+  final List<JournalMemory> recentEntries;
 
   /// For a refused feed, why it was refused — so the prompt narrates fullness
   /// (already ate) distinctly from distaste (dislikes this food). [RefusalSeverity.none]
   /// for accepted feeds and for every non-feed interaction.
   final RefusalSeverity refusalSeverity;
 }
+
+/// One entry in the creature's short-term memory window: the [event] kind, a
+/// rendered relative [age] ("earlier today", "yesterday", "a while back"), and
+/// the narrative [prose]. Plain Dart record — server-internal, never serialised.
+/// The ages are computed server-side from the clock seam so the prompt builder
+/// stays pure (no [Session]); see `journal_memory.dart`.
+typedef JournalMemory = ({JournalEvent event, String age, String prose});
 
 /// Why a feed was refused, so the prompt and stub can narrate the two refusals
 /// distinctly. [full] = the creature is stuffed (it already ate); [picky] = it

@@ -133,10 +133,6 @@ Respond with a JSON object containing exactly two string fields:
 /// references neither tastiness nor the accept/refuse decision — Play is
 /// deterministic and always welcomed.
 String _playUserPrompt(InteractionRequest req) {
-  final memory = req.recentEntries.isEmpty
-      ? '(no earlier entries yet)'
-      : req.recentEntries.map((e) => '- $e').join('\n');
-
   return '''
 Interaction: ${req.interactionType.name}
 
@@ -150,8 +146,8 @@ Current state:
 Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
 ${_personalitySummary(req.personality)}
 
-Your recent journal (newest first), for continuity of voice:
-$memory
+$_memorySeamHeader
+${_memoryBlock(req.recentEntries)}
 ''';
 }
 
@@ -186,10 +182,6 @@ Respond with a JSON object containing exactly two string fields:
 /// neither tastiness nor the accept/refuse decision — Cure is deterministic and
 /// always welcomed.
 String _cureUserPrompt(InteractionRequest req) {
-  final memory = req.recentEntries.isEmpty
-      ? '(no earlier entries yet)'
-      : req.recentEntries.map((e) => '- $e').join('\n');
-
   return '''
 Interaction: ${req.interactionType.name}
 
@@ -203,8 +195,8 @@ Current state:
 Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
 ${_personalitySummary(req.personality)}
 
-Your recent journal (newest first), for continuity of voice:
-$memory
+$_memorySeamHeader
+${_memoryBlock(req.recentEntries)}
 ''';
 }
 
@@ -212,10 +204,6 @@ $memory
 /// stay in character lives here: stats, mood, a personality summary, the
 /// accept/tastiness decision, and the recent-memory window.
 String _userPrompt(InteractionRequest req) {
-  final memory = req.recentEntries.isEmpty
-      ? '(no earlier entries yet)'
-      : req.recentEntries.map((e) => '- $e').join('\n');
-
   // When refusing, tell the model WHY so it narrates fullness distinctly from
   // distaste. Accepted feeds carry no reason line (severity is none).
   final refusalReason = switch (req.refusalSeverity) {
@@ -243,9 +231,29 @@ Current state:
 Personality (decay/regen multipliers around 1.0; higher = that stat swings faster):
 ${_personalitySummary(req.personality)}
 
-Your recent journal (newest first), for continuity of voice:
-$memory
+$_memorySeamHeader
+${_memoryBlock(req.recentEntries)}
 ''';
+}
+
+/// The seam introducing the memory window. Beyond continuity of voice it now
+/// invites *backward callbacks* — referencing earlier moments (and the creature's
+/// own birth) when they fit naturally — so the narration reads as one unfolding
+/// story rather than isolated beats.
+const String _memorySeamHeader =
+    'Your recent journal (newest first), for continuity of voice. Each line is '
+    'tagged [event, when]. You may refer back to these earlier moments when it '
+    'fits naturally — e.g. "yesterday you refused dinner", or recalling your '
+    'birth — so your story feels continuous:';
+
+/// Renders the structured memory window: one line per entry tagged with its
+/// event kind and relative age, then the prose. Empty window → the placeholder
+/// the prompt tests assert on.
+String _memoryBlock(List<JournalMemory> entries) {
+  if (entries.isEmpty) return '(no earlier entries yet)';
+  return entries
+      .map((e) => '- [${e.event.name}, ${e.age}] ${e.prose}')
+      .join('\n');
 }
 
 /// A compact, readable rendering of the personality modifiers so the model

@@ -8,6 +8,7 @@ import 'creature_service.dart';
 import 'cure_service.dart';
 import 'decay_service.dart';
 import 'feed_service.dart';
+import 'journal_memory.dart';
 import 'play_service.dart';
 
 /// The first first-party `requireLogin` endpoint: hatch a creature and view it.
@@ -318,19 +319,9 @@ class CreatureEndpoint extends Endpoint {
         ? RefusalSeverity.none
         : RefusalSeverity.picky;
 
-    // Short-term memory window (ORQ-1): the last 10 journal entries, newest
-    // first, narrative prose only (the empty-prose hatched marker is dropped).
-    final recent = await JournalEntry.db.find(
-      session,
-      where: (t) => t.creatureId.equals(creature.id!),
-      orderBy: (t) => t.timestamp,
-      orderDescending: true,
-      limit: 10,
-    );
-    final recentEntries = recent
-        .map((e) => e.prose)
-        .where((p) => p.isNotEmpty)
-        .toList();
+    // Short-term memory window (ORQ-1): the last interactions (newest first)
+    // plus the permanently-pinned birth entry, each tagged with event + age.
+    final recentEntries = await recentJournalMemory(session, creature);
 
     final reply = await feedService.interaction(
       session,
@@ -453,19 +444,9 @@ class CreatureEndpoint extends Endpoint {
     // Deterministic — no rng. The delta encodes the 0-100 clamp.
     final delta = playDelta(base, personality);
 
-    // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
-    // first (the empty-prose hatched marker is dropped).
-    final recent = await JournalEntry.db.find(
-      session,
-      where: (t) => t.creatureId.equals(creature.id!),
-      orderBy: (t) => t.timestamp,
-      orderDescending: true,
-      limit: 10,
-    );
-    final recentEntries = recent
-        .map((e) => e.prose)
-        .where((p) => p.isNotEmpty)
-        .toList();
+    // Short-term memory window (ORQ-1): the last interactions (newest first)
+    // plus the permanently-pinned birth entry, each tagged with event + age.
+    final recentEntries = await recentJournalMemory(session, creature);
 
     final reply = await playService.interaction(
       session,
@@ -576,19 +557,9 @@ class CreatureEndpoint extends Endpoint {
     // at 0).
     final delta = cureDelta(base, personality);
 
-    // Short-term memory window (ORQ-1): the last 10 narrative entries, newest
-    // first (the empty-prose hatched marker is dropped).
-    final recent = await JournalEntry.db.find(
-      session,
-      where: (t) => t.creatureId.equals(creature.id!),
-      orderBy: (t) => t.timestamp,
-      orderDescending: true,
-      limit: 10,
-    );
-    final recentEntries = recent
-        .map((e) => e.prose)
-        .where((p) => p.isNotEmpty)
-        .toList();
+    // Short-term memory window (ORQ-1): the last interactions (newest first)
+    // plus the permanently-pinned birth entry, each tagged with event + age.
+    final recentEntries = await recentJournalMemory(session, creature);
 
     final reply = await cureServiceFactory(session).interaction(
       session,
