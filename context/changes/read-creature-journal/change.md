@@ -1,7 +1,7 @@
 ---
 change_id: read-creature-journal
 title: Read creature journal
-status: implementing
+status: implemented
 created: 2026-06-23
 updated: 2026-06-27
 archived_at: null

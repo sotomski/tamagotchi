@@ -574,7 +574,7 @@ with no prose until overwritten by new hatches).
 - [x] 1.3 Format clean (`--set-exit-if-changed`) — 2379693
 
 #### Manual
-- [ ] 1.4 Owner `readJournal` returns all entries incl. hatched marker, newest-first
+- [x] 1.4 Owner `readJournal` returns all entries incl. hatched marker, newest-first — 2379693
 
 ### Phase 2: Journal screen — provider, route, day-grouped UI
 
@@ -606,16 +606,16 @@ with no prose until overwritten by new hatches).
 - [x] 4.2 Analyze + format clean — 88ce975
 
 #### Manual
-- [ ] 4.3 Full refusal → one zero-delta "too full" entry visible in journal
-- [ ] 4.4 Picky refusal still narrates distaste; reads differently
+- [x] 4.3 Full refusal → one zero-delta "too full" entry visible in journal — 88ce975
+- [x] 4.4 Picky refusal still narrates distaste; reads differently — 88ce975
 
 ### Phase 5: Narrative memory window — structured, clock-aware, pinned birth
 
 #### Automated
-- [x] 5.1 LLM + helper tests pass (structured window, pinned birth, deterministic ages)
-- [x] 5.2 Full server suite green
-- [x] 5.3 Analyze + format clean
+- [x] 5.1 LLM + helper tests pass (structured window, pinned birth, deterministic ages) — 65b7548
+- [x] 5.2 Full server suite green — 65b7548
+- [x] 5.3 Analyze + format clean — 65b7548
 
 #### Manual
-- [ ] 5.4 Narration references earlier moments and recalls birth
-- [ ] 5.5 Creature with >10 interactions still recalls origin (pinning works)
+- [x] 5.4 Narration references earlier moments and recalls birth — 65b7548
+- [x] 5.5 Creature with >10 interactions still recalls origin (pinning works) — 65b7548
