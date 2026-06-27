@@ -130,6 +130,39 @@ void main() {
         expect(noMemory.toLowerCase(), contains('no earlier entries'));
       },
     );
+
+    // Oracle = the plan's Phase 4 contract: a refused feed is prompted with its
+    // severity so the model narrates fullness (stuffed) distinctly from distaste
+    // (picky). We assert the reason is present and the two read differently —
+    // never exact prose.
+    test('a full refusal is framed as fullness, a picky one as distaste', () {
+      String userFor(RefusalSeverity severity) =>
+          buildInteractionMessages(
+                InteractionRequest(
+                  personality: _personality(),
+                  hunger: 0,
+                  energy: 90,
+                  love: 64,
+                  illness: 5,
+                  mood: CreatureMood.content,
+                  interactionType: JournalEvent.feed,
+                  accepted: false,
+                  tastiness: 0.2,
+                  recentEntries: const [],
+                  refusalSeverity: severity,
+                ),
+              )[1]['content']
+              as String;
+
+      final full = userFor(RefusalSeverity.full).toLowerCase();
+      final picky = userFor(RefusalSeverity.picky).toLowerCase();
+
+      // The full refusal reads as "too full"; the picky one as distaste.
+      expect(full, contains('full'));
+      expect(picky, contains('picky'));
+      // The two refusals must be prompted differently.
+      expect(full, isNot(picky));
+    });
   });
 
   group('buildInteractionMessages — play branch', () {

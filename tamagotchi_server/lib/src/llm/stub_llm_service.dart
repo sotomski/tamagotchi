@@ -46,6 +46,13 @@ class StubLlmService implements LlmService {
         journalNarrative: stubAcceptJournalNarrative,
       );
     }
+    // A refused feed: narrate fullness (stuffed) distinctly from picky distaste.
+    if (request.refusalSeverity == RefusalSeverity.full) {
+      return (
+        userResponse: stubFullRefusalUserResponse,
+        journalNarrative: stubFullRefusalJournalNarrative,
+      );
+    }
     return (
       userResponse: stubRefuseUserResponse,
       journalNarrative: stubRefuseJournalNarrative,

@@ -309,17 +309,14 @@ class CreatureEndpoint extends Endpoint {
 
     final decision = feedService.decide(base, personality);
 
-    // Already full: a cheap canned line — no LLM call, no journal entry, no stat
-    // change. (Decay can never leave a creature full: a fired tick raises hunger
-    // above 0, so `base` is full only when no tick fired and nothing to persist.)
-    if (decision.full) {
-      return FeedResult(
-        userResponse: feedService.fullRefusalLine(),
-        accepted: false,
-        exhausted: false,
-        status: _statusFor(base, personality.loveRegenMod),
-      );
-    }
+    // A refused feed still flows through the LLM and records a zero-delta entry —
+    // a full refusal (stuffed) and a picky refusal (distaste) are narrated
+    // distinctly via [RefusalSeverity], and only an accepted feed moves stats.
+    final refusalSeverity = decision.full
+        ? RefusalSeverity.full
+        : decision.accepted
+        ? RefusalSeverity.none
+        : RefusalSeverity.picky;
 
     // Short-term memory window (ORQ-1): the last 10 journal entries, newest
     // first, narrative prose only (the empty-prose hatched marker is dropped).
@@ -348,6 +345,7 @@ class CreatureEndpoint extends Endpoint {
         accepted: decision.accepted,
         tastiness: decision.tastiness,
         recentEntries: recentEntries,
+        refusalSeverity: refusalSeverity,
       ),
     );
 

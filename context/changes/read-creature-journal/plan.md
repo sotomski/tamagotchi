@@ -591,19 +591,19 @@ with no prose until overwritten by new hatches).
 ### Phase 3: LLM-generated birth entry
 
 #### Automated
-- [x] 3.1 `serverpod generate` clean after enum addition, analyzer passes
-- [x] 3.2 Endpoint + LLM tests pass incl. block-on-failure leaves no row
-- [x] 3.3 Format clean
+- [x] 3.1 `serverpod generate` clean after enum addition, analyzer passes — e8b6e22
+- [x] 3.2 Endpoint + LLM tests pass incl. block-on-failure leaves no row — e8b6e22
+- [x] 3.3 Format clean — e8b6e22
 
 #### Manual
-- [x] 3.4 Hatch writes name-aware birth narrative; origin card shows it
-- [x] 3.5 Forced real-key LLM failure → hatch errors, no creature created
+- [x] 3.4 Hatch writes name-aware birth narrative; origin card shows it — e8b6e22
+- [x] 3.5 Forced real-key LLM failure → hatch errors, no creature created — e8b6e22
 
 ### Phase 4: Full-refusal trace through the LLM
 
 #### Automated
-- [ ] 4.1 Feed integration + LLM tests pass (full refusal → one zero-delta entry)
-- [ ] 4.2 Analyze + format clean
+- [x] 4.1 Feed integration + LLM tests pass (full refusal → one zero-delta entry)
+- [x] 4.2 Analyze + format clean
 
 #### Manual
 - [ ] 4.3 Full refusal → one zero-delta "too full" entry visible in journal

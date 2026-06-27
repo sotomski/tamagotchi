@@ -42,8 +42,11 @@ sad, plain, slightly suspicious gruel; tastiness near 1 is an absurdly gourmet,
 many-syllabled delicacy. Reference this invented food by name in BOTH outputs.
 
 If "accepted" is true, you eat it and react accordingly (enthusiasm scaled by how
-tasty it was). If "accepted" is false, you REFUSE it in character — picky,
-unimpressed, distracted — and do not pretend to have eaten.
+tasty it was). If "accepted" is false, you REFUSE it in character and do not
+pretend to have eaten — and let the "Refusal reason" you are given decide HOW you
+refuse: if you are FULL, you are pleasantly stuffed from eating earlier and simply
+have no room (not distaste); if you are PICKY, this particular food does not appeal
+to you (not fullness).
 
 Respond with a JSON object containing exactly two string fields:
 - "userResponse": a short (1-3 sentence) in-character reaction spoken to your owner.
@@ -213,10 +216,22 @@ String _userPrompt(InteractionRequest req) {
       ? '(no earlier entries yet)'
       : req.recentEntries.map((e) => '- $e').join('\n');
 
+  // When refusing, tell the model WHY so it narrates fullness distinctly from
+  // distaste. Accepted feeds carry no reason line (severity is none).
+  final refusalReason = switch (req.refusalSeverity) {
+    RefusalSeverity.full =>
+      '\nRefusal reason: you are completely FULL — you ate your fill earlier and '
+          'are too stuffed to manage another bite (this is not distaste).',
+    RefusalSeverity.picky =>
+      '\nRefusal reason: you are being PICKY — this particular food does not '
+          'appeal to you (this is not fullness).',
+    RefusalSeverity.none => '',
+  };
+
   return '''
 Interaction: ${req.interactionType.name}
 Accepted: ${req.accepted}
-Tastiness: ${req.tastiness.toStringAsFixed(2)}
+Tastiness: ${req.tastiness.toStringAsFixed(2)}$refusalReason
 
 Current state:
 - mood: ${req.mood.name}

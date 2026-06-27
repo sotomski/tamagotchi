@@ -25,6 +25,7 @@ class InteractionRequest {
     required this.accepted,
     required this.tastiness,
     required this.recentEntries,
+    this.refusalSeverity = RefusalSeverity.none,
   });
 
   /// The creature's rolled decay/regen modifiers — its disposition, summarised
@@ -59,7 +60,18 @@ class InteractionRequest {
   /// Up to the last 10 non-empty journal prose entries (newest first), the
   /// creature's short-term memory window (ORQ-1).
   final List<String> recentEntries;
+
+  /// For a refused feed, why it was refused — so the prompt narrates fullness
+  /// (already ate) distinctly from distaste (dislikes this food). [RefusalSeverity.none]
+  /// for accepted feeds and for every non-feed interaction.
+  final RefusalSeverity refusalSeverity;
 }
+
+/// Why a feed was refused, so the prompt and stub can narrate the two refusals
+/// distinctly. [full] = the creature is stuffed (it already ate); [picky] = it
+/// dislikes this particular food; [none] = no refusal (accepted feeds and all
+/// non-feed interactions). Plain Dart enum — server-internal, never serialised.
+enum RefusalSeverity { full, picky, none }
 
 /// The seam the Feed endpoint depends on, so the deterministic layer is testable
 /// against a stub without a live model. Implemented by [MistralLlmService] (real)
