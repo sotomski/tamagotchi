@@ -545,9 +545,9 @@ with no prose until overwritten by new hatches).
 ### Phase 1: Read floor — readJournal endpoint + IDOR test
 
 #### Automated
-- [x] 1.1 `serverpod generate` clean, analyzer passes
-- [x] 1.2 IDOR integration test passes (non-owner denied)
-- [x] 1.3 Format clean (`--set-exit-if-changed`)
+- [x] 1.1 `serverpod generate` clean, analyzer passes — 2379693
+- [x] 1.2 IDOR integration test passes (non-owner denied) — 2379693
+- [x] 1.3 Format clean (`--set-exit-if-changed`) — 2379693
 
 #### Manual
 - [ ] 1.4 Owner `readJournal` returns all entries incl. hatched marker, newest-first
@@ -555,9 +555,9 @@ with no prose until overwritten by new hatches).
 ### Phase 2: Journal screen — provider, route, day-grouped UI
 
 #### Automated
-- [ ] 2.1 Riverpod codegen builds
-- [ ] 2.2 Widget tests pass (loading/error/empty/populated + 3 render branches)
-- [ ] 2.3 Analyze + format clean
+- [x] 2.1 Riverpod codegen builds
+- [x] 2.2 Widget tests pass (loading/error/empty/populated + 3 render branches)
+- [x] 2.3 Analyze + format clean
 
 #### Manual
 - [ ] 2.4 Day headers newest-first; born entry renders as origin card

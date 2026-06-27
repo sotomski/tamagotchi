@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../app/client_provider.dart';
@@ -26,6 +27,14 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('AI-Tamagotchi'),
         actions: [
+          // Reach the read-only journal history. A bare icon is acceptable here
+          // (unlike the log-out control) since the destination is non-critical.
+          IconButton(
+            key: const Key('journalButton'),
+            icon: const Icon(Icons.menu_book),
+            tooltip: 'Journal',
+            onPressed: () => context.push('/journal'),
+          ),
           // A text-labelled action (not a bare icon): the "Log out" label
           // renders from the app font, so it stays visible on Flutter web even
           // when the tree-shaken MaterialIcons subset is served stale from cache.
