@@ -94,18 +94,26 @@ class CreatureView extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Disabled when the creature can't afford the feed's energy
+                  // cost (FR-007) — `onPressed: null` greys it out and an
+                  // "out of energy" hint appears below. The server enforces the
+                  // gate authoritatively; this is the proactive client guard.
                   ElevatedButton.icon(
                     key: const Key('feedButton'),
-                    onPressed: () =>
-                        ref.read(feedControllerProvider.notifier).feed(),
+                    onPressed: status.canFeed
+                        ? () => ref.read(feedControllerProvider.notifier).feed()
+                        : null,
                     icon: const Icon(Icons.restaurant),
                     label: const Text('Feed'),
                   ),
                   const SizedBox(width: 12),
+                  // Disabled when the creature can't afford the play's energy
+                  // cost (FR-007) — same shape as Feed above.
                   ElevatedButton.icon(
                     key: const Key('playButton'),
-                    onPressed: () =>
-                        ref.read(playControllerProvider.notifier).play(),
+                    onPressed: status.canPlay
+                        ? () => ref.read(playControllerProvider.notifier).play()
+                        : null,
                     icon: const Icon(Icons.sports_esports),
                     label: const Text('Play with'),
                   ),
@@ -124,6 +132,20 @@ class CreatureView extends ConsumerWidget {
                   ),
                 ],
               ),
+            // Out-of-energy hint: shown when Feed and/or Play is unaffordable
+            // and the buttons are visible (not mid-interaction). In-character,
+            // explanatory — deliberately not styled as an error.
+            if (!isLoading && (!status.canFeed || !status.canPlay)) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Too tired — energy is regenerating.',
+                key: const Key('energyHint'),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             // RPC/network failure on any interaction — refusals are data,
             // rendered below.
             if (hasError) ...[
@@ -204,11 +226,12 @@ class _InteractionIndicator extends StatelessWidget {
   }
 }
 
-/// Renders the most-recent interaction's in-character `userResponse`. An
-/// accepted interaction (every Play and Cure, an accepted Feed) reads as the
-/// creature's happy reaction; a Feed *refusal* (`accepted == false`) is styled
-/// distinctly —
-/// italic, muted — so a "no" never looks like an error.
+/// Renders the most-recent interaction's in-character `userResponse`. Three
+/// treatments: an `exhausted` energy-gate backstop (FR-007) reads as a distinct,
+/// tired flavor (its own [Key], a tertiary tint with a tired icon) — never an
+/// error; an accepted interaction (every Play and Cure, an accepted Feed) reads
+/// as the creature's happy reaction; a Feed *refusal* (`accepted == false`) is
+/// styled distinctly — italic, muted — so a "no" never looks like an error.
 class _InteractionResponse extends StatelessWidget {
   const _InteractionResponse({required this.outcome});
 
@@ -218,6 +241,41 @@ class _InteractionResponse extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final base = theme.textTheme.bodyLarge;
+
+    // Exhausted backstop first: a distinct, in-character "too tired" treatment,
+    // visually apart from both the happy and the refusal styles, and never the
+    // error red.
+    if (outcome.exhausted) {
+      return Container(
+        key: const Key('exhaustedResponse'),
+        constraints: const BoxConstraints(maxWidth: 420),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.tertiaryContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.battery_alert,
+              color: theme.colorScheme.onTertiaryContainer,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                outcome.userResponse,
+                textAlign: TextAlign.center,
+                style: base?.copyWith(
+                  color: theme.colorScheme.onTertiaryContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final style = outcome.accepted
         ? base
         : base?.copyWith(

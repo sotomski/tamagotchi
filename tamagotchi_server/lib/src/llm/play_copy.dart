@@ -6,6 +6,25 @@
 /// no tastiness) and family-friendly; they are user-facing.
 library;
 
+/// In-character lines for a creature too tired to play — picked via the
+/// [PlayService] `Random` on the empty-energy gate path (FR-007:
+/// `energy < playEnergyCost`). No model call on that path. Play + tiredness
+/// flavour (games, romping, naps — no food), 10-20 entries, all non-empty.
+const List<String> playExhaustedLines = [
+  "I'd play, but my legs have filed for early retirement. Maybe after a nap?",
+  "Too pooped to romp, friend. Let's frolic once I've topped up my energy.",
+  "My bounce is broken — I'm running on fumes. Rain check on the games?",
+  'I want to play so badly, but I can barely keep my eyes open right now.',
+  "No energy for zoomies today. I'm saving what little I have for breathing.",
+  'Games sound wonderful, but I am one yawn from collapsing in a happy heap.',
+  "I'm too tired to chase anything but a dream. Wake me when I've recharged.",
+  'My get-up-and-go got up and left. Let us play after I rest my little self.',
+  "Can't play now — I've spent all my wiggles and need to refuel first.",
+  "I'd tumble over before the first toss. Too sleepy for fun, sorry friend.",
+  "The tank's empty, pal. Let me nap and I'll be a whirlwind again soon.",
+  'Too drowsy to play. Even my tail is too tired to wag.',
+];
+
 /// User-facing line substituted when the model call fails, so the play session's
 /// stat change still lands with a coherent (if generic) response. In-character,
 /// no chatbot/disclaimer language.

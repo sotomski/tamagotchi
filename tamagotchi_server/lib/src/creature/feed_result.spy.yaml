@@ -10,6 +10,11 @@ fields:
   ### Whether the creature ate the food. False on a full-refusal (already full)
   ### or a picky-refusal — neither is an error; both ride this flag.
   accepted: bool
+  ### Whether the feed was blocked by the empty-energy gate (FR-007): the creature
+  ### was too tired to eat (energy < feedEnergyCost). On an exhausted outcome the
+  ### LLM is never called, no journal entry is written, and stats are unchanged;
+  ### the response is a canned `feedExhaustedLines` pick. False on every other path.
+  exhausted: bool
   ### The creature's post-feed status: updated stats (on an accepted feed) plus a
   ### freshly re-derived mood.
   status: CreatureStatus

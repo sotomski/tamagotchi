@@ -4,6 +4,8 @@ import 'package:tamagotchi_server/src/creature/decay_service.dart';
 import 'package:tamagotchi_server/src/creature/feed_service.dart';
 import 'package:tamagotchi_server/src/creature/play_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
+import 'package:tamagotchi_server/src/llm/feed_copy.dart';
+import 'package:tamagotchi_server/src/llm/play_copy.dart';
 import 'package:tamagotchi_server/src/llm/stub_llm_service.dart';
 import 'package:test/test.dart';
 
@@ -29,9 +31,11 @@ void _injectFeedService(List<double> doubles) {
   addTearDown(() => feedServiceFactory = feedServiceFor);
 }
 
-/// Injects a [PlayService] with the hermetic stub LLM; self-cleans.
+/// Injects a [PlayService] with a scripted rng (the stat path draws none — an
+/// empty queue throws if it does) + hermetic stub LLM; self-cleans.
 void _injectPlayService() {
-  playServiceFactory = (_) => PlayService(llm: const StubLlmService());
+  playServiceFactory = (_) =>
+      PlayService(rng: ScriptedRandom(const []), llm: const StubLlmService());
   addTearDown(() => playServiceFactory = playServiceFor);
 }
 
@@ -245,6 +249,89 @@ void main() {
         );
         expect(entries, hasLength(1));
         expect(entries.single.statDelta!.illnessDelta, -40);
+      },
+    );
+
+    test(
+      'an exhausted feed across an idle window that fired a decay tick returns '
+      'the post-decay (regenerated) energy but persists nothing: the anchor is '
+      'NOT advanced and no feed entry lands (idempotent recompute next poll)',
+      () async {
+        _freezeClockAtNow();
+        // Empty rng + stub LLM: the gate returns before decide()/the model, so
+        // an empty queue throwing would surface a regressed gate.
+        _injectFeedService(const []);
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+        final session = authed.build();
+        // 60 game-min @1× ⇒ 6 ticks: energy regenerates 2→8 — a tick DID fire
+        // (decayed.changed == true), yet 8 is still < feedEnergyCost (10).
+        final creature = await _seedCreature(
+          session,
+          userUuid,
+          minutesAgo: 60,
+          hunger: 80,
+          energy: 2,
+        );
+        final anchorBefore = creature.lastDecayedAt;
+
+        final result = await endpoints.creature.feed(authed);
+
+        // Gate fired on the post-decay energy.
+        expect(result.exhausted, isTrue);
+        expect(result.userResponse, isIn(feedExhaustedLines));
+        expect(result.status.creature.energy, 8); // decay was computed
+        expect(result.status.canFeed, isFalse);
+
+        // Nothing persisted: the anchor still sits where we seeded it (NOT _now),
+        // the stored energy is the un-decayed seed, and no feed entry was written.
+        final stored = await Creature.db.findById(session, creature.id!);
+        expect(stored!.lastDecayedAt, anchorBefore);
+        expect(stored.lastDecayedAt, isNot(_now));
+        expect(stored.energy, 2);
+        expect(
+          await _entries(session, creature.id!, JournalEvent.feed),
+          isEmpty,
+        );
+      },
+    );
+
+    test(
+      'an exhausted play across an idle window that fired a decay tick returns '
+      'the post-decay energy but persists nothing: the anchor is NOT advanced '
+      'and no play entry lands (idempotent recompute next poll)',
+      () async {
+        _freezeClockAtNow();
+        _injectPlayService();
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+        final session = authed.build();
+        // 30 game-min @1× ⇒ 3 ticks: energy regenerates 0→3 — a tick DID fire,
+        // yet 3 is still < playEnergyCost(1.0) == 4.
+        final creature = await _seedCreature(
+          session,
+          userUuid,
+          minutesAgo: 30,
+          hunger: 0,
+          energy: 0,
+        );
+        final anchorBefore = creature.lastDecayedAt;
+
+        final result = await endpoints.creature.play(authed);
+
+        expect(result.exhausted, isTrue);
+        expect(result.userResponse, isIn(playExhaustedLines));
+        expect(result.status.creature.energy, 3); // decay was computed
+        expect(result.status.canPlay, isFalse);
+
+        final stored = await Creature.db.findById(session, creature.id!);
+        expect(stored!.lastDecayedAt, anchorBefore);
+        expect(stored.lastDecayedAt, isNot(_now));
+        expect(stored.energy, 0);
+        expect(
+          await _entries(session, creature.id!, JournalEvent.play),
+          isEmpty,
+        );
       },
     );
   });

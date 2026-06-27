@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
@@ -51,9 +53,20 @@ StatDelta playDelta(Creature c, CreaturePersonality p) => StatDelta(
 /// stub or deliberately-failing [LlmService], so the endpoint never knows
 /// whether its collaborator is real or fake.
 class PlayService {
-  PlayService({required LlmService llm}) : _llm = llm;
+  PlayService({required Random rng, required LlmService llm})
+    : _rng = rng,
+      _llm = llm;
 
+  /// Used *only* by [exhaustedLine] to vary the blocked-path cosmetic copy.
+  /// [playDelta] stays pure and RNG-free — playing's stat math is deterministic
+  /// (`prd.md:39`); this rng never touches stats.
+  final Random _rng;
   final LlmService _llm;
+
+  /// Picks a canned "too tired to play" line for the empty-energy gate path
+  /// (FR-007). Cosmetic only — varies the blocked response; never affects stats.
+  String exhaustedLine() =>
+      playExhaustedLines[_rng.nextInt(playExhaustedLines.length)];
 
   /// Produces the in-character response + journal narrative for one play
   /// session, degrading to canned [degradeUserResponse]/[degradeJournalNarrative]
@@ -84,7 +97,7 @@ class PlayService {
 /// real/stub LLM ([llmServiceFor]). This is the only wiring the endpoint uses in
 /// production — there is nothing to misconfigure at the call site.
 PlayService playServiceFor(Session session) =>
-    PlayService(llm: llmServiceFor(session));
+    PlayService(rng: Random(), llm: llmServiceFor(session));
 
 /// Dependency seam: the endpoint obtains its [PlayService] through this, never by
 /// constructing one. Defaults to the production wiring [playServiceFor]; tests

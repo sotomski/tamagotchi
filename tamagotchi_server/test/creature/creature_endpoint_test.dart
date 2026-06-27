@@ -15,6 +15,43 @@ TestSessionBuilder _authedAs(TestSessionBuilder builder, String userUuid) =>
       ),
     );
 
+/// Seeds a creature + its 1:1 personality directly (bypassing hatch so the test
+/// controls `energy` and `loveRegenMod` — the inputs the affordability gate
+/// reads). `lastDecayedAt` defaults to now, so no decay tick fires before the
+/// read and the seeded `energy` is what the affordability booleans see.
+Future<Creature> _seedCreature(
+  Session session,
+  String userUuid, {
+  required int energy,
+  double loveRegenMod = 1.0,
+}) async {
+  final creature = await Creature.db.insertRow(
+    session,
+    Creature(
+      ownerUuid: UuidValue.fromString(userUuid),
+      name: 'Testy',
+      hunger: 20,
+      energy: energy,
+      love: 50,
+      illness: 0,
+    ),
+  );
+  await CreaturePersonality.db.insertRow(
+    session,
+    CreaturePersonality(
+      creatureId: creature.id!,
+      hungerDecayMod: 1.0,
+      hungerRegenMod: 1.0,
+      energyDecayMod: 1.0,
+      energyRegenMod: 1.0,
+      loveRegenMod: loveRegenMod,
+      illnessDecayMod: 1.0,
+      illnessRegenMod: 1.0,
+    ),
+  );
+  return creature;
+}
+
 void main() {
   withServerpod('Given CreatureEndpoint', (sessionBuilder, endpoints) {
     test(
@@ -105,6 +142,43 @@ void main() {
         expect(status, isNotNull);
         expect(status!.creature.name, 'Nibbles');
         expect(status.mood, CreatureMood.content);
+      },
+    );
+
+    test(
+      'myCreature reports canFeed/canPlay affordability across an energy sweep '
+      '(feedEnergyCost=10, playEnergyCost(1.0)=4)',
+      () async {
+        // (energy, canFeed, canPlay): feed needs >=10, play needs >=4 at the
+        // baseline loveRegenMod=1.0.
+        const cases = [
+          (0, false, false),
+          (3, false, false),
+          (4, false, true),
+          (5, false, true),
+          (9, false, true),
+          (10, true, true),
+          (100, true, true),
+        ];
+        for (final (energy, canFeed, canPlay) in cases) {
+          final userUuid = const Uuid().v4();
+          final authed = _authedAs(sessionBuilder, userUuid);
+          final session = authed.build();
+          await _seedCreature(session, userUuid, energy: energy);
+
+          final status = await endpoints.creature.myCreature(authed);
+
+          expect(
+            status!.canFeed,
+            canFeed,
+            reason: 'energy $energy → canFeed should be $canFeed',
+          );
+          expect(
+            status.canPlay,
+            canPlay,
+            reason: 'energy $energy → canPlay should be $canPlay',
+          );
+        }
       },
     );
 
