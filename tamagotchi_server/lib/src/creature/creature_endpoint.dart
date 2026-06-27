@@ -559,6 +559,40 @@ class CreatureEndpoint extends Endpoint {
     );
   }
 
+  /// Returns the caller's journal entries newest-first for the journal screen.
+  ///
+  /// Unlike the short-term LLM memory window, this keeps the empty-prose
+  /// `hatched` marker (the screen renders it as the origin card) and lifts the
+  /// limit to a generous bounded cap (no pagination yet — `research.md` Open Q1).
+  Future<List<JournalEntry>> readJournal(Session session) async {
+    final ownerUuid = UuidValue.fromString(
+      session.authenticated!.userIdentifier,
+    );
+
+    final creature = await Creature.db.findFirstRow(
+      session,
+      where: (t) => t.ownerUuid.equals(ownerUuid),
+    );
+    // No creature yet → empty journal (the screen renders an empty state).
+    if (creature == null) return [];
+
+    // Scope by creatureId, with the owner constraint as a belt-and-suspenders
+    // backstop against IDOR. Keep the empty-prose hatched marker (the origin
+    // card needs it) — unlike the LLM memory window, which drops it.
+    return JournalEntry.db.find(
+      session,
+      where: (t) =>
+          t.creatureId.equals(creature.id!) & t.ownerUuid.equals(ownerUuid),
+      orderBy: (t) => t.timestamp,
+      orderDescending: true,
+      limit: _journalReadCap,
+    );
+  }
+
   CreatureMood _moodOf(Creature c) =>
       deriveMood(c.hunger, c.energy, c.love, c.illness);
 }
+
+/// Generous bounded cap for a full journal read — MVP fetches everything at once;
+/// pagination is deferred (`research.md` Open Q1).
+const int _journalReadCap = 500;

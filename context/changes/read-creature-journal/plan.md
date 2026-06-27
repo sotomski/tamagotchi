@@ -112,6 +112,11 @@ so Phase 2 renders a graceful origin card even before Phase 3 fills it with real
 
 ## Phase 1: Read floor — `readJournal` endpoint + IDOR test
 
+**Workflow**: `/10x-tdd` — the slice's central risk (IDOR) is a crisp behavioral spec.
+Implement a naive *unscoped* `readJournal`, run `serverpod generate` (so the client method
+compiles), write the non-owner-denied integration test (red: it leaks A's rows to B), then add
+`ownerUuid` scoping to green. The codegen is a prerequisite step inside the cycle.
+
 ### Overview
 
 Add the owner-scoped read endpoint that returns the full journal newest-first,
@@ -169,6 +174,11 @@ of A's rows (empty or B's own only).
 ---
 
 ## Phase 2: Journal screen — provider, route, day-grouped UI
+
+**Workflow**: `/10x-implement` — UI-dominant (first `ListView`, route, AppBar) where widget
+assertions are written *after* the tree exists, not test-first. Drive it with implement, but
+write the **pure helpers test-first within the phase**: day-bucketing, day-header formatting,
+and the origin/zero-delta/normal entry classifier.
 
 ### Overview
 
@@ -243,6 +253,11 @@ zero-delta entry, and a normal one). Assert "Pet" label maps from `play`.
 ---
 
 ## Phase 3: LLM-generated birth entry
+
+**Workflow**: `/10x-tdd` — the risk is the **block-on-failure contract**. Inject a throwing LLM
+via the `llmServiceFor` factory seam and assert `CreatureHatchError` + **no creature row written**
+(red), then wire the pre-transaction LLM call to green. The prompt prose + stub strings are built
+within the cycle (not themselves test-driven).
 
 ### Overview
 
@@ -328,6 +343,10 @@ coverage for the hatched path.
 
 ## Phase 4: Full-refusal trace through the LLM
 
+**Workflow**: `/10x-tdd` — a literal **test inversion**. Flip `feed_endpoint_test.dart:141-165`
+from `isEmpty` to `hasLength(1)` + zero-delta/prose assertions (red), then drop the early-return
+and add the entry insert to green. The severity field + prompt branch support the green step.
+
 ### Overview
 
 Close the silent gap: a full feed-refusal flows through the LLM (like picky) and writes a
@@ -403,6 +422,10 @@ unit test (`feed_service_test.dart:110-130`) is unchanged.
 ---
 
 ## Phase 5: Narrative memory window — structured, clock-aware, pinned birth
+
+**Workflow**: `/10x-tdd` — pure, deterministic logic ideal for red→green→refactor: the extracted
+helper's **pinning + dedup** and **relative-age rendering** (with `clockFactory` overridden to a
+fixed instant) are unit functions. Drive those test-first; the prompt reword is built within.
 
 ### Overview
 
@@ -522,9 +545,9 @@ with no prose until overwritten by new hatches).
 ### Phase 1: Read floor — readJournal endpoint + IDOR test
 
 #### Automated
-- [ ] 1.1 `serverpod generate` clean, analyzer passes
-- [ ] 1.2 IDOR integration test passes (non-owner denied)
-- [ ] 1.3 Format clean (`--set-exit-if-changed`)
+- [x] 1.1 `serverpod generate` clean, analyzer passes
+- [x] 1.2 IDOR integration test passes (non-owner denied)
+- [x] 1.3 Format clean (`--set-exit-if-changed`)
 
 #### Manual
 - [ ] 1.4 Owner `readJournal` returns all entries incl. hatched marker, newest-first

@@ -62,13 +62,15 @@ codegen-free — only `readJournal` and one new enum value trigger `serverpod ge
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Read floor | `readJournal` endpoint + IDOR integration test | IDOR — must deny non-owner, not just allow owner |
-| 2. Journal screen | Provider, `/journal` route, day-grouped UI, origin card, soften, "Pet" | First list UI; render branches via provider-override tests |
-| 3. LLM birth | LLM-generated birth, block-on-failure, hatch test inversion | Blocks creature creation on real-key LLM outage |
-| 4. Full-refusal trace | Severity field + prompt branch; zero-delta entry; test inversion | Inverting the "writes no entry" test; widening scripted RNG |
-| 5. Memory window | Structured window + pinned birth + callback reword + helper extract | Contract change to `recentEntries`; clock-deterministic tests |
+| Phase | Workflow | What it delivers | Key risk |
+| --- | --- | --- | --- |
+| 1. Read floor | `/10x-tdd` | `readJournal` endpoint + IDOR integration test | IDOR — must deny non-owner, not just allow owner |
+| 2. Journal screen | `/10x-implement` | Provider, `/journal` route, day-grouped UI, origin card, soften, "Pet" | First list UI; render branches via provider-override tests |
+| 3. LLM birth | `/10x-tdd` | LLM-generated birth, block-on-failure, hatch test inversion | Blocks creature creation on real-key LLM outage |
+| 4. Full-refusal trace | `/10x-tdd` | Severity field + prompt branch; zero-delta entry; test inversion | Inverting the "writes no entry" test; widening scripted RNG |
+| 5. Memory window | `/10x-tdd` | Structured window + pinned birth + callback reword + helper extract | Contract change to `recentEntries`; clock-deterministic tests |
+
+**Workflow split:** Phase 2 is `/10x-implement` (UI-dominant; pure helpers TDD'd within). Phases 1, 3, 4, 5 are `/10x-tdd` — each has a crisp behavioral contract to drive red→green (IDOR denial, block-on-failure, the full-refusal test inversion, and pure pinning/dedup/clock-age logic).
 
 **Prerequisites:** branch `feat/read-creature-journal`; sidecars up; test DB password for integration runs. Phase 3 before Phase 5 (pinning needs birth prose).
 **Estimated effort:** ~5 sessions across 5 phases (Phases 3–5 are the LLM-heavy bulk).

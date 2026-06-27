@@ -24,8 +24,10 @@ import 'package:tamagotchi_client/src/protocol/creature/play_result.dart'
     as _i7;
 import 'package:tamagotchi_client/src/protocol/creature/cure_result.dart'
     as _i8;
-import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i9;
-import 'protocol.dart' as _i10;
+import 'package:tamagotchi_client/src/protocol/creature/journal_entry.dart'
+    as _i9;
+import 'package:tamagotchi_client/src/protocol/greetings/greeting.dart' as _i10;
+import 'protocol.dart' as _i11;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -352,6 +354,18 @@ class EndpointCreature extends _i2.EndpointRef {
         'cure',
         {'timeScale': timeScale},
       );
+
+  /// Returns the caller's journal entries newest-first for the journal screen.
+  ///
+  /// Unlike the short-term LLM memory window, this keeps the empty-prose
+  /// `hatched` marker (the screen renders it as the origin card) and lifts the
+  /// limit to a generous bounded cap (no pagination yet — `research.md` Open Q1).
+  _i3.Future<List<_i9.JournalEntry>> readJournal() =>
+      caller.callServerEndpoint<List<_i9.JournalEntry>>(
+        'creature',
+        'readJournal',
+        {},
+      );
 }
 
 /// This is an example endpoint that returns a greeting message through
@@ -364,8 +378,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i9.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i9.Greeting>(
+  _i3.Future<_i10.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i10.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -403,7 +417,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i10.Protocol(),
+         _i11.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
