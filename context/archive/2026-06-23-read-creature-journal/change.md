@@ -1,10 +1,10 @@
 ---
 change_id: read-creature-journal
 title: Read creature journal
-status: impl_reviewed
+status: archived
 created: 2026-06-23
 updated: 2026-06-27
-archived_at: null
+archived_at: 2026-06-27T15:46:00Z
 ---
 
 ## Notes

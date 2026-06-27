@@ -36,7 +36,7 @@ The MVP exists to test whether AI-driven personality — coupled to a structured
 | S-05 | `cure-the-creature`                    | Cure the creature when sick, regardless of energy                                 | S-03          | FR-006                         | done |
 | S-06 | `empty-energy-gate`                    | hit the empty-energy gate and receive a pre-written exhausted line (no AI call)   | S-03          | FR-007                         | done |
 | S-07 | `real-time-stat-decay`                 | leave and return to see stats decayed (with a floor) and energy regenerated       | S-02          | FR-008                         | done |
-| S-08 | `read-creature-journal`                | open the journal and read the full history of narrative entries                   | S-03          | FR-011                         | proposed |
+| S-08 | `read-creature-journal`                | open the journal and read the full history of narrative entries                   | S-03          | FR-011                         | done |
 | S-09 | `reset-and-rehatch`                    | reset the current creature and hatch a fresh one                                  | S-02          | FR-010                         | done |
 
 ## Streams
@@ -193,7 +193,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** small slice; the journal entries already exist on disk after S-03 (FR-009 produces them); this slice adds a list view. The PRD's secondary success criterion ("journal feels like a story") is validated here — pacing, formatting, and entry-density choices deserve at-edit-time tuning.
-- **Status:** proposed
+- **Status:** done
 
 ### S-09: Reset and re-hatch
 
@@ -253,4 +253,5 @@ _None currently open._
 - **S-05: user Cures the creature; illness drops; Cure works regardless of energy level (FR-006); creature response acknowledges the cure; journal gains an entry.** — Archived 2026-06-21 → `context/archive/2026-06-20-cure-the-creature/`. Lesson: —.
 - **S-07: when the user returns after a period away, stats reflect personality-driven decay (with a floor — never unrecoverable) and energy reflects in-real-time regeneration (FR-008).** — Archived 2026-06-22 → `context/archive/2026-06-21-real-time-stat-decay/`. Lesson: —.
 - **S-09: user can wipe their current creature (and its journal) and hatch a fresh one (FR-010).** — Archived 2026-06-25 → `context/archive/2026-06-23-reset-and-rehatch/`. Lesson: —.
+- **S-08: user opens a dedicated journal screen and reads every narrative prose entry plus its state-change record, in chronological order (FR-011).** — Archived 2026-06-27 → `context/archive/2026-06-23-read-creature-journal/`. Lesson: —.
 - **S-06: when energy=0, Feed and Pet return one of a small set of pre-written exhausted lines (no AI call). Cure remains available.** — Archived 2026-06-27 → `context/archive/2026-06-25-empty-energy-gate/`. Lesson: —.
