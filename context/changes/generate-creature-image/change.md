@@ -41,3 +41,12 @@ Knock-on edits needed in Phases 1/3/4: `CritterSpec` drops the left-half/mirror
 meaning (a `size×size` full grid; `mirror` field optional/removed); the image-gen
 service + prompt target the full grid and pin `large`; the probe is throwaway
 (delete or gitignore before merge).
+
+### Symmetry requirement dropped (2026-06-28)
+
+Follow-on from the full-grid decision: a bilaterally **symmetric** body is no
+longer required. Since the model emits the whole 32×32 square (not a mirrored
+half), the Phase 3 generation prompt must **not** ask for symmetry, and
+asymmetric critters are accepted as-is. The hand-written Phase 2 test sprite is
+symmetric only incidentally. Plan updated (Desired End State, Phase 2/3 blocks,
+manual steps, Progress 2.3).

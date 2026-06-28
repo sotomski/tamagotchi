@@ -65,7 +65,7 @@ The existing prompt already passes raw mods with textual hints
 
 ## Desired End State
 
-Hatching a new creature produces a unique, symmetrical pixel critter that renders
+Hatching a new creature produces a unique pixel critter that renders
 crisp at 128px in `CreatureView` immediately after birth. The critter's look is
 loosely informed by its personality. If image generation fails or produces an
 un-repairable result, the hatch fails cleanly (`CreatureHatchError`) and nothing
@@ -119,6 +119,12 @@ one-value change if production shows the model can't draw reliably at 32.
 > model that draws cleanly at 32×32. The validator/repair still normalise ±1
 > row/column drift. See `change.md` → "Phase 0 probe outcome". The phase blocks
 > below have been updated to match; any residual mirror phrasing is historical.
+>
+> **Symmetry dropped (2026-06-28).** Because the model emits the full square, a
+> bilaterally symmetric body is no longer a requirement — the Phase 3 prompt must
+> **not** ask for symmetry, and asymmetric critters are accepted as-is. (The
+> hand-written Phase 2 test sprite happens to be symmetric; that is incidental,
+> not a contract.)
 
 ## Critical Implementation Details
 
@@ -316,7 +322,7 @@ placeholder) when `image == null` (legacy creatures).
 
 #### Manual Verification:
 
-- A hand-written spec renders as a crisp, symmetrical critter at 128px with no
+- A hand-written spec renders as a crisp critter at 128px with no
   blur/shimmer (sharp pixel edges).
 - An existing creature with `image == null` renders the rest of `CreatureView`
   with no layout break.
@@ -365,7 +371,9 @@ adaptation — the only model that draws cleanly at 32×32, not the narrative
 descriptors (e.g. high `energyRegenMod` → "lively, spiky"; low `loveRegenMod` →
 "shy, rounded") and build the system+user messages, restating dims explicitly
 ("emit exactly 32 rows of 32 chars — the full square critter", Phase 0
-adaptation) with a fixed palette and 1–2 few-shot example critters.
+adaptation) with a fixed palette and 1–2 few-shot example critters. The prompt
+must **not** request bilateral symmetry (decision 2026-06-28) — the full-grid
+model draws asymmetric bodies fine, so symmetry is not part of the contract.
 
 **Contract**: `CritterImageRequest` (server-internal plain class, like
 `InteractionRequest`) carrying the personality mods + name + a random seed for
@@ -489,7 +497,7 @@ verification passes, pause for human confirmation before proceeding.
 
 ### Manual Testing Steps:
 
-1. Hatch a creature in the app; confirm a crisp, symmetrical critter renders.
+1. Hatch a creature in the app; confirm a crisp critter renders.
 2. Hatch again; confirm the critter differs.
 3. View a pre-existing (pre-feature) creature; confirm no layout break with a
    null image.
@@ -540,26 +548,26 @@ One additive, nullable `json` column (`creature.image`). Existing creatures get
 
 #### Automated
 
-- [x] 1.1 `serverpod generate` is clean
-- [x] 1.2 Migration created and applies via `serverpod run start`
-- [x] 1.3 Validator unit tests pass
-- [x] 1.4 Analyze + format clean
+- [x] 1.1 `serverpod generate` is clean — a4fe1dc
+- [x] 1.2 Migration created and applies via `serverpod run start` — a4fe1dc
+- [x] 1.3 Validator unit tests pass — a4fe1dc
+- [x] 1.4 Analyze + format clean — a4fe1dc
 
 #### Manual
 
-- [ ] 1.5 `creature.image` nullable json column present; existing creatures unaffected
+- [x] 1.5 `creature.image` nullable json column present; existing creatures unaffected — a4fe1dc
 
 ### Phase 2: Flutter Render Path
 
 #### Automated
 
-- [ ] 2.1 Compositor + widget tests pass
-- [ ] 2.2 Analyze + format clean
+- [x] 2.1 Compositor + widget tests pass
+- [x] 2.2 Analyze + format clean
 
 #### Manual
 
-- [ ] 2.3 Hand-written spec renders crisp, symmetrical at 128px
-- [ ] 2.4 Null-image creature renders with no layout break
+- [x] 2.3 Hand-written spec renders crisp at 128px
+- [x] 2.4 Null-image creature renders with no layout break
 
 ### Phase 3: Server Generation Pipeline
 

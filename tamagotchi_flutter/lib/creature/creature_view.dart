@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
+import 'critter_image.dart';
 import 'cure_controller.dart';
 import 'decay_poll.dart';
 import 'feed_controller.dart';
@@ -66,6 +67,13 @@ class CreatureView extends ConsumerWidget {
                 'Mood: ${status.mood.name}',
                 style: theme.textTheme.titleMedium,
               ),
+              // The generated pixel body, below the mood label. Renders nothing
+              // for pre-feature creatures (`image == null`), so the rest of the
+              // view is unaffected.
+              if (creature.image != null) ...[
+                const SizedBox(height: 16),
+                CritterImage(spec: creature.image),
+              ],
               const SizedBox(height: 24),
               _StatRow(label: 'Hunger', value: creature.hunger),
               _StatRow(label: 'Energy', value: creature.energy),
