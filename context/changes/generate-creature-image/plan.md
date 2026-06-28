@@ -106,10 +106,19 @@ a hermetic stub, and finally wire the blocking call into hatch. A throwaway
 Phase 0 probe de-risks the no-fallback bet at the chosen 32×32 size before any
 shippable code lands.
 
-The 32×32 mirrored canvas is a deliberate user override of the brief's 16×16
+The 32×32 canvas is a deliberate user override of the brief's 16×16
 recommendation (see Open Risks). The `size` field in `CritterSpec` keeps it a
-one-value change if the probe or production shows the model can't draw reliably
-at 32.
+one-value change if production shows the model can't draw reliably at 32.
+
+> **Phase 0 adaptation (2026-06-28, supersedes the mirror references below).** The
+> throwaway probe showed every Mistral model draws a *complete, centred* creature
+> filling the whole grid — not a true left half — so the original left-half-mirror
+> protocol was dropped. The model emits the **full `size`×`size` grid and we accept
+> it as-is**; `CritterSpec` has **no `mirror` field**. Image generation also pins
+> **`mistral-large-latest`** (not the narrative `mistral-small-2603`), the only
+> model that draws cleanly at 32×32. The validator/repair still normalise ±1
+> row/column drift. See `change.md` → "Phase 0 probe outcome". The phase blocks
+> below have been updated to match; any residual mirror phrasing is historical.
 
 ## Critical Implementation Details
 
@@ -118,10 +127,10 @@ at 32.
   `creature_endpoint.dart:55-74`), so a generation failure throws before any row
   is written — preserving the "no half-hatched creature" invariant. Persist the
   validated spec **inside** the transaction as part of the `Creature` insert.
-- **Mirror geometry**: the model emits the **left half** — `size` rows of
-  `size/2` chars (32 rows × 16 chars). The compositor mirrors column `c` to
-  column `size-1-c`. The neutral face must be symmetric so it survives mirroring.
-  The validator asserts row count `== size` and each row length `== size/2`.
+- **Grid geometry** (Phase 0 adaptation): the model emits the **full square** —
+  `size` rows of `size` chars (32 rows × 32 chars) — and we accept it as-is. No
+  mirroring; symmetry is whatever the model draws. The validator asserts row count
+  `== size` and each row length `== size`; repair pads/truncates the ±1 drift.
 - **Transparent palette entry**: `.` is always transparent and is **not** stored
   in the palette map (Serverpod `Map<String,String>` values are non-null); the
   compositor treats any char absent from the palette (and `.`) as transparent.
@@ -188,13 +197,13 @@ both the server pipeline (Phase 3) and any consumer rely on.
 **File**: `tamagotchi_server/lib/src/creature/critter_spec.spy.yaml`
 
 **Intent**: A serializable (non-table) model describing one static critter: the
-versioned, mirrored grid + palette. Nested onto `Creature`, so it lands in a
+versioned, full-square grid + palette. Nested onto `Creature`, so it lands in a
 single `json` column and crosses the RPC boundary to the client.
 
-**Contract**: Fields — `v: int`, `size: int`, `mirror: bool`,
-`palette: Map<String, String>` (char → `#RRGGBB`; `.`/absent = transparent),
-`base: List<String>` (`size` rows of `size/2` chars, left half). No `table:` key
-(serialized model only).
+**Contract** (Phase 0 adaptation — no `mirror` field): Fields — `v: int`,
+`size: int`, `palette: Map<String, String>` (char → `#RRGGBB`; `.`/absent =
+transparent), `base: List<String>` (exactly `size` rows of `size` chars — the
+full square the model draws). No `table:` key (serialized model only).
 
 #### 2. Creature field
 
@@ -223,13 +232,15 @@ column is `"image" json` (nullable). Apply locally with `serverpod run start`.
 **Intent**: Pure functions that assert a generated spec is well-formed and
 auto-repair fixable issues, so Phase 3 can gate on them with no reprompt.
 
-**Contract**: `validateCritterSpec(CritterSpec) -> List<String>` (empty = valid)
-and `repairCritterSpec(CritterSpec) -> CritterSpec`. Asserts: `base` has exactly
-`size` rows; each row exactly `size/2` chars; every non-`.` cell char exists in
-`palette`; every palette value matches `^#[0-9A-Fa-f]{6}$`; `size` and `mirror`
-match the expected contract. Repair: pad/truncate rows to `size/2`, pad/truncate
-row count to `size`, replace unknown cell chars with `.`, drop malformed palette
-entries. No `Session`, no I/O.
+**Contract** (Phase 0 adaptation — full grid, no `mirror`):
+`validateCritterSpec(CritterSpec) -> List<String>` (empty = valid) and
+`repairCritterSpec(CritterSpec) -> CritterSpec`. Asserts: `base` has exactly
+`size` rows; each row exactly `size` chars; every non-`.` cell char exists in
+`palette`; every palette value matches `^#[0-9A-Fa-f]{6}$`; palette keys are
+single non-`.` chars; `v` and `size` match the expected contract. Repair:
+pad/truncate rows to `size`, pad/truncate row count to `size`, replace unknown
+cell chars with `.`, drop malformed palette entries, pin `v`/`size`. No
+`Session`, no I/O.
 
 ### Success Criteria:
 
@@ -263,14 +274,14 @@ a hand-written spec so the render path is correct before any model output exists
 
 **File**: `tamagotchi_flutter/lib/creature/critter_compositor.dart`
 
-**Intent**: Turn a `CritterSpec` into a `dart:ui.Image`: un-mirror the left half
-to a full `size`×`size` grid, map palette chars to RGBA (`.`/absent =
-transparent), and decode to a `ui.Image`. Cache per creature so it rebuilds only
-when the spec changes.
+**Intent**: Turn a `CritterSpec` into a `dart:ui.Image`: read the full
+`size`×`size` grid directly (no un-mirroring — Phase 0 adaptation), map palette
+chars to RGBA (`.`/absent = transparent), and decode to a `ui.Image`. Cache per
+creature so it rebuilds only when the spec changes.
 
 **Contract**: `Future<ui.Image> compositeCritter(CritterSpec)` using
-`ui.decodeImageFromPixels` over a `Uint8List` RGBA buffer. Mirror: column `c`
-copies to `size-1-c`.
+`ui.decodeImageFromPixels` over a `Uint8List` RGBA buffer. Each `base[r][c]` maps
+straight to pixel `(c, r)`; no column mirroring.
 
 #### 2. Critter painter
 
@@ -341,9 +352,10 @@ impl calls Mistral with a palette+grid `json_schema`.
 `mistralApiKey` absent else `MistralCritterImageService` (copy
 `llm_service.dart:96-113`). Real impl duplicates the `_responseFormat` envelope
 (`mistral_client.dart:51-71`) with a schema of `palette` + `base` (and parses
-`choices[0].message.content`); pins `mistral-small-2603`; runs result through
-`repairCritterSpec` then `validateCritterSpec` — on remaining errors it **throws**
-(block-hatch posture).
+`choices[0].message.content`); pins **`mistral-large-latest`** (Phase 0
+adaptation — the only model that draws cleanly at 32×32, not the narrative
+`mistral-small-2603`); runs result through `repairCritterSpec` then
+`validateCritterSpec` — on remaining errors it **throws** (block-hatch posture).
 
 #### 2. Personality → visual hints + prompt
 
@@ -351,9 +363,9 @@ impl calls Mistral with a palette+grid `json_schema`.
 
 **Intent**: Translate the 7 decay/regen mods into a short list of visual
 descriptors (e.g. high `energyRegenMod` → "lively, spiky"; low `loveRegenMod` →
-"shy, rounded") and build the system+user messages, restating dims and mirror
-explicitly ("emit 32 rows of 16 chars, left half only") with a fixed palette and
-1–2 few-shot example critters.
+"shy, rounded") and build the system+user messages, restating dims explicitly
+("emit exactly 32 rows of 32 chars — the full square critter", Phase 0
+adaptation) with a fixed palette and 1–2 few-shot example critters.
 
 **Contract**: `CritterImageRequest` (server-internal plain class, like
 `InteractionRequest`) carrying the personality mods + name + a random seed for
@@ -364,8 +376,9 @@ unit-testable.
 
 **File**: `tamagotchi_server/lib/src/llm/critter_image_copy.dart`
 
-**Intent**: The fixed, valid 32×16 mirrored `CritterSpec` the stub returns —
-distinct enough to be asserted in tests, analogous to `hatch_copy.dart`.
+**Intent**: The fixed, valid 32×32 full-grid `CritterSpec` the stub returns
+(Phase 0 adaptation) — distinct enough to be asserted in tests, analogous to
+`hatch_copy.dart`.
 
 **Contract**: `const`/builder returning a schema-valid `CritterSpec` that passes
 `validateCritterSpec`.
@@ -464,8 +477,9 @@ verification passes, pause for human confirmation before proceeding.
 - `critter_spec_validator`: row count/length, palette membership, hex validity,
   repair idempotence (repair of valid = identity; repair of broken = valid).
 - `critter_image_prompt` mapping: distinct mods → distinct descriptors; message
-  shape includes dims/mirror restatement.
-- Compositor: mirror geometry (col `c` → `size-1-c`), transparent handling.
+  shape includes the full-grid dims restatement.
+- Compositor: full-grid geometry (`base[r][c]` → pixel `(c, r)`), transparent
+  handling.
 
 ### Integration Tests:
 
@@ -514,22 +528,22 @@ One additive, nullable `json` column (`creature.image`). Existing creatures get
 
 #### Automated
 
-- [x] 0.1 Probe script runs without error against the dev key
+- [x] 0.1 Probe script runs without error against the dev key — 1f92481
 
 #### Manual
 
-- [x] 0.2 Grids visibly varied and non-degenerate across ~10 seeds
-- [x] 0.3 Structured output parses cleanly at 32×16 (acceptable failure rate)
-- [x] 0.4 Size decision recorded (proceed at 32×32, or fall back)
+- [x] 0.2 Grids visibly varied and non-degenerate across ~10 seeds — 1f92481
+- [x] 0.3 Structured output parses cleanly at 32×16 (acceptable failure rate) — 1f92481
+- [x] 0.4 Size decision recorded (proceed at 32×32, or fall back) — 1f92481
 
 ### Phase 1: Data Model + Validator
 
 #### Automated
 
-- [ ] 1.1 `serverpod generate` is clean
-- [ ] 1.2 Migration created and applies via `serverpod run start`
-- [ ] 1.3 Validator unit tests pass
-- [ ] 1.4 Analyze + format clean
+- [x] 1.1 `serverpod generate` is clean
+- [x] 1.2 Migration created and applies via `serverpod run start`
+- [x] 1.3 Validator unit tests pass
+- [x] 1.4 Analyze + format clean
 
 #### Manual
 

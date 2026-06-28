@@ -23,6 +23,11 @@ fields:
   ### Anchor timestamp that lazy stat decay measures elapsed time from; advanced
   ### by the real duration of whole decay ticks applied on each read/interaction.
   lastDecayedAt: DateTime, default=now
+  ### The generated pixel-art body, set at hatch (S-?? / this change). Nullable so
+  ### creatures hatched before this feature — and the migration's existing rows —
+  ### stay valid and simply render without a sprite. Surfaces through
+  ### `CreatureStatus` to the client automatically.
+  image: CritterSpec?
 indexes:
   ### One creature per user — DB-authoritative, race-safe backstop.
   creature_owner_idx:
