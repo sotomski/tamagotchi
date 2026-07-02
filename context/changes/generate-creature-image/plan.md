@@ -385,27 +385,27 @@ scloud secret (`scloud secret set geminiApiKey …`) out-of-band — never commi
 
 #### Automated
 
-- [x] 1.1 `serverpod generate` clean; migration applies via `serverpod run start`
-- [x] 1.2 `dart analyze` + `flutter analyze` clean
-- [x] 1.3 `dart format --set-exit-if-changed .` clean in both packages
-- [x] 1.4 `dart test` (server) + `flutter test` (flutter) green
+- [x] 1.1 `serverpod generate` clean; migration applies via `serverpod run start` — 34ae98e
+- [x] 1.2 `dart analyze` + `flutter analyze` clean — 34ae98e
+- [x] 1.3 `dart format --set-exit-if-changed .` clean in both packages — 34ae98e
+- [x] 1.4 `dart test` (server) + `flutter test` (flutter) green — 34ae98e
 
 #### Manual
 
-- [x] 1.5 `creature.imageUrl` nullable text column present; `image json` gone; existing creature unaffected
+- [x] 1.5 `creature.imageUrl` nullable text column present; `image json` gone; existing creature unaffected — 34ae98e
 
 ### Phase 2: Gemini Generate Service
 
 #### Automated
 
-- [ ] 2.1 Prompt + stub + factory unit tests pass (`dart test test/llm/`)
-- [ ] 2.2 Stub returns non-empty JPEG-magic bytes (asserted)
-- [ ] 2.3 Prompt weaves hints + requests white background (asserted)
-- [ ] 2.4 Analyze + format clean
+- [x] 2.1 Prompt + stub + factory unit tests pass (`dart test test/llm/`)
+- [x] 2.2 Stub returns non-empty JPEG-magic bytes (asserted)
+- [x] 2.3 Prompt weaves hints + requests white background (asserted)
+- [x] 2.4 Analyze + format clean
 
 #### Manual
 
-- [ ] 2.5 Real-key one-off call returns a decodable JPEG
+- [x] 2.5 Real-key one-off call returns a decodable JPEG
 
 ### Phase 3: Wire Into Hatch + Storage + End-to-End
 

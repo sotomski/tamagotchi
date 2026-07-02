@@ -42,3 +42,37 @@ List<String> critterVisualHints(CreaturePersonality p) {
     'constitution: ${p.illnessRegenMod >= 1.0 ? "hardy — a vivid, saturated, high-contrast palette" : "delicate — a pale, washed-out, muted palette"}',
   ];
 }
+
+/// Builds the single text prompt handed to `gemini-3.1-flash-lite-image` for one
+/// birth. Pure and unit-testable — no [Session], no network; the narrative
+/// analogue is `buildInteractionMessages` (`creature_prompt.dart`).
+///
+/// The visual *style* is fixed; the per-creature variation rides in on
+/// [critterVisualHints] and the variety [CritterImageRequest.seed], so two
+/// personalities — and two births of the same personality — draw two different
+/// critters. The prompt test asserts that distinct dispositions yield distinct
+/// text and that the pure-white background is requested.
+///
+/// Two constraints are load-bearing downstream and stated emphatically: the
+/// **pure solid white (#FFFFFF) background** and the **single, tightly-cropped
+/// creature that fills the frame**. The returned JPEG is stored and rendered
+/// as-is — no chroma-key, no crop, no downscale — so anything the model leaves in
+/// (shadows, ground, text, a second creature, dead margin) ships straight to the
+/// app. Asking hard for a clean, framed sprite on white is the only lever we have.
+String buildCritterImagePrompt(CritterImageRequest request) {
+  final name = request.name;
+  final seed = request.seed;
+  final hints = critterVisualHints(request.personality).join('; ');
+
+  return 'Retro 16-bit pixel-art sprite of ONE single cute original little '
+      'monster creature named "$name". '
+      'Chunky hard-edged pixels, a bold dark outline, and a small limited '
+      'colour palette. '
+      'The creature FILLS the square frame — its body nearly touches all four '
+      'edges, tightly cropped and zoomed in, with only a thin uniform margin. '
+      'Background: pure solid white (#FFFFFF), completely flat and empty. '
+      'Exactly one creature. No shadow, no ground, no text, no letters, no '
+      'border, no frame. '
+      'Draw its character from these traits: $hints. '
+      'Make this creature unique — variety seed $seed.';
+}
