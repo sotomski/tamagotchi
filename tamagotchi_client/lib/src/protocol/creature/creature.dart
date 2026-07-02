@@ -11,8 +11,6 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import '../creature/critter_spec.dart' as _i2;
-import 'package:tamagotchi_client/src/protocol/protocol.dart' as _i3;
 
 /// The core persisted creature, owned by the auth user. Stats decay lazily on
 /// read from elapsed wall-clock time anchored at `lastDecayedAt` (see
@@ -28,7 +26,7 @@ abstract class Creature implements _i1.SerializableModel {
     required this.illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
-    this.image,
+    this.imageUrl,
   }) : hatchedAt = hatchedAt ?? DateTime.now(),
        lastDecayedAt = lastDecayedAt ?? DateTime.now();
 
@@ -42,7 +40,7 @@ abstract class Creature implements _i1.SerializableModel {
     required int illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
-    _i2.CritterSpec? image,
+    String? imageUrl,
   }) = _CreatureImpl;
 
   factory Creature.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -66,11 +64,7 @@ abstract class Creature implements _i1.SerializableModel {
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['lastDecayedAt'],
             ),
-      image: jsonSerialization['image'] == null
-          ? null
-          : _i3.Protocol().deserialize<_i2.CritterSpec>(
-              jsonSerialization['image'],
-            ),
+      imageUrl: jsonSerialization['imageUrl'] as String?,
     );
   }
 
@@ -102,11 +96,13 @@ abstract class Creature implements _i1.SerializableModel {
   /// by the real duration of whole decay ticks applied on each read/interaction.
   DateTime lastDecayedAt;
 
-  /// The generated pixel-art body, set at hatch (S-?? / this change). Nullable so
-  /// creatures hatched before this feature — and the migration's existing rows —
-  /// stay valid and simply render without a sprite. Surfaces through
-  /// `CreatureStatus` to the client automatically.
-  _i2.CritterSpec? image;
+  /// Public no-auth URL of the generated pixel-art body, stored in Serverpod
+  /// `public` DB storage and set at hatch (this change). Nullable so creatures
+  /// hatched before this feature — and the migration's existing rows — stay valid
+  /// and simply render without a sprite; also null if generation ever fails.
+  /// Surfaces through `CreatureStatus` to the client, which renders it with
+  /// `Image.network`.
+  String? imageUrl;
 
   /// Returns a shallow copy of this [Creature]
   /// with some or all fields replaced by the given arguments.
@@ -121,7 +117,7 @@ abstract class Creature implements _i1.SerializableModel {
     int? illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
-    _i2.CritterSpec? image,
+    String? imageUrl,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -136,7 +132,7 @@ abstract class Creature implements _i1.SerializableModel {
       'illness': illness,
       'hatchedAt': hatchedAt.toJson(),
       'lastDecayedAt': lastDecayedAt.toJson(),
-      if (image != null) 'image': image?.toJson(),
+      if (imageUrl != null) 'imageUrl': imageUrl,
     };
   }
 
@@ -159,7 +155,7 @@ class _CreatureImpl extends Creature {
     required int illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
-    _i2.CritterSpec? image,
+    String? imageUrl,
   }) : super._(
          id: id,
          ownerUuid: ownerUuid,
@@ -170,7 +166,7 @@ class _CreatureImpl extends Creature {
          illness: illness,
          hatchedAt: hatchedAt,
          lastDecayedAt: lastDecayedAt,
-         image: image,
+         imageUrl: imageUrl,
        );
 
   /// Returns a shallow copy of this [Creature]
@@ -187,7 +183,7 @@ class _CreatureImpl extends Creature {
     int? illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
-    Object? image = _Undefined,
+    Object? imageUrl = _Undefined,
   }) {
     return Creature(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -199,7 +195,7 @@ class _CreatureImpl extends Creature {
       illness: illness ?? this.illness,
       hatchedAt: hatchedAt ?? this.hatchedAt,
       lastDecayedAt: lastDecayedAt ?? this.lastDecayedAt,
-      image: image is _i2.CritterSpec? ? image : this.image?.copyWith(),
+      imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
     );
   }
 }

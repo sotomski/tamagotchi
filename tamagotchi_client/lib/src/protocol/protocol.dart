@@ -23,20 +23,19 @@ import 'creature/creature_personality.dart' as _i10;
 import 'creature/creature_play_error.dart' as _i11;
 import 'creature/creature_play_error_reason.dart' as _i12;
 import 'creature/creature_status.dart' as _i13;
-import 'creature/critter_spec.dart' as _i14;
-import 'creature/cure_result.dart' as _i15;
-import 'creature/feed_result.dart' as _i16;
-import 'creature/journal_entry.dart' as _i17;
-import 'creature/journal_event.dart' as _i18;
-import 'creature/play_result.dart' as _i19;
-import 'creature/stat_delta.dart' as _i20;
-import 'greetings/greeting.dart' as _i21;
+import 'creature/cure_result.dart' as _i14;
+import 'creature/feed_result.dart' as _i15;
+import 'creature/journal_entry.dart' as _i16;
+import 'creature/journal_event.dart' as _i17;
+import 'creature/play_result.dart' as _i18;
+import 'creature/stat_delta.dart' as _i19;
+import 'greetings/greeting.dart' as _i20;
 import 'package:tamagotchi_client/src/protocol/creature/journal_entry.dart'
-    as _i22;
+    as _i21;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i23;
+    as _i22;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i24;
+    as _i23;
 export 'creature/creature.dart';
 export 'creature/creature_cure_error.dart';
 export 'creature/creature_cure_error_reason.dart';
@@ -49,7 +48,6 @@ export 'creature/creature_personality.dart';
 export 'creature/creature_play_error.dart';
 export 'creature/creature_play_error_reason.dart';
 export 'creature/creature_status.dart';
-export 'creature/critter_spec.dart';
 export 'creature/cure_result.dart';
 export 'creature/feed_result.dart';
 export 'creature/journal_entry.dart';
@@ -129,29 +127,26 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i13.CreatureStatus) {
       return _i13.CreatureStatus.fromJson(data) as T;
     }
-    if (t == _i14.CritterSpec) {
-      return _i14.CritterSpec.fromJson(data) as T;
+    if (t == _i14.CureResult) {
+      return _i14.CureResult.fromJson(data) as T;
     }
-    if (t == _i15.CureResult) {
-      return _i15.CureResult.fromJson(data) as T;
+    if (t == _i15.FeedResult) {
+      return _i15.FeedResult.fromJson(data) as T;
     }
-    if (t == _i16.FeedResult) {
-      return _i16.FeedResult.fromJson(data) as T;
+    if (t == _i16.JournalEntry) {
+      return _i16.JournalEntry.fromJson(data) as T;
     }
-    if (t == _i17.JournalEntry) {
-      return _i17.JournalEntry.fromJson(data) as T;
+    if (t == _i17.JournalEvent) {
+      return _i17.JournalEvent.fromJson(data) as T;
     }
-    if (t == _i18.JournalEvent) {
-      return _i18.JournalEvent.fromJson(data) as T;
+    if (t == _i18.PlayResult) {
+      return _i18.PlayResult.fromJson(data) as T;
     }
-    if (t == _i19.PlayResult) {
-      return _i19.PlayResult.fromJson(data) as T;
+    if (t == _i19.StatDelta) {
+      return _i19.StatDelta.fromJson(data) as T;
     }
-    if (t == _i20.StatDelta) {
-      return _i20.StatDelta.fromJson(data) as T;
-    }
-    if (t == _i21.Greeting) {
-      return _i21.Greeting.fromJson(data) as T;
+    if (t == _i20.Greeting) {
+      return _i20.Greeting.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.Creature?>()) {
       return (data != null ? _i2.Creature.fromJson(data) : null) as T;
@@ -194,50 +189,38 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i13.CreatureStatus?>()) {
       return (data != null ? _i13.CreatureStatus.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.CritterSpec?>()) {
-      return (data != null ? _i14.CritterSpec.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i14.CureResult?>()) {
+      return (data != null ? _i14.CureResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.CureResult?>()) {
-      return (data != null ? _i15.CureResult.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.FeedResult?>()) {
+      return (data != null ? _i15.FeedResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i16.FeedResult?>()) {
-      return (data != null ? _i16.FeedResult.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i16.JournalEntry?>()) {
+      return (data != null ? _i16.JournalEntry.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.JournalEntry?>()) {
-      return (data != null ? _i17.JournalEntry.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i17.JournalEvent?>()) {
+      return (data != null ? _i17.JournalEvent.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i18.JournalEvent?>()) {
-      return (data != null ? _i18.JournalEvent.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i18.PlayResult?>()) {
+      return (data != null ? _i18.PlayResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i19.PlayResult?>()) {
-      return (data != null ? _i19.PlayResult.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i19.StatDelta?>()) {
+      return (data != null ? _i19.StatDelta.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i20.StatDelta?>()) {
-      return (data != null ? _i20.StatDelta.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i20.Greeting?>()) {
+      return (data != null ? _i20.Greeting.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i21.Greeting?>()) {
-      return (data != null ? _i21.Greeting.fromJson(data) : null) as T;
-    }
-    if (t == Map<String, String>) {
-      return (data as Map).map(
-            (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
-          )
-          as T;
-    }
-    if (t == List<String>) {
-      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
-    }
-    if (t == List<_i22.JournalEntry>) {
+    if (t == List<_i21.JournalEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i22.JournalEntry>(e))
+              .map((e) => deserialize<_i21.JournalEntry>(e))
               .toList()
           as T;
     }
     try {
-      return _i23.Protocol().deserialize<T>(data, t);
+      return _i22.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i24.Protocol().deserialize<T>(data, t);
+      return _i23.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -256,14 +239,13 @@ class Protocol extends _i1.SerializationManager {
       _i11.CreaturePlayError => 'CreaturePlayError',
       _i12.CreaturePlayErrorReason => 'CreaturePlayErrorReason',
       _i13.CreatureStatus => 'CreatureStatus',
-      _i14.CritterSpec => 'CritterSpec',
-      _i15.CureResult => 'CureResult',
-      _i16.FeedResult => 'FeedResult',
-      _i17.JournalEntry => 'JournalEntry',
-      _i18.JournalEvent => 'JournalEvent',
-      _i19.PlayResult => 'PlayResult',
-      _i20.StatDelta => 'StatDelta',
-      _i21.Greeting => 'Greeting',
+      _i14.CureResult => 'CureResult',
+      _i15.FeedResult => 'FeedResult',
+      _i16.JournalEntry => 'JournalEntry',
+      _i17.JournalEvent => 'JournalEvent',
+      _i18.PlayResult => 'PlayResult',
+      _i19.StatDelta => 'StatDelta',
+      _i20.Greeting => 'Greeting',
       _ => null,
     };
   }
@@ -302,28 +284,26 @@ class Protocol extends _i1.SerializationManager {
         return 'CreaturePlayErrorReason';
       case _i13.CreatureStatus():
         return 'CreatureStatus';
-      case _i14.CritterSpec():
-        return 'CritterSpec';
-      case _i15.CureResult():
+      case _i14.CureResult():
         return 'CureResult';
-      case _i16.FeedResult():
+      case _i15.FeedResult():
         return 'FeedResult';
-      case _i17.JournalEntry():
+      case _i16.JournalEntry():
         return 'JournalEntry';
-      case _i18.JournalEvent():
+      case _i17.JournalEvent():
         return 'JournalEvent';
-      case _i19.PlayResult():
+      case _i18.PlayResult():
         return 'PlayResult';
-      case _i20.StatDelta():
+      case _i19.StatDelta():
         return 'StatDelta';
-      case _i21.Greeting():
+      case _i20.Greeting():
         return 'Greeting';
     }
-    className = _i23.Protocol().getClassNameForObject(data);
+    className = _i22.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i24.Protocol().getClassNameForObject(data);
+    className = _i23.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -372,37 +352,34 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'CreatureStatus') {
       return deserialize<_i13.CreatureStatus>(data['data']);
     }
-    if (dataClassName == 'CritterSpec') {
-      return deserialize<_i14.CritterSpec>(data['data']);
-    }
     if (dataClassName == 'CureResult') {
-      return deserialize<_i15.CureResult>(data['data']);
+      return deserialize<_i14.CureResult>(data['data']);
     }
     if (dataClassName == 'FeedResult') {
-      return deserialize<_i16.FeedResult>(data['data']);
+      return deserialize<_i15.FeedResult>(data['data']);
     }
     if (dataClassName == 'JournalEntry') {
-      return deserialize<_i17.JournalEntry>(data['data']);
+      return deserialize<_i16.JournalEntry>(data['data']);
     }
     if (dataClassName == 'JournalEvent') {
-      return deserialize<_i18.JournalEvent>(data['data']);
+      return deserialize<_i17.JournalEvent>(data['data']);
     }
     if (dataClassName == 'PlayResult') {
-      return deserialize<_i19.PlayResult>(data['data']);
+      return deserialize<_i18.PlayResult>(data['data']);
     }
     if (dataClassName == 'StatDelta') {
-      return deserialize<_i20.StatDelta>(data['data']);
+      return deserialize<_i19.StatDelta>(data['data']);
     }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i21.Greeting>(data['data']);
+      return deserialize<_i20.Greeting>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i23.Protocol().deserializeByClassName(data);
+      return _i22.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i24.Protocol().deserializeByClassName(data);
+      return _i23.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -417,10 +394,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i23.Protocol().mapRecordToJson(record);
+      return _i22.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i24.Protocol().mapRecordToJson(record);
+      return _i23.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

@@ -1,78 +1,54 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:tamagotchi_client/tamagotchi_client.dart';
 
-import 'critter_compositor.dart';
-import 'critter_painter.dart';
-
-/// Renders a creature's generated pixel body, slotted into `CreatureView` below
-/// the mood label. Composites [spec] into a [ui.Image] once (re-running only
-/// when the spec instance changes) and paints it nearest-neighbor at an integer
-/// multiple of the grid edge so the pixels stay crisp.
+/// Renders a creature's generated pixel body from its public storage URL,
+/// slotted into `CreatureView` below the mood label. The image lives in
+/// Serverpod `public` DB storage and is served without auth, so a plain
+/// [Image.network] loads it.
 ///
-/// A null [spec] — every pre-feature creature, whose `image` column is null —
-/// renders [SizedBox.shrink], so legacy creatures show the rest of the view with
-/// no layout break and no placeholder gap.
-class CritterImage extends StatefulWidget {
-  const CritterImage({required this.spec, this.scale = 4, super.key});
+/// A null [imageUrl] — every pre-feature creature, whose `imageUrl` column is
+/// null — renders [SizedBox.shrink], so legacy creatures show the rest of the
+/// view with no layout break and no placeholder gap. While the bytes are in
+/// flight the box is reserved at [size] so the layout never jumps, and a load
+/// failure falls back to a neutral in-box glyph rather than Flutter's red error.
+class CritterImage extends StatelessWidget {
+  const CritterImage({required this.imageUrl, this.size = 128, super.key});
 
-  /// The critter to draw, or null for a creature with no generated image.
-  final CritterSpec? spec;
+  /// The public URL of the critter image, or null for a creature with no
+  /// generated image.
+  final String? imageUrl;
 
-  /// Integer pixels-per-cell. The painted box is `spec.size * scale` square
-  /// (32 × 4 = 128px), keeping every source cell a square `scale`×`scale` block.
-  final int scale;
-
-  @override
-  State<CritterImage> createState() => _CritterImageState();
-}
-
-class _CritterImageState extends State<CritterImage> {
-  /// The in-flight/completed composite for the current spec, or null when there
-  /// is no spec to draw. Cached so a rebuild doesn't re-composite the buffer.
-  Future<ui.Image>? _image;
-
-  @override
-  void initState() {
-    super.initState();
-    _composite();
-  }
-
-  @override
-  void didUpdateWidget(CritterImage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Re-composite only when the spec instance actually changes — a parent
-    // rebuild with the same spec keeps the cached image.
-    if (!identical(oldWidget.spec, widget.spec)) {
-      _composite();
-    }
-  }
-
-  void _composite() {
-    final spec = widget.spec;
-    _image = spec == null ? null : compositeCritter(spec);
-  }
+  /// The rendered square's edge in logical pixels; the box is reserved at this
+  /// size in every load state so the surrounding column doesn't reflow.
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    final spec = widget.spec;
-    final image = _image;
-    if (spec == null || image == null) return const SizedBox.shrink();
+    final url = imageUrl;
+    if (url == null) return const SizedBox.shrink();
 
-    final side = (spec.size * widget.scale).toDouble();
-    return FutureBuilder<ui.Image>(
-      future: image,
-      builder: (context, snapshot) {
-        // Reserve the final box even before the (synchronous-in-practice)
-        // decode lands, so the layout never jumps.
-        if (!snapshot.hasData) return SizedBox.square(dimension: side);
-        return CustomPaint(
-          key: const Key('critterImage'),
-          size: Size.square(side),
-          painter: CritterPainter(snapshot.data!),
-        );
-      },
+    return SizedBox.square(
+      dimension: size,
+      child: Image.network(
+        url,
+        key: const Key('critterImage'),
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        // Reserve the box until the bytes land, so the layout never jumps.
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : const Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+        // A failed load is neutral, not an error: a muted glyph in the same box.
+        errorBuilder: (context, error, stackTrace) => Center(
+          child: Icon(
+            Icons.pets,
+            size: size / 2,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
     );
   }
 }

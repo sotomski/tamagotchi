@@ -68,11 +68,11 @@ class CreatureView extends ConsumerWidget {
                 style: theme.textTheme.titleMedium,
               ),
               // The generated pixel body, below the mood label. Renders nothing
-              // for pre-feature creatures (`image == null`), so the rest of the
-              // view is unaffected.
-              if (creature.image != null) ...[
+              // for pre-feature creatures (`imageUrl == null`), so the rest of
+              // the view is unaffected.
+              if (creature.imageUrl != null) ...[
                 const SizedBox(height: 16),
-                CritterImage(spec: creature.image),
+                CritterImage(imageUrl: creature.imageUrl),
               ],
               const SizedBox(height: 24),
               _StatRow(label: 'Hunger', value: creature.hunger),
