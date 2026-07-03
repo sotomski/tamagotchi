@@ -53,3 +53,10 @@
 - **Problem**: Several S-03 phase commits landed unformatted code (`feed_service.dart`, `mistral_client.dart`, three test files), so the Format check was silently red on the branch until a later catch-up commit reformatted five files. `dart analyze` passing does NOT imply formatting is clean — they are separate gates, and the format check fails the build on *any* diff.
 - **Rule**: Run `dart format .` (server) and `dart format .` (flutter) and stage the result *before* each phase-end commit — do not rely on analyze. Treat formatting as part of the phase's automated verification, same as analyze/tests. When replicating CI locally, run `dart format --set-exit-if-changed .` in both packages and expect exit 0.
 - **Applies to**: implement, impl-review
+
+## Run Serverpod integration tests and apply test-DB migrations with plain `dart test`
+
+- **Context**: Any phase in `tamagotchi_server/` that runs Serverpod integration tests (`withServerpod`, `test/integration/`, `test/creature/`) or needs pending migrations applied to the test database.
+- **Problem**: The agent tried to reach the test Postgres directly — injecting the DB password on the command line — which tripped the "no DB credentials in this devcontainer" guardrail and wasted steps. The test-DB connection and migration application are already wired into the test harness.
+- **Rule**: To run integration tests OR apply pending migrations to the test DB, just run `dart test` in `tamagotchi_server/` — the harness connects to the test DB and applies migrations automatically. Never connect to the test DB directly or pass DB credentials on the command line.
+- **Applies to**: implement, plan, research, impl-review
