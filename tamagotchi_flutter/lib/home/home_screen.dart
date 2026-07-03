@@ -55,6 +55,10 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI-Tamagotchi'),
+        // The default actionsPadding is EdgeInsets.zero, so the trailing Log out
+        // button otherwise hugs the right edge. Inset it so it sits off the edge
+        // symmetrically with the toolbar's vertical breathing room.
+        actionsPadding: const EdgeInsets.only(right: 8),
         actions: [
           // A text-labelled action (not a bare icon): the labels render from the
           // app font, so they stay visible on Flutter web even when the
