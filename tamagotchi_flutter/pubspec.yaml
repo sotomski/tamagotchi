@@ -95,6 +95,15 @@ flutter:
   # https://flutter.dev/assets-and-images/#from-packages
   assets:
     - assets/config.json
+
+  # Bundled pixel font for the retro theme (buildRetroTheme in
+  # lib/app/retro_theme.dart). VT323 is SIL OFL 1.1 — licence in
+  # assets/fonts/OFL.txt. Bundled as an asset so the app needs no runtime
+  # google_fonts fetch.
+  fonts:
+    - family: VT323
+      fonts:
+        - asset: assets/fonts/VT323-Regular.ttf
 dependency_overrides:
   flutter_secure_storage: ^10.0.0
 

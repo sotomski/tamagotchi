@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../app/client_provider.dart';
+import '../app/retro_loader.dart';
 import '../creature/creature_provider.dart';
 import '../creature/creature_view.dart';
 import '../creature/hatch_form.dart';
@@ -82,9 +83,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: creatureStatus.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(
-            key: Key('creatureLoadingIndicator'),
-          ),
+          child: RetroLoader(key: Key('creatureLoadingIndicator')),
         ),
         error: (error, _) => _CreatureLoadError(
           onRetry: () => ref.invalidate(creatureProvider),

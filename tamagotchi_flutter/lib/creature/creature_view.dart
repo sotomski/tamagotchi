@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
+import '../app/retro_loader.dart';
 import 'critter_image.dart';
 import 'cure_controller.dart';
 import 'decay_poll.dart';
@@ -235,7 +236,7 @@ class _InteractionIndicator extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircularProgressIndicator(key: indicatorKey),
+        RetroLoader(key: indicatorKey),
         const SizedBox(height: 8),
         Text(label),
       ],

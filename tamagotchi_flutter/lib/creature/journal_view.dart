@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
+import '../app/retro_loader.dart';
 import 'journal_format.dart';
 import 'journal_provider.dart';
 
@@ -36,9 +37,7 @@ class JournalView extends ConsumerWidget {
         Expanded(
           child: journal.when(
             loading: () => const Center(
-              child: CircularProgressIndicator(
-                key: Key('journalLoadingIndicator'),
-              ),
+              child: RetroLoader(key: Key('journalLoadingIndicator')),
             ),
             error: (error, _) => _JournalLoadError(
               onRetry: () => ref.invalidate(journalProvider),

@@ -477,16 +477,16 @@ new prompt.
 
 #### Automated
 
-- [ ] 1.1 Flutter analyze passes
-- [ ] 1.2 Format clean (flutter, `--set-exit-if-changed`)
-- [ ] 1.3 Flutter tests pass (existing suite + new theme test)
-- [ ] 1.4 Web build succeeds (`serverpod run flutter_build`)
+- [x] 1.1 Flutter analyze passes
+- [x] 1.2 Format clean (flutter, `--set-exit-if-changed`)
+- [x] 1.3 Flutter tests pass (existing suite + new theme test)
+- [x] 1.4 Web build succeeds (`serverpod run flutter_build`)
 
 #### Manual
 
-- [ ] 1.5 All screens render dark CRT palette + VT323
-- [ ] 1.6 Buttons/panels flat, hard-edged, and larger — no rounded/elevated look
-- [ ] 1.7 Journal prose legible in VT323
+- [x] 1.5 All screens render dark CRT palette + VT323
+- [x] 1.6 Buttons/panels flat, hard-edged, and larger — no rounded/elevated look
+- [x] 1.7 Journal prose legible in VT323
 
 ### Phase 2: Retro segmented stat bars
 

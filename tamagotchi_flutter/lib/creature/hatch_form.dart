@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
+import '../app/retro_loader.dart';
 import 'hatch_controller.dart';
 
 /// The empty-creature state: a name field and a Hatch button.
@@ -75,7 +76,7 @@ class _HatchFormState extends ConsumerState<HatchForm> {
             ),
             const SizedBox(height: 16),
             if (isLoading)
-              const CircularProgressIndicator(key: Key('hatchingIndicator'))
+              const RetroLoader(key: Key('hatchingIndicator'))
             else
               ElevatedButton(
                 key: const Key('hatchButton'),

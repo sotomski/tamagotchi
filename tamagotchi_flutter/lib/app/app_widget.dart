@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app_router.dart';
+import 'retro_theme.dart';
 
 /// Root widget. Consumes the router provider and mounts [MaterialApp.router].
 class AppWidget extends ConsumerWidget {
@@ -12,7 +13,7 @@ class AppWidget extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
       title: 'AI-Tamagotchi',
-      theme: ThemeData(useMaterial3: true),
+      theme: buildRetroTheme(),
       routerConfig: router,
     );
   }
