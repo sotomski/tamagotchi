@@ -15,7 +15,7 @@ class RetroLoader extends StatefulWidget {
     this.gap = 4,
     this.color,
     this.dimColor,
-  });
+  }) : assert(blockCount > 0, 'blockCount must be positive');
 
   /// Number of blocks in the row.
   final int blockCount;

@@ -283,7 +283,9 @@ class _DeltaChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        // Square + thick outline, matching the theme's panels/cards
+        // (`_squareShape`) instead of the old rounded corners.
+        border: Border.all(color: theme.colorScheme.outline, width: 2),
       ),
       child: Text(
         '$label $sign$value',

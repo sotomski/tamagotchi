@@ -30,8 +30,11 @@ class RetroStatBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     // Fill by proportion of the clamped value; the printed number stays raw.
-    final clamped = value.clamp(0, max);
-    final filled = max <= 0 ? 0 : (clamped / max * segments).round();
+    // Guard max first so a non-positive max can't trip clamp's lowerLimit <=
+    // upperLimit assert (unreachable in-app — _StatRow always uses max = 100).
+    final filled = max <= 0
+        ? 0
+        : (value.clamp(0, max) / max * segments).round();
 
     // Capped width so the bar reads as a chunky meter on a wide pane instead of
     // stretching edge-to-edge; the Expanded segments still shrink to fit a

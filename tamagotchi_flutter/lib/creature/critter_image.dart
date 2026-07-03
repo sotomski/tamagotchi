@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app/retro_loader.dart';
+
 /// Renders a creature's generated pixel body from its public storage URL,
 /// slotted into `CreatureView` below the mood label. The image lives in
 /// Serverpod `public` DB storage and is served without auth, so a plain
@@ -40,12 +42,11 @@ class CritterImage extends StatelessWidget {
         // keeps the nearest-neighbour aliasing risk manageable — see the
         // downscale/aliasing note in the retro-revamp plan.
         filterQuality: FilterQuality.none,
-        // Reserve the box until the bytes land, so the layout never jumps.
-        loadingBuilder: (context, child, progress) => progress == null
-            ? child
-            : const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+        // Reserve the box until the bytes land, so the layout never jumps. The
+        // retro block loader (not Material's round spinner) keeps the in-flight
+        // state consistent with every other loading surface in the app.
+        loadingBuilder: (context, child, progress) =>
+            progress == null ? child : const Center(child: RetroLoader()),
         // A failed load is neutral, not an error: a muted glyph in the same box.
         errorBuilder: (context, error, stackTrace) => Center(
           child: Icon(

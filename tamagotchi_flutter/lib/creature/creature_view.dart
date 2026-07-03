@@ -271,7 +271,9 @@ class _InteractionResponse extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: theme.colorScheme.tertiaryContainer,
-          borderRadius: BorderRadius.circular(12),
+          // Square + thick outline, matching the theme's panels/cards
+          // (`_squareShape`) instead of the old rounded corners.
+          border: Border.all(color: theme.colorScheme.outline, width: 2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -310,7 +312,9 @@ class _InteractionResponse extends StatelessWidget {
         color: outcome.accepted
             ? theme.colorScheme.primaryContainer
             : theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        // Square + thick outline, matching the theme's panels/cards
+        // (`_squareShape`) instead of the old rounded corners.
+        border: Border.all(color: theme.colorScheme.outline, width: 2),
       ),
       child: Text(
         outcome.userResponse,
