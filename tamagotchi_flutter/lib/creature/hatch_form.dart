@@ -97,6 +97,8 @@ String? _hatchErrorText(Object? error) {
       case CreatureHatchErrorReason.narrativeUnavailable:
         return "Couldn't write your creature's birth story just now — "
             'please try again.';
+      case CreatureHatchErrorReason.imageUnavailable:
+        return "Couldn't draw your creature just now — please try again.";
     }
   }
   return 'Could not hatch — please try again.';

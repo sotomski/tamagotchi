@@ -24,7 +24,13 @@ enum CreatureHatchErrorReason implements _i1.SerializableModel {
   /// The birth narrative could not be generated (the LLM call failed). Hatch
   /// blocks on this rather than degrading to canned prose, so no creature is
   /// created — the owner can simply retry.
-  narrativeUnavailable;
+  narrativeUnavailable,
+
+  /// The birth graphic could not be generated or stored (the Gemini image call
+  /// or the `public` storage write failed). Hatch blocks on this too — same
+  /// posture as `narrativeUnavailable`, so no creature is created and the owner
+  /// can simply retry.
+  imageUnavailable;
 
   static CreatureHatchErrorReason fromJson(String name) {
     switch (name) {
@@ -34,6 +40,8 @@ enum CreatureHatchErrorReason implements _i1.SerializableModel {
         return CreatureHatchErrorReason.emptyName;
       case 'narrativeUnavailable':
         return CreatureHatchErrorReason.narrativeUnavailable;
+      case 'imageUnavailable':
+        return CreatureHatchErrorReason.imageUnavailable;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "CreatureHatchErrorReason"',

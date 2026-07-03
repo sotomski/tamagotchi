@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:serverpod/serverpod.dart';
 import 'package:tamagotchi_server/src/creature/creature_endpoint.dart';
 import 'package:tamagotchi_server/src/creature/creature_service.dart';
 import 'package:tamagotchi_server/src/generated/protocol.dart';
+import 'package:tamagotchi_server/src/llm/critter_image_prompt.dart';
+import 'package:tamagotchi_server/src/llm/critter_image_service.dart';
 import 'package:tamagotchi_server/src/llm/hatch_copy.dart' as hatch;
 import 'package:tamagotchi_server/src/llm/llm_service.dart';
 import 'package:test/test.dart';
@@ -18,6 +22,19 @@ class _ThrowingLlmService implements LlmService {
     Session session,
     InteractionRequest request,
   ) async => throw Exception('model unreachable');
+}
+
+/// A [CritterImageService] that always throws, to drive hatch's image
+/// block-on-failure path: the birth graphic can't be generated, so hatch must
+/// abort and write nothing (mirrors [_ThrowingLlmService] for the image call).
+class _ThrowingCritterImageService implements CritterImageService {
+  const _ThrowingCritterImageService();
+
+  @override
+  Future<Uint8List> generateImage(
+    Session session,
+    CritterImageRequest request,
+  ) async => throw Exception('image model unreachable');
 }
 
 /// Returns a session builder authenticated as [userUuid] with no extra scopes —
@@ -150,6 +167,101 @@ void main() {
             where: (t) => t.ownerUuid.equals(owner),
           ),
           isEmpty,
+        );
+      },
+    );
+
+    test(
+      'when hatching then it stores a JPEG in public storage and persists its '
+      'URL on the creature',
+      () async {
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+
+        final status = await endpoints.creature.hatch(authed, 'Nibbles');
+
+        // The generated body's public URL is persisted on the creature and
+        // surfaces through the returned status (the hermetic stub supplies the
+        // bytes in the test run mode).
+        expect(status.creature.imageUrl, isNotNull);
+        expect(status.creature.imageUrl, isNotEmpty);
+
+        // The bytes really landed in `public` storage under the creature-keyed
+        // path, so `Image.network` has something to fetch.
+        final session = authed.build();
+        final stored = await session.storage.retrieveFile(
+          storageId: 'public',
+          path: 'creatures/${status.creature.id}.jpg',
+        );
+        expect(stored, isNotNull);
+        expect(stored!.lengthInBytes, greaterThan(0));
+      },
+    );
+
+    test(
+      'when image generation fails then hatch blocks (imageUnavailable) and '
+      'writes no creature, personality, or journal row',
+      () async {
+        // Inject a throwing image service via the production seam; restore after.
+        critterImageServiceFactory = (_) =>
+            const _ThrowingCritterImageService();
+        addTearDown(() => critterImageServiceFactory = critterImageServiceFor);
+
+        final userUuid = const Uuid().v4();
+        final authed = _authedAs(sessionBuilder, userUuid);
+
+        await expectLater(
+          () => endpoints.creature.hatch(authed, 'Nibbles'),
+          throwsA(
+            isA<CreatureHatchError>().having(
+              (e) => e.reason,
+              'reason',
+              CreatureHatchErrorReason.imageUnavailable,
+            ),
+          ),
+        );
+
+        // Block-on-failure leaves NO partial state: the image call runs before
+        // the transaction, so a thrown generation writes nothing at all.
+        final session = authed.build();
+        final owner = UuidValue.fromString(userUuid);
+        expect(
+          await Creature.db.find(
+            session,
+            where: (t) => t.ownerUuid.equals(owner),
+          ),
+          isEmpty,
+        );
+        expect(
+          await JournalEntry.db.find(
+            session,
+            where: (t) => t.ownerUuid.equals(owner),
+          ),
+          isEmpty,
+        );
+      },
+    );
+
+    test(
+      'reset deletes the creature\'s stored image blob from public storage',
+      () async {
+        final authed = _authedAs(sessionBuilder, const Uuid().v4());
+        final status = await endpoints.creature.hatch(authed, 'Nibbles');
+
+        final session = authed.build();
+        final path = 'creatures/${status.creature.id}.jpg';
+        expect(
+          await session.storage.retrieveFile(storageId: 'public', path: path),
+          isNotNull,
+          reason: 'hatch should have stored the birth graphic',
+        );
+
+        await endpoints.creature.reset(authed);
+
+        expect(
+          await session.storage.retrieveFile(storageId: 'public', path: path),
+          isNull,
+          reason: 'reset should best-effort delete the stored blob',
         );
       },
     );

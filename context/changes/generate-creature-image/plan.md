@@ -398,26 +398,26 @@ scloud secret (`scloud secret set geminiApiKey …`) out-of-band — never commi
 
 #### Automated
 
-- [x] 2.1 Prompt + stub + factory unit tests pass (`dart test test/llm/`)
-- [x] 2.2 Stub returns non-empty JPEG-magic bytes (asserted)
-- [x] 2.3 Prompt weaves hints + requests white background (asserted)
-- [x] 2.4 Analyze + format clean
+- [x] 2.1 Prompt + stub + factory unit tests pass (`dart test test/llm/`) — d0e44ac
+- [x] 2.2 Stub returns non-empty JPEG-magic bytes (asserted) — d0e44ac
+- [x] 2.3 Prompt weaves hints + requests white background (asserted) — d0e44ac
+- [x] 2.4 Analyze + format clean — d0e44ac
 
 #### Manual
 
-- [x] 2.5 Real-key one-off call returns a decodable JPEG
+- [x] 2.5 Real-key one-off call returns a decodable JPEG — d0e44ac
 
 ### Phase 3: Wire Into Hatch + Storage + End-to-End
 
 #### Automated
 
-- [ ] 3.1 Hatch integration tests pass (success sets `imageUrl` + block-on-failure)
-- [ ] 3.2 Full server suite green
-- [ ] 3.3 Flutter suite green
-- [ ] 3.4 Analyze + format clean in both packages
+- [x] 3.1 Hatch integration tests pass (success sets `imageUrl` + block-on-failure)
+- [x] 3.2 Full server suite green
+- [x] 3.3 Flutter suite green
+- [x] 3.4 Analyze + format clean in both packages
 
 #### Manual
 
-- [ ] 3.5 New creature shows a unique retro image at birth (loads over `Image.network` — no CORS block)
-- [ ] 3.6 Generation failure blocks the hatch with no half-written creature
-- [ ] 3.7 Reset deletes the stored blob; a second hatch differs
+- [x] 3.5 New creature shows a unique retro image at birth (loads over `Image.network` — no CORS block)
+- [x] 3.6 Generation failure blocks the hatch with no half-written creature
+- [x] 3.7 Reset deletes the stored blob; a second hatch differs
