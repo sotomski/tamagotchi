@@ -492,29 +492,29 @@ new prompt.
 
 #### Automated
 
-- [x] 2.1 Flutter analyze passes
-- [x] 2.2 Format clean (flutter)
-- [x] 2.3 All Flutter tests pass incl. untouched stat-number asserts
+- [x] 2.1 Flutter analyze passes — 9a08efa
+- [x] 2.2 Format clean (flutter) — 9a08efa
+- [x] 2.3 All Flutter tests pass incl. untouched stat-number asserts — 9a08efa
 
 #### Manual
 
-- [x] 2.4 Stats display as large segmented bars with numbers
-- [x] 2.5 Bars change after Feed/Play/Cure
-- [x] 2.6 No overflow in the creature panel
+- [x] 2.4 Stats display as large segmented bars with numbers — 9a08efa
+- [x] 2.5 Bars change after Feed/Play/Cure — 9a08efa
+- [x] 2.6 No overflow in the creature panel — 9a08efa
 
 ### Phase 3: Adaptive desktop/mobile layout
 
 #### Automated
 
-- [ ] 3.1 Flutter analyze passes
-- [ ] 3.2 Format clean (flutter)
-- [ ] 3.3 All Flutter tests pass incl. new layout test
+- [x] 3.1 Flutter analyze passes
+- [x] 3.2 Format clean (flutter)
+- [x] 3.3 All Flutter tests pass incl. new layout test
 
 #### Manual
 
-- [ ] 3.4 Phone width: tabs work, both panes usable, no overflow
-- [ ] 3.5 Desktop width: side-by-side unchanged
-- [ ] 3.6 Window resize transitions cleanly
+- [x] 3.4 Phone width: tabs work, both panes usable, no overflow
+- [x] 3.5 Desktop width: side-by-side unchanged
+- [x] 3.6 Window resize transitions cleanly
 
 ### Phase 4: Bigger, crisper sprite
 
