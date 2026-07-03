@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 /// flight the box is reserved at [size] so the layout never jumps, and a load
 /// failure falls back to a neutral in-box glyph rather than Flutter's red error.
 class CritterImage extends StatelessWidget {
-  const CritterImage({required this.imageUrl, this.size = 128, super.key});
+  const CritterImage({required this.imageUrl, this.size = 256, super.key});
 
   /// The public URL of the critter image, or null for a creature with no
   /// generated image.
@@ -34,6 +34,12 @@ class CritterImage extends StatelessWidget {
         width: size,
         height: size,
         fit: BoxFit.contain,
+        // Nearest-neighbour so the 16-bit pixel-art stays crisp and blocky
+        // instead of being smeared by bilinear. The 1024² source down to the
+        // 256px default is a 4× downscale (half the old 128px 8× ratio), which
+        // keeps the nearest-neighbour aliasing risk manageable — see the
+        // downscale/aliasing note in the retro-revamp plan.
+        filterQuality: FilterQuality.none,
         // Reserve the box until the bytes land, so the layout never jumps.
         loadingBuilder: (context, child, progress) => progress == null
             ? child

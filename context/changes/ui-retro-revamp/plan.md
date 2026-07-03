@@ -506,28 +506,28 @@ new prompt.
 
 #### Automated
 
-- [x] 3.1 Flutter analyze passes
-- [x] 3.2 Format clean (flutter)
-- [x] 3.3 All Flutter tests pass incl. new layout test
+- [x] 3.1 Flutter analyze passes — ad359e2
+- [x] 3.2 Format clean (flutter) — ad359e2
+- [x] 3.3 All Flutter tests pass incl. new layout test — ad359e2
 
 #### Manual
 
-- [x] 3.4 Phone width: tabs work, both panes usable, no overflow
-- [x] 3.5 Desktop width: side-by-side unchanged
-- [x] 3.6 Window resize transitions cleanly
+- [x] 3.4 Phone width: tabs work, both panes usable, no overflow — ad359e2
+- [x] 3.5 Desktop width: side-by-side unchanged — ad359e2
+- [x] 3.6 Window resize transitions cleanly — ad359e2
 
 ### Phase 4: Bigger, crisper sprite
 
 #### Automated
 
-- [ ] 4.1 Flutter analyze passes
-- [ ] 4.2 Format clean (flutter)
-- [ ] 4.3 All Flutter tests pass incl. updated `critter_image_test.dart`
+- [x] 4.1 Flutter analyze passes
+- [x] 4.2 Format clean (flutter)
+- [x] 4.3 All Flutter tests pass incl. updated `critter_image_test.dart`
 
 #### Manual
 
-- [ ] 4.4 Sprite renders at 256px, crisp not blurred
-- [ ] 4.5 No aliasing/shimmer (or size/filter adjusted per note)
+- [x] 4.4 Sprite renders at 256px, crisp not blurred
+- [x] 4.5 No aliasing/shimmer (or size/filter adjusted per note)
 
 ### Phase 5: Dark sprite background (server prompt)
 
