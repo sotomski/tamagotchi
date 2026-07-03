@@ -411,13 +411,13 @@ scloud secret (`scloud secret set geminiApiKey …`) out-of-band — never commi
 
 #### Automated
 
-- [x] 3.1 Hatch integration tests pass (success sets `imageUrl` + block-on-failure)
-- [x] 3.2 Full server suite green
-- [x] 3.3 Flutter suite green
-- [x] 3.4 Analyze + format clean in both packages
+- [x] 3.1 Hatch integration tests pass (success sets `imageUrl` + block-on-failure) — 618b8dd
+- [x] 3.2 Full server suite green — 618b8dd
+- [x] 3.3 Flutter suite green — 618b8dd
+- [x] 3.4 Analyze + format clean in both packages — 618b8dd
 
 #### Manual
 
-- [x] 3.5 New creature shows a unique retro image at birth (loads over `Image.network` — no CORS block)
-- [x] 3.6 Generation failure blocks the hatch with no half-written creature
-- [x] 3.7 Reset deletes the stored blob; a second hatch differs
+- [x] 3.5 New creature shows a unique retro image at birth (loads over `Image.network` — no CORS block) — 618b8dd
+- [x] 3.6 Generation failure blocks the hatch with no half-written creature — 618b8dd
+- [x] 3.7 Reset deletes the stored blob; a second hatch differs — 618b8dd

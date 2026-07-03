@@ -1,7 +1,7 @@
 ---
 change_id: generate-creature-image
 title: Generate creature image
-status: implementing
+status: implemented
 created: 2026-06-28
 updated: 2026-07-03
 archived_at: null
