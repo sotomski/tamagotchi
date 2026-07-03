@@ -27,11 +27,16 @@ jobs:
 
       - name: Install Serverpod CLIs
         # serverpod_cli is pinned to the project's Serverpod package version (codegen compatibility).
-        # serverpod_cloud_cli is intentionally unpinned: Serverpod Cloud can force-require the latest
-        # CLI server-side, which fails any pinned version (see deploy run 27868760944). Always grab latest.
+        # serverpod_cloud_cli is pinned to the exact version Serverpod Cloud currently force-requires
+        # server-side. It used to be unpinned to "always grab latest", but unpinned `activate` silently
+        # resolved to a STALE version: the latest CLI's transitive deps pull Serverpod betas, which
+        # pub avoids under an `any` constraint, so it backtracked to an older CLI the server then
+        # rejected (deploy run 28663805860 got 0.32.0 while the server required 0.33.0). Pinning forces
+        # pub to resolve the required version's full graph. Bump this together with the devcontainer's
+        # SERVERPOD_CLOUD_CLI_VERSION when the server force-requires a newer CLI.
         run: |
           dart pub global activate serverpod_cli 3.4.8
-          dart pub global activate serverpod_cloud_cli
+          dart pub global activate serverpod_cloud_cli 0.33.0
 
       - name: Build Flutter web bundle into server's web/app/
         working-directory: tamagotchi_server
