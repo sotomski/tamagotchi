@@ -51,14 +51,22 @@ List<String> critterVisualHints(CreaturePersonality p) {
 /// [critterVisualHints] and the variety [CritterImageRequest.seed], so two
 /// personalities — and two births of the same personality — draw two different
 /// critters. The prompt test asserts that distinct dispositions yield distinct
-/// text and that the pure-white background is requested.
+/// text and that the dark screen-colour background is requested.
 ///
 /// Two constraints are load-bearing downstream and stated emphatically: the
-/// **pure solid white (#FFFFFF) background** and the **single, tightly-cropped
-/// creature that fills the frame**. The returned JPEG is stored and rendered
-/// as-is — no chroma-key, no crop, no downscale — so anything the model leaves in
-/// (shadows, ground, text, a second creature, dead margin) ships straight to the
-/// app. Asking hard for a clean, framed sprite on white is the only lever we have.
+/// **pure solid dark screen-colour (#0E1712) background** and the **single,
+/// tightly-cropped creature that fills the frame**. The returned JPEG is stored
+/// and rendered as-is — no chroma-key, no crop, no downscale — so anything the
+/// model leaves in (shadows, ground, text, a second creature, dead margin) ships
+/// straight to the app. Asking hard for a clean, framed sprite on that flat dark
+/// screen is the only lever we have — and the dark fill (not the old white) is
+/// what lets a freshly-hatched sprite blend into the app's dark chrome instead of
+/// sitting in a bright white box.
+///
+/// CLIENT↔SERVER COUPLING: the `#0E1712` hex MUST equal `retroScreenColor` in
+/// `tamagotchi_flutter/lib/app/retro_theme.dart` — the scaffold "screen" colour
+/// the sprite actually renders on. That file is the source of truth; if it
+/// changes, change the hex here too, or new sprites show a mismatched halo.
 String buildCritterImagePrompt(CritterImageRequest request) {
   final name = request.name;
   final seed = request.seed;
@@ -70,7 +78,8 @@ String buildCritterImagePrompt(CritterImageRequest request) {
       'colour palette. '
       'The creature FILLS the square frame — its body nearly touches all four '
       'edges, tightly cropped and zoomed in, with only a thin uniform margin. '
-      'Background: pure solid white (#FFFFFF), completely flat and empty. '
+      'Background: pure solid dark screen colour (#0E1712), completely flat '
+      'and empty. '
       'Exactly one creature. No shadow, no ground, no text, no letters, no '
       'border, no frame. '
       'Draw its character from these traits: $hints. '

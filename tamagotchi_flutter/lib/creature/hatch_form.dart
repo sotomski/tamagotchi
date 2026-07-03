@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
+import '../app/retro_loader.dart';
 import 'hatch_controller.dart';
 
 /// The empty-creature state: a name field and a Hatch button.
@@ -56,26 +57,34 @@ class _HatchFormState extends ConsumerState<HatchForm> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            TextField(
-              key: const Key('hatchNameField'),
-              controller: _nameController,
-              enabled: !isLoading,
-              // Mirror the server-side hatch name cap so the field can't submit
-              // an oversized name (bounds LLM/image prompt cost). The counter is
-              // hidden to keep the small field visually unchanged.
-              maxLength: 40,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                errorText: errorText,
-                counterText: '',
+            // Cap the field width so the name box stays a compact, centred
+            // element rather than stretching edge-to-edge across a wide (desktop
+            // two-pane) window. The parent Column centres it; on a narrow phone
+            // the ConstrainedBox simply yields the available width.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: TextField(
+                key: const Key('hatchNameField'),
+                controller: _nameController,
+                enabled: !isLoading,
+                textAlign: TextAlign.center,
+                // Mirror the server-side hatch name cap so the field can't submit
+                // an oversized name (bounds LLM/image prompt cost). The counter is
+                // hidden to keep the small field visually unchanged.
+                maxLength: 40,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  errorText: errorText,
+                  counterText: '',
+                ),
+                onSubmitted: (_) {
+                  if (!isLoading) _submit();
+                },
               ),
-              onSubmitted: (_) {
-                if (!isLoading) _submit();
-              },
             ),
             const SizedBox(height: 16),
             if (isLoading)
-              const CircularProgressIndicator(key: Key('hatchingIndicator'))
+              const RetroLoader(key: Key('hatchingIndicator'))
             else
               ElevatedButton(
                 key: const Key('hatchButton'),

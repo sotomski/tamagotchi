@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
+import 'package:tamagotchi_flutter/app/retro_loader.dart';
 import 'package:tamagotchi_flutter/creature/creature_provider.dart';
 import 'package:tamagotchi_flutter/creature/creature_view.dart';
 import 'package:tamagotchi_flutter/creature/cure_controller.dart';
@@ -247,7 +248,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(RetroLoader), findsOneWidget);
   });
 
   testWidgets('when the creature fetch fails the home shows an error + retry', (
@@ -459,7 +460,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Feeding…'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(RetroLoader), findsOneWidget);
     expect(find.widgetWithText(ElevatedButton, 'Feed'), findsNothing);
   });
 

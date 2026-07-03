@@ -34,7 +34,7 @@ void main() {
   });
 
   group('buildCritterImagePrompt', () {
-    test('asks for a pixel-art sprite on a pure solid-white background', () {
+    test('asks for a pixel-art sprite on the dark screen-colour background', () {
       final prompt = buildCritterImagePrompt(
         CritterImageRequest(
           personality: _personality(),
@@ -45,10 +45,11 @@ void main() {
       final lower = prompt.toLowerCase();
 
       expect(lower, contains('pixel'));
-      // The pure-white background is load-bearing: the JPEG is stored/rendered
-      // as-is, so the request must pin #FFFFFF explicitly.
-      expect(prompt, contains('#FFFFFF'));
-      expect(lower, contains('white'));
+      // The background hex is load-bearing: the JPEG is stored/rendered as-is, so
+      // the request must pin the dark screen colour explicitly. It MUST match
+      // retroScreenColor in tamagotchi_flutter/lib/app/retro_theme.dart so a
+      // freshly-hatched sprite blends into the dark chrome instead of a white box.
+      expect(prompt, contains('#0E1712'));
       // One creature only, filling the frame.
       expect(lower, anyOf(contains('one single'), contains('single')));
       expect(lower, contains('fills the square frame'.toLowerCase()));
