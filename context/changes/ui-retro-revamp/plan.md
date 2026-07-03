@@ -533,12 +533,12 @@ new prompt.
 
 #### Automated
 
-- [x] 5.1 Server analyze passes
-- [x] 5.2 Format clean (server)
-- [x] 5.3 Server tests pass incl. updated prompt test
+- [x] 5.1 Server analyze passes — ae02bd1
+- [x] 5.2 Format clean (server) — ae02bd1
+- [x] 5.3 Server tests pass incl. updated prompt test — ae02bd1
 
 #### Manual
 
-- [x] 5.4 New real-key hatch: sprite born on dark screen colour, blends into panel
-- [x] 5.5 Creature reads clearly on dark background (or screen colour lightened)
-- [x] 5.6 Existing creatures still render without error
+- [x] 5.4 New real-key hatch: sprite born on dark screen colour, blends into panel — ae02bd1
+- [x] 5.5 Creature reads clearly on dark background (or screen colour lightened) — ae02bd1
+- [x] 5.6 Existing creatures still render without error — ae02bd1
