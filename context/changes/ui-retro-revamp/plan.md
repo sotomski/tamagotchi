@@ -477,30 +477,30 @@ new prompt.
 
 #### Automated
 
-- [x] 1.1 Flutter analyze passes
-- [x] 1.2 Format clean (flutter, `--set-exit-if-changed`)
-- [x] 1.3 Flutter tests pass (existing suite + new theme test)
-- [x] 1.4 Web build succeeds (`serverpod run flutter_build`)
+- [x] 1.1 Flutter analyze passes — 74a77a8
+- [x] 1.2 Format clean (flutter, `--set-exit-if-changed`) — 74a77a8
+- [x] 1.3 Flutter tests pass (existing suite + new theme test) — 74a77a8
+- [x] 1.4 Web build succeeds (`serverpod run flutter_build`) — 74a77a8
 
 #### Manual
 
-- [x] 1.5 All screens render dark CRT palette + VT323
-- [x] 1.6 Buttons/panels flat, hard-edged, and larger — no rounded/elevated look
-- [x] 1.7 Journal prose legible in VT323
+- [x] 1.5 All screens render dark CRT palette + VT323 — 74a77a8
+- [x] 1.6 Buttons/panels flat, hard-edged, and larger — no rounded/elevated look — 74a77a8
+- [x] 1.7 Journal prose legible in VT323 — 74a77a8
 
 ### Phase 2: Retro segmented stat bars
 
 #### Automated
 
-- [ ] 2.1 Flutter analyze passes
-- [ ] 2.2 Format clean (flutter)
-- [ ] 2.3 All Flutter tests pass incl. untouched stat-number asserts
+- [x] 2.1 Flutter analyze passes
+- [x] 2.2 Format clean (flutter)
+- [x] 2.3 All Flutter tests pass incl. untouched stat-number asserts
 
 #### Manual
 
-- [ ] 2.4 Stats display as large segmented bars with numbers
-- [ ] 2.5 Bars change after Feed/Play/Cure
-- [ ] 2.6 No overflow in the creature panel
+- [x] 2.4 Stats display as large segmented bars with numbers
+- [x] 2.5 Bars change after Feed/Play/Cure
+- [x] 2.6 No overflow in the creature panel
 
 ### Phase 3: Adaptive desktop/mobile layout
 

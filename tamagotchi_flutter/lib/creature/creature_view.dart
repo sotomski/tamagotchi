@@ -4,6 +4,7 @@ import 'package:tamagotchi_client/tamagotchi_client.dart';
 
 import '../app/retro_loader.dart';
 import 'critter_image.dart';
+import 'retro_stat_bar.dart';
 import 'cure_controller.dart';
 import 'decay_poll.dart';
 import 'feed_controller.dart';
@@ -320,10 +321,12 @@ class _InteractionResponse extends StatelessWidget {
   }
 }
 
-/// One labelled stat line, e.g. `Energy  100`. Carries a per-stat `Key`
-/// (`statRow-<label>`) so a patrol test can scope to a specific stat row and
-/// assert its (dynamic) value changed — text finders alone can't distinguish
-/// which stat a number belongs to.
+/// One labelled stat line, now a chunky [RetroStatBar] (was plain `Label  100`).
+/// Carries a per-stat `Key` (`statRow-<label>`) so a patrol test can scope to a
+/// specific stat row and assert its (dynamic) value changed — text finders alone
+/// can't distinguish which stat a number belongs to. The bar keeps the value as
+/// a findable `Text('$value')` inside that key, so the ~15 widget asserts and 2
+/// e2e number-finders scoped here still resolve.
 class _StatRow extends StatelessWidget {
   _StatRow({required this.label, required this.value})
     : super(key: Key('statRow-$label'));
@@ -333,15 +336,6 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(width: 100, child: Text(label)),
-          Text('$value', style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
+    return RetroStatBar(label: label, value: value);
   }
 }
