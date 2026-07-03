@@ -27,6 +27,7 @@ abstract class Creature
     required this.illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    this.imageUrl,
   }) : hatchedAt = hatchedAt ?? DateTime.now(),
        lastDecayedAt = lastDecayedAt ?? DateTime.now();
 
@@ -40,6 +41,7 @@ abstract class Creature
     required int illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    String? imageUrl,
   }) = _CreatureImpl;
 
   factory Creature.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -63,6 +65,7 @@ abstract class Creature
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['lastDecayedAt'],
             ),
+      imageUrl: jsonSerialization['imageUrl'] as String?,
     );
   }
 
@@ -98,6 +101,14 @@ abstract class Creature
   /// by the real duration of whole decay ticks applied on each read/interaction.
   DateTime lastDecayedAt;
 
+  /// Public no-auth URL of the generated pixel-art body, stored in Serverpod
+  /// `public` DB storage and set at hatch (this change). Nullable so creatures
+  /// hatched before this feature — and the migration's existing rows — stay valid
+  /// and simply render without a sprite; also null if generation ever fails.
+  /// Surfaces through `CreatureStatus` to the client, which renders it with
+  /// `Image.network`.
+  String? imageUrl;
+
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
 
@@ -114,6 +125,7 @@ abstract class Creature
     int? illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    String? imageUrl,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -128,6 +140,7 @@ abstract class Creature
       'illness': illness,
       'hatchedAt': hatchedAt.toJson(),
       'lastDecayedAt': lastDecayedAt.toJson(),
+      if (imageUrl != null) 'imageUrl': imageUrl,
     };
   }
 
@@ -144,6 +157,7 @@ abstract class Creature
       'illness': illness,
       'hatchedAt': hatchedAt.toJson(),
       'lastDecayedAt': lastDecayedAt.toJson(),
+      if (imageUrl != null) 'imageUrl': imageUrl,
     };
   }
 
@@ -190,6 +204,7 @@ class _CreatureImpl extends Creature {
     required int illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    String? imageUrl,
   }) : super._(
          id: id,
          ownerUuid: ownerUuid,
@@ -200,6 +215,7 @@ class _CreatureImpl extends Creature {
          illness: illness,
          hatchedAt: hatchedAt,
          lastDecayedAt: lastDecayedAt,
+         imageUrl: imageUrl,
        );
 
   /// Returns a shallow copy of this [Creature]
@@ -216,6 +232,7 @@ class _CreatureImpl extends Creature {
     int? illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    Object? imageUrl = _Undefined,
   }) {
     return Creature(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -227,6 +244,7 @@ class _CreatureImpl extends Creature {
       illness: illness ?? this.illness,
       hatchedAt: hatchedAt ?? this.hatchedAt,
       lastDecayedAt: lastDecayedAt ?? this.lastDecayedAt,
+      imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
     );
   }
 }
@@ -277,6 +295,11 @@ class CreatureUpdateTable extends _i1.UpdateTable<CreatureTable> {
         table.lastDecayedAt,
         value,
       );
+
+  _i1.ColumnValue<String, String> imageUrl(String? value) => _i1.ColumnValue(
+    table.imageUrl,
+    value,
+  );
 }
 
 class CreatureTable extends _i1.Table<_i1.UuidValue?> {
@@ -316,6 +339,10 @@ class CreatureTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    imageUrl = _i1.ColumnString(
+      'imageUrl',
+      this,
+    );
   }
 
   late final CreatureUpdateTable updateTable;
@@ -345,6 +372,14 @@ class CreatureTable extends _i1.Table<_i1.UuidValue?> {
   /// by the real duration of whole decay ticks applied on each read/interaction.
   late final _i1.ColumnDateTime lastDecayedAt;
 
+  /// Public no-auth URL of the generated pixel-art body, stored in Serverpod
+  /// `public` DB storage and set at hatch (this change). Nullable so creatures
+  /// hatched before this feature — and the migration's existing rows — stay valid
+  /// and simply render without a sprite; also null if generation ever fails.
+  /// Surfaces through `CreatureStatus` to the client, which renders it with
+  /// `Image.network`.
+  late final _i1.ColumnString imageUrl;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -356,6 +391,7 @@ class CreatureTable extends _i1.Table<_i1.UuidValue?> {
     illness,
     hatchedAt,
     lastDecayedAt,
+    imageUrl,
   ];
 }
 

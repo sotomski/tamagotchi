@@ -26,6 +26,7 @@ abstract class Creature implements _i1.SerializableModel {
     required this.illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    this.imageUrl,
   }) : hatchedAt = hatchedAt ?? DateTime.now(),
        lastDecayedAt = lastDecayedAt ?? DateTime.now();
 
@@ -39,6 +40,7 @@ abstract class Creature implements _i1.SerializableModel {
     required int illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    String? imageUrl,
   }) = _CreatureImpl;
 
   factory Creature.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -62,6 +64,7 @@ abstract class Creature implements _i1.SerializableModel {
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['lastDecayedAt'],
             ),
+      imageUrl: jsonSerialization['imageUrl'] as String?,
     );
   }
 
@@ -93,6 +96,14 @@ abstract class Creature implements _i1.SerializableModel {
   /// by the real duration of whole decay ticks applied on each read/interaction.
   DateTime lastDecayedAt;
 
+  /// Public no-auth URL of the generated pixel-art body, stored in Serverpod
+  /// `public` DB storage and set at hatch (this change). Nullable so creatures
+  /// hatched before this feature — and the migration's existing rows — stay valid
+  /// and simply render without a sprite; also null if generation ever fails.
+  /// Surfaces through `CreatureStatus` to the client, which renders it with
+  /// `Image.network`.
+  String? imageUrl;
+
   /// Returns a shallow copy of this [Creature]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -106,6 +117,7 @@ abstract class Creature implements _i1.SerializableModel {
     int? illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    String? imageUrl,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -120,6 +132,7 @@ abstract class Creature implements _i1.SerializableModel {
       'illness': illness,
       'hatchedAt': hatchedAt.toJson(),
       'lastDecayedAt': lastDecayedAt.toJson(),
+      if (imageUrl != null) 'imageUrl': imageUrl,
     };
   }
 
@@ -142,6 +155,7 @@ class _CreatureImpl extends Creature {
     required int illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    String? imageUrl,
   }) : super._(
          id: id,
          ownerUuid: ownerUuid,
@@ -152,6 +166,7 @@ class _CreatureImpl extends Creature {
          illness: illness,
          hatchedAt: hatchedAt,
          lastDecayedAt: lastDecayedAt,
+         imageUrl: imageUrl,
        );
 
   /// Returns a shallow copy of this [Creature]
@@ -168,6 +183,7 @@ class _CreatureImpl extends Creature {
     int? illness,
     DateTime? hatchedAt,
     DateTime? lastDecayedAt,
+    Object? imageUrl = _Undefined,
   }) {
     return Creature(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -179,6 +195,7 @@ class _CreatureImpl extends Creature {
       illness: illness ?? this.illness,
       hatchedAt: hatchedAt ?? this.hatchedAt,
       lastDecayedAt: lastDecayedAt ?? this.lastDecayedAt,
+      imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
     );
   }
 }

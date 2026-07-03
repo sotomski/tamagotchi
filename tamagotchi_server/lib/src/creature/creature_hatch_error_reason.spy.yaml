@@ -10,3 +10,8 @@ values:
   ### blocks on this rather than degrading to canned prose, so no creature is
   ### created — the owner can simply retry.
   - narrativeUnavailable
+  ### The birth graphic could not be generated or stored (the Gemini image call
+  ### or the `public` storage write failed). Hatch blocks on this too — same
+  ### posture as `narrativeUnavailable`, so no creature is created and the owner
+  ### can simply retry.
+  - imageUnavailable

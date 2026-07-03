@@ -60,9 +60,14 @@ class _HatchFormState extends ConsumerState<HatchForm> {
               key: const Key('hatchNameField'),
               controller: _nameController,
               enabled: !isLoading,
+              // Mirror the server-side hatch name cap so the field can't submit
+              // an oversized name (bounds LLM/image prompt cost). The counter is
+              // hidden to keep the small field visually unchanged.
+              maxLength: 40,
               decoration: InputDecoration(
                 labelText: 'Name',
                 errorText: errorText,
+                counterText: '',
               ),
               onSubmitted: (_) {
                 if (!isLoading) _submit();
@@ -97,6 +102,8 @@ String? _hatchErrorText(Object? error) {
       case CreatureHatchErrorReason.narrativeUnavailable:
         return "Couldn't write your creature's birth story just now — "
             'please try again.';
+      case CreatureHatchErrorReason.imageUnavailable:
+        return "Couldn't draw your creature just now — please try again.";
     }
   }
   return 'Could not hatch — please try again.';
