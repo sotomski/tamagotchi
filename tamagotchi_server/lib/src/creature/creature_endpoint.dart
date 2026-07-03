@@ -1,8 +1,11 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../llm/critter_image_prompt.dart';
+import '../llm/critter_image_service.dart';
 import '../llm/llm_service.dart';
 import 'creature_service.dart';
 import 'cure_service.dart';
@@ -34,6 +37,14 @@ class CreatureEndpoint extends Endpoint {
     if (trimmedName.isEmpty) {
       throw CreatureHatchError(reason: CreatureHatchErrorReason.emptyName);
     }
+    // Cap the name so an unbounded string can't inflate the LLM/image prompt
+    // token cost or bloat the stored value. The client field enforces the same
+    // limit; this is the real guard for a direct RPC call. Names are short
+    // display labels, so a hard cap loses nothing meaningful.
+    const maxNameLength = 40;
+    final cappedName = trimmedName.length > maxNameLength
+        ? trimmedName.substring(0, maxNameLength)
+        : trimmedName;
 
     final existing = await Creature.db.findFirstRow(
       session,
@@ -43,7 +54,8 @@ class CreatureEndpoint extends Endpoint {
       throw CreatureHatchError(reason: CreatureHatchErrorReason.alreadyHatched);
     }
 
-    final mods = randomPersonalityModifiers(Random());
+    final rng = Random();
+    final mods = randomPersonalityModifiers(rng);
 
     // Birth narrative: a real LLM round-trip BEFORE the transaction (mirroring
     // feed's call-then-transaction ordering), so a failure throws and nothing is
@@ -55,7 +67,7 @@ class CreatureEndpoint extends Endpoint {
     try {
       birth = await hatchLlmServiceFactory(session).generateInteraction(
         session,
-        _birthRequest(trimmedName, mods),
+        _birthRequest(cappedName, mods),
       );
     } catch (e, stackTrace) {
       session.log(
@@ -69,18 +81,82 @@ class CreatureEndpoint extends Endpoint {
       );
     }
 
+    // Birth graphic: a blocking Gemini image round-trip + `public` storage write,
+    // also BEFORE the transaction (alongside the narrative call) so any failure
+    // throws and nothing is written — no half-hatched creature. The creature id is
+    // pre-generated here so it names the stored blob (`creatures/<id>.jpg`) and is
+    // set explicitly on the insert, letting `reset` delete the blob
+    // deterministically. The hermetic stub supplies deterministic bytes in
+    // dev/test/e2e, so only a real-key production call can actually fail — same
+    // block-on-failure posture as the narrative call, and again NO canned
+    // fallback.
+    final creatureId = UuidValue.fromString(const Uuid().v7());
+    final path = 'creatures/$creatureId.jpg';
+    final String imageUrl;
+    try {
+      final bytes = await critterImageServiceFactory(session).generateImage(
+        session,
+        _imageRequest(
+          cappedName,
+          mods,
+          creatureId,
+          rng.nextInt(_imageSeedBound),
+        ),
+      );
+      await session.storage.storeFile(
+        storageId: 'public',
+        path: path,
+        byteData: ByteData.view(
+          bytes.buffer,
+          bytes.offsetInBytes,
+          bytes.lengthInBytes,
+        ),
+      );
+      final url = await session.storage.getPublicUrl(
+        storageId: 'public',
+        path: path,
+      );
+      if (url == null) {
+        throw StateError('public storage returned a null URL for $path');
+      }
+      imageUrl = url.toString();
+    } catch (e, stackTrace) {
+      session.log(
+        'Hatch image generation/store failed; blocking the hatch '
+        '(no canned fallback)',
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      // A store that succeeded before a later failure (e.g. a null public URL)
+      // leaves an orphaned blob no row will ever reference — best-effort remove
+      // it so a blocked hatch truly writes nothing (mirrors reset's cleanup).
+      await _deleteCreatureBlobBestEffort(
+        session,
+        path,
+        context:
+            'Hatch: failed to delete the orphaned creature image after a '
+            'blocked hatch (ignored)',
+      );
+      throw CreatureHatchError(
+        reason: CreatureHatchErrorReason.imageUnavailable,
+      );
+    }
+
     final Creature creature;
     try {
       creature = await session.db.transaction((transaction) async {
         final created = await Creature.db.insertRow(
           session,
           Creature(
+            id: creatureId,
             ownerUuid: ownerUuid,
-            name: trimmedName,
+            name: cappedName,
             hunger: baselineCreatureStats.hunger,
             energy: baselineCreatureStats.energy,
             love: baselineCreatureStats.love,
             illness: baselineCreatureStats.illness,
+            imageUrl: imageUrl,
           ),
           transaction: transaction,
         );
@@ -115,6 +191,16 @@ class CreatureEndpoint extends Endpoint {
         return created;
       });
     } catch (e) {
+      // The image blob was stored before this transaction ran; a failed insert
+      // (including the raced duplicate-hatch backstop below) leaves it orphaned,
+      // since no row will reference it. Best-effort remove it before surfacing.
+      await _deleteCreatureBlobBestEffort(
+        session,
+        path,
+        context:
+            'Hatch: failed to delete the creature image after a failed insert '
+            '(ignored)',
+      );
       // The non-atomic pre-check can be raced: a concurrent hatch may commit
       // between our check and insert, and the owner unique index then rejects
       // ours. Rather than parse the violation's table/constraint strings,
@@ -150,6 +236,14 @@ class CreatureEndpoint extends Endpoint {
       session.authenticated!.userIdentifier,
     );
 
+    // Read the creature first so we know its id: the stored birth graphic is
+    // keyed by it (`creatures/<id>.jpg`), and no row is left to consult once the
+    // delete below runs.
+    final creature = await Creature.db.findFirstRow(
+      session,
+      where: (t) => t.ownerUuid.equals(ownerUuid),
+    );
+
     // One owner-scoped delete: the `onDelete=Cascade` FKs on
     // `creature_personality` and `journal_entry` let Postgres remove the
     // personality and journal rows as the single creature row goes. Deleting
@@ -161,6 +255,41 @@ class CreatureEndpoint extends Endpoint {
         transaction: transaction,
       ),
     );
+
+    // Best-effort blob cleanup, AFTER the row delete succeeds: a storage error
+    // must not fail reset (the user-facing delete already committed, and an
+    // orphaned blob is harmless — its URL is never referenced again). No-op for a
+    // creatureless caller, and for pre-feature creatures whose blob never existed
+    // `deleteFile` is a harmless miss.
+    if (creature != null) {
+      await _deleteCreatureBlobBestEffort(
+        session,
+        'creatures/${creature.id}.jpg',
+        context: 'reset: failed to delete the stored creature image (ignored)',
+      );
+    }
+  }
+
+  /// Best-effort deletion of a creature's stored birth graphic
+  /// (`creatures/<id>.jpg`): a storage error is logged and swallowed. Used by
+  /// cleanup paths where a failed delete must not mask the real outcome — after
+  /// [reset] has already committed, and when [hatch] is already blocking and must
+  /// leave nothing behind. Deleting a blob that never existed is a harmless miss.
+  Future<void> _deleteCreatureBlobBestEffort(
+    Session session,
+    String path, {
+    required String context,
+  }) async {
+    try {
+      await session.storage.deleteFile(storageId: 'public', path: path);
+    } catch (e, stackTrace) {
+      session.log(
+        context,
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// Returns the caller's creature with its derived mood, or null if none.
@@ -674,6 +803,32 @@ class CreatureEndpoint extends Endpoint {
         recentEntries: const [],
       );
 
+  /// Builds the [CritterImageRequest] for [name] from the freshly-rolled [mods],
+  /// keyed to the pre-generated [creatureId] and a fresh variety [seed]. Like
+  /// [_birthRequest] it wraps [mods] in a throwaway [CreaturePersonality] whose
+  /// modifiers drive `critterVisualHints`; the [creatureId] only tags that
+  /// personality (never read as an FK here). [seed] varies the sprite between
+  /// hatches so two creatures with identical modifiers still differ.
+  CritterImageRequest _imageRequest(
+    String name,
+    PersonalityModifiers mods,
+    UuidValue creatureId,
+    int seed,
+  ) => CritterImageRequest(
+    personality: CreaturePersonality(
+      creatureId: creatureId,
+      hungerDecayMod: mods.hungerDecayMod,
+      hungerRegenMod: mods.hungerRegenMod,
+      energyDecayMod: mods.energyDecayMod,
+      energyRegenMod: mods.energyRegenMod,
+      loveRegenMod: mods.loveRegenMod,
+      illnessDecayMod: mods.illnessDecayMod,
+      illnessRegenMod: mods.illnessRegenMod,
+    ),
+    name: name,
+    seed: seed,
+  );
+
   CreatureMood _moodOf(Creature c) =>
       deriveMood(c.hunger, c.energy, c.love, c.illness);
 
@@ -694,9 +849,23 @@ class CreatureEndpoint extends Endpoint {
 /// pagination is deferred (`research.md` Open Q1).
 const int _journalReadCap = 500;
 
+/// Exclusive upper bound for the per-hatch image variety seed — a non-negative
+/// 31-bit int, well within `Random.nextInt`'s 2^32 ceiling. Only varies the
+/// prompt, so the exact range is not load-bearing.
+const int _imageSeedBound = 1 << 31;
+
 /// Dependency seam for hatch's birth-narrative LLM call. Defaults to the
 /// production wiring [llmServiceFor] (real Mistral when a key is present, the
 /// hermetic stub otherwise); tests reassign it to inject a deliberately-throwing
 /// [LlmService] (to exercise block-on-failure) and self-clean with `addTearDown`.
 /// Not a test-only member — its default IS the production injection point.
 LlmService Function(Session session) hatchLlmServiceFactory = llmServiceFor;
+
+/// Dependency seam for hatch's birth-graphic image call. Defaults to the
+/// production wiring [critterImageServiceFor] (real Gemini when a key is present,
+/// the hermetic stub otherwise); tests reassign it to inject a
+/// deliberately-throwing [CritterImageService] (to exercise block-on-failure) and
+/// self-clean with `addTearDown`. Not a test-only member — its default IS the
+/// production injection point.
+CritterImageService Function(Session session) critterImageServiceFactory =
+    critterImageServiceFor;
