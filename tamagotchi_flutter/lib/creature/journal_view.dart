@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tamagotchi_client/tamagotchi_client.dart';
 
+import '../app/retro_loader.dart';
 import 'journal_format.dart';
 import 'journal_provider.dart';
 
@@ -36,9 +37,7 @@ class JournalView extends ConsumerWidget {
         Expanded(
           child: journal.when(
             loading: () => const Center(
-              child: CircularProgressIndicator(
-                key: Key('journalLoadingIndicator'),
-              ),
+              child: RetroLoader(key: Key('journalLoadingIndicator')),
             ),
             error: (error, _) => _JournalLoadError(
               onRetry: () => ref.invalidate(journalProvider),
@@ -284,7 +283,9 @@ class _DeltaChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        // Square + thick outline, matching the theme's panels/cards
+        // (`_squareShape`) instead of the old rounded corners.
+        border: Border.all(color: theme.colorScheme.outline, width: 2),
       ),
       child: Text(
         '$label $sign$value',

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+import 'package:tamagotchi_client/tamagotchi_client.dart';
 
 import '../app/client_provider.dart';
+import '../app/retro_loader.dart';
 import '../creature/creature_provider.dart';
 import '../creature/creature_view.dart';
 import '../creature/hatch_form.dart';
@@ -15,10 +17,11 @@ import '../creature/reset_controller.dart';
 /// The router's auth gate guarantees an authenticated viewer here. The body is
 /// driven by [creatureProvider]: a spinner while loading, an inline error with
 /// retry on failure, the [HatchForm] empty state when the user has no creature,
-/// and — once a creature exists — a 50/50 split with the [CreatureView] stats on
-/// the left and the embedded [JournalView] history on the right. The [AppBar]
-/// log-out action calls `client.auth.signOutDevice()`; the gate's
-/// `refreshListenable` then bounces the now-signed-out user back to `/sign-in`.
+/// and — once a creature exists — the responsive [HomeBody] (two-pane
+/// [CreatureView] | [JournalView] on a wide window, Creature/Journal tabs on a
+/// narrow one). The [AppBar] log-out action calls `client.auth.signOutDevice()`;
+/// the gate's `refreshListenable` then bounces the now-signed-out user back to
+/// `/sign-in`.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -52,6 +55,10 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI-Tamagotchi'),
+        // The default actionsPadding is EdgeInsets.zero, so the trailing Log out
+        // button otherwise hugs the right edge. Inset it so it sits off the edge
+        // symmetrically with the toolbar's vertical breathing room.
+        actionsPadding: const EdgeInsets.only(right: 8),
         actions: [
           // A text-labelled action (not a bare icon): the labels render from the
           // app font, so they stay visible on Flutter web even when the
@@ -82,26 +89,75 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: creatureStatus.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(
-            key: Key('creatureLoadingIndicator'),
-          ),
+          child: RetroLoader(key: Key('creatureLoadingIndicator')),
         ),
         error: (error, _) => _CreatureLoadError(
           onRetry: () => ref.invalidate(creatureProvider),
         ),
-        // No creature → just the hatch form. With a creature → a 50/50 split:
-        // the stats view on the left, the journal history on the right.
-        data: (status) => status == null
-            ? const HatchForm()
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: CreatureView(status: status)),
-                  const VerticalDivider(width: 1),
-                  const Expanded(child: JournalView()),
+        // No creature → just the hatch form. With a creature → the responsive
+        // two-pane / tabbed body.
+        data: (status) =>
+            status == null ? const HatchForm() : HomeBody(status: status),
+      ),
+    );
+  }
+}
+
+/// The present-creature home body, laid out by viewport width.
+///
+/// [CreatureView] and [JournalView] both stay fully usable on a phone: at or
+/// above [_wideBreakpoint] they sit side-by-side (the desktop two-pane split
+/// with a [VerticalDivider]); below it — a phone-shaped window — they split into
+/// Creature / Journal tabs so neither half is squeezed into an unusable column.
+///
+/// A plain [StatelessWidget] (not a `ConsumerWidget`): [CreatureView] already
+/// takes its [status] directly and does its own provider watching, so this
+/// layout shell needs no `ref`. Extracted from [HomeScreen] so the breakpoint is
+/// unit-testable without the auth/reset chrome (see `home_layout_test.dart`).
+class HomeBody extends StatelessWidget {
+  const HomeBody({required this.status, super.key});
+
+  final CreatureStatus status;
+
+  /// Width at/above which the two panes sit side-by-side; below it they tab.
+  static const double _wideBreakpoint = 700;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= _wideBreakpoint) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: CreatureView(status: status)),
+              const VerticalDivider(width: 1),
+              const Expanded(child: JournalView()),
+            ],
+          );
+        }
+        return DefaultTabController(
+          length: 2,
+          child: Column(
+            children: [
+              const TabBar(
+                tabs: [
+                  Tab(text: 'Creature'),
+                  Tab(text: 'Journal'),
                 ],
               ),
-      ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    CreatureView(status: status),
+                    const JournalView(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

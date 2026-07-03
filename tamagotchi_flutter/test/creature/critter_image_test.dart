@@ -33,7 +33,7 @@ void main() {
 
       expect(find.byKey(const Key('critterImage')), findsOneWidget);
       expect(find.byType(Image), findsOneWidget);
-      expect(tester.getSize(find.byType(CritterImage)), const Size(128, 128));
+      expect(tester.getSize(find.byType(CritterImage)), const Size(256, 256));
     });
 
     testWidgets('honours a custom size', (tester) async {
