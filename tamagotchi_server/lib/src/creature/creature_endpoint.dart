@@ -37,6 +37,14 @@ class CreatureEndpoint extends Endpoint {
     if (trimmedName.isEmpty) {
       throw CreatureHatchError(reason: CreatureHatchErrorReason.emptyName);
     }
+    // Cap the name so an unbounded string can't inflate the LLM/image prompt
+    // token cost or bloat the stored value. The client field enforces the same
+    // limit; this is the real guard for a direct RPC call. Names are short
+    // display labels, so a hard cap loses nothing meaningful.
+    const maxNameLength = 40;
+    final cappedName = trimmedName.length > maxNameLength
+        ? trimmedName.substring(0, maxNameLength)
+        : trimmedName;
 
     final existing = await Creature.db.findFirstRow(
       session,
@@ -59,7 +67,7 @@ class CreatureEndpoint extends Endpoint {
     try {
       birth = await hatchLlmServiceFactory(session).generateInteraction(
         session,
-        _birthRequest(trimmedName, mods),
+        _birthRequest(cappedName, mods),
       );
     } catch (e, stackTrace) {
       session.log(
@@ -89,7 +97,7 @@ class CreatureEndpoint extends Endpoint {
       final bytes = await critterImageServiceFactory(session).generateImage(
         session,
         _imageRequest(
-          trimmedName,
+          cappedName,
           mods,
           creatureId,
           rng.nextInt(_imageSeedBound),
@@ -120,6 +128,16 @@ class CreatureEndpoint extends Endpoint {
         exception: e,
         stackTrace: stackTrace,
       );
+      // A store that succeeded before a later failure (e.g. a null public URL)
+      // leaves an orphaned blob no row will ever reference — best-effort remove
+      // it so a blocked hatch truly writes nothing (mirrors reset's cleanup).
+      await _deleteCreatureBlobBestEffort(
+        session,
+        path,
+        context:
+            'Hatch: failed to delete the orphaned creature image after a '
+            'blocked hatch (ignored)',
+      );
       throw CreatureHatchError(
         reason: CreatureHatchErrorReason.imageUnavailable,
       );
@@ -133,7 +151,7 @@ class CreatureEndpoint extends Endpoint {
           Creature(
             id: creatureId,
             ownerUuid: ownerUuid,
-            name: trimmedName,
+            name: cappedName,
             hunger: baselineCreatureStats.hunger,
             energy: baselineCreatureStats.energy,
             love: baselineCreatureStats.love,
@@ -173,6 +191,16 @@ class CreatureEndpoint extends Endpoint {
         return created;
       });
     } catch (e) {
+      // The image blob was stored before this transaction ran; a failed insert
+      // (including the raced duplicate-hatch backstop below) leaves it orphaned,
+      // since no row will reference it. Best-effort remove it before surfacing.
+      await _deleteCreatureBlobBestEffort(
+        session,
+        path,
+        context:
+            'Hatch: failed to delete the creature image after a failed insert '
+            '(ignored)',
+      );
       // The non-atomic pre-check can be raced: a concurrent hatch may commit
       // between our check and insert, and the owner unique index then rejects
       // ours. Rather than parse the violation's table/constraint strings,
@@ -234,19 +262,33 @@ class CreatureEndpoint extends Endpoint {
     // creatureless caller, and for pre-feature creatures whose blob never existed
     // `deleteFile` is a harmless miss.
     if (creature != null) {
-      try {
-        await session.storage.deleteFile(
-          storageId: 'public',
-          path: 'creatures/${creature.id}.jpg',
-        );
-      } catch (e, stackTrace) {
-        session.log(
-          'reset: failed to delete the stored creature image (ignored)',
-          level: LogLevel.warning,
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
+      await _deleteCreatureBlobBestEffort(
+        session,
+        'creatures/${creature.id}.jpg',
+        context: 'reset: failed to delete the stored creature image (ignored)',
+      );
+    }
+  }
+
+  /// Best-effort deletion of a creature's stored birth graphic
+  /// (`creatures/<id>.jpg`): a storage error is logged and swallowed. Used by
+  /// cleanup paths where a failed delete must not mask the real outcome — after
+  /// [reset] has already committed, and when [hatch] is already blocking and must
+  /// leave nothing behind. Deleting a blob that never existed is a harmless miss.
+  Future<void> _deleteCreatureBlobBestEffort(
+    Session session,
+    String path, {
+    required String context,
+  }) async {
+    try {
+      await session.storage.deleteFile(storageId: 'public', path: path);
+    } catch (e, stackTrace) {
+      session.log(
+        context,
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

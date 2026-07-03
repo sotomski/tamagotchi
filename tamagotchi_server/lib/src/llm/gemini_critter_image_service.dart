@@ -91,8 +91,13 @@ class GeminiCritterImageService implements CritterImageService {
     // candidates[0].content.parts[*].inlineData.data. Scan the parts (a text
     // part can accompany the image) for the first one carrying inline data.
     final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-    final parts =
-        decoded['candidates']?[0]?['content']?['parts'] as List<dynamic>?;
+    final candidates = decoded['candidates'] as List<dynamic>?;
+    if (candidates == null || candidates.isEmpty) {
+      // A safety-blocked or empty response yields `candidates: []`; guard the
+      // empty list so it surfaces this descriptive error, not a RangeError.
+      throw Exception('Gemini response missing candidates: ${response.body}');
+    }
+    final parts = candidates[0]?['content']?['parts'] as List<dynamic>?;
     if (parts == null) {
       throw Exception(
         'Gemini response missing candidates[0].content.parts: ${response.body}',
