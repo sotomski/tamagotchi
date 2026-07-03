@@ -520,25 +520,25 @@ new prompt.
 
 #### Automated
 
-- [x] 4.1 Flutter analyze passes
-- [x] 4.2 Format clean (flutter)
-- [x] 4.3 All Flutter tests pass incl. updated `critter_image_test.dart`
+- [x] 4.1 Flutter analyze passes — 91fe637
+- [x] 4.2 Format clean (flutter) — 91fe637
+- [x] 4.3 All Flutter tests pass incl. updated `critter_image_test.dart` — 91fe637
 
 #### Manual
 
-- [x] 4.4 Sprite renders at 256px, crisp not blurred
-- [x] 4.5 No aliasing/shimmer (or size/filter adjusted per note)
+- [x] 4.4 Sprite renders at 256px, crisp not blurred — 91fe637
+- [x] 4.5 No aliasing/shimmer (or size/filter adjusted per note) — 91fe637
 
 ### Phase 5: Dark sprite background (server prompt)
 
 #### Automated
 
-- [ ] 5.1 Server analyze passes
-- [ ] 5.2 Format clean (server)
-- [ ] 5.3 Server tests pass incl. updated prompt test
+- [x] 5.1 Server analyze passes
+- [x] 5.2 Format clean (server)
+- [x] 5.3 Server tests pass incl. updated prompt test
 
 #### Manual
 
-- [ ] 5.4 New real-key hatch: sprite born on dark screen colour, blends into panel
-- [ ] 5.5 Creature reads clearly on dark background (or screen colour lightened)
-- [ ] 5.6 Existing creatures still render without error
+- [x] 5.4 New real-key hatch: sprite born on dark screen colour, blends into panel
+- [x] 5.5 Creature reads clearly on dark background (or screen colour lightened)
+- [x] 5.6 Existing creatures still render without error
