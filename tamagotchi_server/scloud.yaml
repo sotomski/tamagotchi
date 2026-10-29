@@ -9,7 +9,7 @@
 
 project:
   projectId: "tamagotchi"
-  dartSdk: "3.8.0"
+  dartSdk: "3.12"
   scripts:
     pre_deploy: []
     post_deploy: []
