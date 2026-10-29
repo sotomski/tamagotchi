@@ -15,7 +15,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.0'
+          flutter-version: '3.44.9'
           cache: true
 
       - name: Install dependencies
@@ -24,4 +24,8 @@ jobs:
 
       - name: Analyze
         working-directory: tamagotchi_server
-        run: dart analyze --fatal-infos
+        # `flutter analyze`, not `dart analyze`: with the root riverpod_lint analyzer plugin,
+        # `dart analyze` hangs indefinitely (the plugin resolves outside the workspace lock, and
+        # every riverpod_lint compatible with this SDK's analysis_server_plugin — 3.1.8+ — stalls
+        # it). `flutter analyze` runs the same analyzer and analysis_options without the hang.
+        run: flutter analyze --fatal-infos
