@@ -85,7 +85,7 @@ This document is the persisted artifact of `/home/vscode/.claude/plans/let-s-per
 - **Watch runtime logs**: `scloud log --tail` from `tamagotchi_server/`; or `scloud log --since 1h --limit 200` for history.
 - **Roll back**: `scloud deployment list` to find the prior good build ID, then re-deploy that build. **Note**: per `infrastructure.md`, DB migrations are NOT auto-rolled back — a bad migration needs a forward-fix migration.
 - **Insights dashboard**: https://console.serverpod.dev/project/tamagotchi/insights
-- **scloud project**: project ID `tamagotchi`, owner `karol@codepublishing.eu`.
+- **scloud project**: project ID `tamagotchi`.
 
 ## Follow-ups (deferred from this deploy)
 
@@ -94,4 +94,3 @@ This document is the persisted artifact of `/home/vscode/.claude/plans/let-s-per
 - **Consolidate 4 CI workflows into one with `needs` chaining**: Tightens `workflow_run` semantics (deploy only when EVERY check passes, not just Tests). Structural CI refactor; defer.
 - **Cache `~/.pub-cache` + Flutter SDK in CI**: Lower run times. Defer.
 - **Revisit the migration-verify pool-lock timeout**: if it repeats on multiple deploys, file with Serverpod or tune `maxConnectionCount` / connection timeouts.
-- **Rotate the committed dev secrets in `config/passwords.yaml`**: they're in git history regardless; rotating them is a separate hygiene task. Not a deploy blocker because scloud doesn't ship `config/passwords.yaml` to production (excluded via `.scloudignore`).
