@@ -22,7 +22,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.0'
+          flutter-version: '3.44.9'
           cache: true
 
       - name: Install Serverpod CLIs
@@ -34,9 +34,10 @@ jobs:
         # rejected (deploy run 28663805860 got 0.32.0 while the server required 0.33.0). Pinning forces
         # pub to resolve the required version's full graph. Bump this together with the devcontainer's
         # SERVERPOD_CLOUD_CLI_VERSION when the server force-requires a newer CLI.
+        # scloud CLI 1.x requires Dart >= 3.12.2 (via serverpod_client 4.x), i.e. Flutter >= 3.44.2.
         run: |
           dart pub global activate serverpod_cli 3.4.8
-          dart pub global activate serverpod_cloud_cli 0.33.0
+          dart pub global activate serverpod_cloud_cli 1.2.0
 
       - name: Build Flutter web bundle into server's web/app/
         working-directory: tamagotchi_server
