@@ -32,10 +32,12 @@ lefthook-local.yml
 
 # Agent skills — treat like `pub get`: commit the manifest, not the fetched skills.
 #   Fetch with: `skills get --ide claude` (manifest: .dart_skills/skills_config.json)
-# Ignore every fetched skill dir under .claude/skills/, but keep the hand-authored 10x-* ones.
+# Ignore every fetched skill dir under .claude/skills/ (incl. 10x-*, see below).
 /.claude/skills/*/
-!/.claude/skills/10x-*/
 # Dart skills CLI registry clone cache (regenerated on `skills get`).
 /.dart_skills/repos/
+# 10xDevs course content (paid, login-gated) — fetched locally via `npx @przeprogramowani/10x-cli get <lesson>`, never committed.
+/.claude/prompts/
+/.claude/.10x-cli-manifest.json
 # Per-session scheduler lock — machine/session-local runtime state, not source.
 /.claude/scheduled_tasks.lock
